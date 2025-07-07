@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Profil')}"></head>
+<link rel="stylesheet" th:href="@{/css/profile.css}">
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <!-- Modern Profile Hero Section -->
+    <section class="modern-profile-hero">
+        <div class="hero-background"></div>
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <nav aria-label="breadcrumb" class="custom-breadcrumb mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/">Ana Səhifə</a></li>
+                            <li class="breadcrumb-item active">Profil</li>
+                        </ol>
+                    </nav>
+                    
+                    <div class="modern-profile-header">
+                        <div class="profile-avatar-section">
+                            <div class="avatar-wrapper">
+                                <div class="avatar-ring">
+                                    <div class="avatar-circle">
+                                        <i class="bi bi-person-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="status-indicator">
+                                    <div class="online-dot"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-details">
+                            <div class="user-name-section">
+                                <h1 class="user-display-name" th:text="${user.username}">İstifadəçi Adı</h1>
+                                <div class="verified-badge">
+                                    <i class="bi bi-patch-check-fill"></i>
+                                    Təsdiqlənmiş
+                                </div>
+                            </div>
+                            
+                            <div class="contact-info">
+                                <div class="email-display">
+                                    <i class="bi bi-envelope"></i>
+                                    <span th:text="${user.email}">email@example.com</span>
+                                </div>
+                                <div class="join-date" th:if="${user.createdAt}">
+                                    <i class="bi bi-calendar"></i>
+                                    <span th:text="'Üzv oldu: ' + ${#temporals.format(user.createdAt, 'MMMM yyyy')}">Üzv oldu: Yanvar 2024</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="user-stats">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="bi bi-bag-check"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-number" th:text="${orders != null and !orders.isEmpty() ? #lists.size(orders) : '0'}">0</div>
+                                    <div class="stat-label">Sifarişlər</div>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card balance-card">
+                                <div class="stat-icon">
+                                    <i class="bi bi-wallet2"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-number" th:text="${user.balance ?: '0.00'}">100.00</div>
+                                    <div class="stat-label">Balans (AZN)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Enhanced Sidebar Navigation -->
+                <div class="col-lg-3 mb-4">
+                    <div class="modern-sidebar">
+                        <div class="sidebar-header">
+                            <div class="header-icon">
+                                <i class="bi bi-gear-fill"></i>
+                            </div>
+                            <h5 class="header-title">Hesab İdarəsi</h5>
+                        </div>
+                        
+                        <div class="sidebar-menu">
+                            <div class="menu-section">
+                                <div class="section-label">Şəxsi</div>
+                                <nav class="nav nav-pills flex-column">
+                                    <a class="nav-link active" data-tab="profile">
+                                        <div class="link-icon">
+                                            <i class="bi bi-person-circle"></i>
+                                        </div>
+                                        <div class="link-content">
+                                            <span class="link-title">Profil Məlumatları</span>
+                                            <span class="link-desc">Şəxsi məlumatlarınız</span>
+                                        </div>
+                                    </a>
+                                    
+                                    <a class="nav-link" data-tab="orders">
+                                        <div class="link-icon">
+                                            <i class="bi bi-bag-check"></i>
+                                        </div>
+                                        <div class="link-content">
+                                            <span class="link-title">Sifarişlərim</span>
+                                            <span class="link-desc">Bütün sifarişləriniz</span>
+                                        </div>
+                                        <div class="link-badge" th:if="${orders != null and !orders.isEmpty()}">
+                                            <span th:text="${#lists.size(orders)}">0</span>
+                                        </div>
+                                    </a>
+                                    
+                                    <a class="nav-link" data-tab="balance">
+                                        <div class="link-icon">
+                                            <i class="bi bi-credit-card-2-front"></i>
+                                        </div>
+                                        <div class="link-content">
+                                            <span class="link-title">Balans və Ödəniş</span>
+                                            <span class="link-desc">Maliyyə əməliyyatları</span>
+                                        </div>
+                                    </a>
+                                </nav>
+                            </div>
+                            
+                            <div class="menu-section">
+                                <div class="section-label">Təhlükəsizlik</div>
+                                <nav class="nav nav-pills flex-column">
+                                    <a class="nav-link" data-tab="security">
+                                        <div class="link-icon">
+                                            <i class="bi bi-shield-lock"></i>
+                                        </div>
+                                        <div class="link-content">
+                                            <span class="link-title">Təhlükəsizlik</span>
+                                            <span class="link-desc">Şifrə və qorunma</span>
+                                        </div>
+                                    </a>
+                                    
+                                    <a class="nav-link" data-tab="notifications">
+                                        <div class="link-icon">
+                                            <i class="bi bi-bell-fill"></i>
+                                        </div>
+                                        <div class="link-content">
+                                            <span class="link-title">Bildirişlər</span>
+                                            <span class="link-desc">Bildiriş tənzimləmələri</span>
+                                        </div>
+                                    </a>
+                                </nav>
+                            </div>
+                            
+                            <div class="menu-section" th:if="${user.role.name() == 'USER'}">
+                                <div class="section-label">Satış</div>
+                                <a class="seller-upgrade-card" href="/user/seller-request">
+                                    <div class="upgrade-icon">
+                                        <i class="bi bi-shop"></i>
+                                    </div>
+                                    <div class="upgrade-content">
+                                        <div class="upgrade-title">Satıcı Ol</div>
+                                        <div class="upgrade-desc">Məhsul satın və gəlir əldə et</div>
+                                    </div>
+                                    <div class="upgrade-arrow">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="col-lg-9">
+                    <div class="tab-content">
+                        <!-- Enhanced Profile Tab -->
+                        <div class="tab-pane active" id="profile-tab">
+                            <div class="modern-card">
+                                <div class="card-header">
+                                    <div class="header-content">
+                                        <div class="header-icon">
+                                            <i class="bi bi-person-gear"></i>
+                                        </div>
+                                        <div class="header-text">
+                                            <h4 class="header-title">Şəxsi Məlumatlar</h4>
+                                            <p class="header-subtitle">Hesab məlumatlarınızı idarə edin</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <form th:action="@{/profile/edit}" method="post" class="modern-form">
+                                        <div class="form-section">
+                                            <div class="section-title">
+                                                <h6>Əsas Məlumatlar</h6>
+                                            </div>
+                                            
+                                            <div class="row g-4">
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="text" class="form-control modern-input" name="username" 
+                                                               th:value="${user.username}" id="username" placeholder="İstifadəçi adı" required>
+                                                        <label for="username">
+                                                            <i class="bi bi-person me-2"></i>İstifadəçi adı
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="email" class="form-control modern-input" name="email" 
+                                                               th:value="${user.email}" id="email" placeholder="Email" required>
+                                                        <label for="email">
+                                                            <i class="bi bi-envelope me-2"></i>Email ünvanı
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="text" class="form-control modern-input" name="firstName" 
+                                                               value="" id="firstName" placeholder="Ad">
+                                                        <label for="firstName">
+                                                            <i class="bi bi-person me-2"></i>Ad
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="text" class="form-control modern-input" name="lastName" 
+                                                               value="" id="lastName" placeholder="Soyad">
+                                                        <label for="lastName">
+                                                            <i class="bi bi-person me-2"></i>Soyad
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="tel" class="form-control modern-input" name="phoneNumber" 
+                                                               th:value="${user.phoneNumber}" id="phoneNumber" placeholder="Telefon nömrəsi">
+                                                        <label for="phoneNumber">
+                                                            <i class="bi bi-telephone me-2"></i>Telefon nömrəsi
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <div class="info-card">
+                                                        <div class="info-icon">
+                                                            <i class="bi bi-calendar"></i>
+                                                        </div>
+                                                        <div class="info-content">
+                                                            <div class="info-label">Üzv olma tarixi</div>
+                                                            <div class="info-value" th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd MMMM yyyy') : 'Bilinmir'}">
+                                                                01 Yanvar 2024
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-section">
+                                            <div class="section-title">
+                                                <h6>Hesab Məlumatları</h6>
+                                            </div>
+                                            
+                                            <div class="row g-4">
+                                                <div class="col-md-6">
+                                                    <div class="info-card">
+                                                        <div class="info-icon">
+                                                            <i class="bi bi-shield-check"></i>
+                                                        </div>
+                                                        <div class="info-content">
+                                                            <div class="info-label">Hesab Statusu</div>
+                                                            <div class="info-value">Təsdiqlənmiş</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <div class="info-card">
+                                                        <div class="info-icon">
+                                                            <i class="bi bi-person-badge"></i>
+                                                        </div>
+                                                        <div class="info-content">
+                                                            <div class="info-label">Rol</div>
+                                                            <div class="info-value" th:text="${user.role.name()}">User</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn btn-primary btn-lg">
+                                                <i class="bi bi-check-circle me-2"></i>
+                                                Məlumatları Yenilə
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-lg">
+                                                <i class="bi bi-x-circle me-2"></i>
+                                                Ləğv et
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Orders Tab -->
+                        <div class="tab-pane" id="orders-tab">
+                            <div class="modern-card">
+                                <div class="card-header">
+                                    <div class="header-content">
+                                        <div class="header-icon">
+                                            <i class="bi bi-bag-check"></i>
+                                        </div>
+                                        <div class="header-text">
+                                            <h4 class="header-title">Sifarişlərim</h4>
+                                            <p class="header-subtitle">Bütün sifarişlərinizin siyahısı</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <div class="orders-list" th:if="${orders != null and !orders.isEmpty()}">
+                                        <div class="order-item" th:each="order : ${orders}">
+                                            <div class="order-header">
+                                                <div class="order-info">
+                                                    <div class="order-number">Sifariş #<span th:text="${order.id}">12345</span></div>
+                                                    <div class="order-date" th:text="${#temporals.format(order.createdAt, 'dd MMMM yyyy, HH:mm')}">01 Yanvar 2024, 15:30</div>
+                                                </div>
+                                                <div class="status-badge" th:class="'status-badge ' + ${order.status}" th:text="${order.status}">PENDING</div>
+                                            </div>
+                                            
+                                            <div class="order-content">
+                                                <div class="product-info">
+                                                    <div class="product-title" th:text="${order.product.name}">Məhsul Adı</div>
+                                                    <div class="product-seller">Satıcı: <span th:text="${order.product.seller.username}">Satıcı Adı</span></div>
+                                                </div>
+                                                <div class="order-price" th:text="${order.totalAmount} + ' AZN'">25.00 AZN</div>
+                                            </div>
+                                            
+                                            <div class="order-actions">
+                                                <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-eye me-1"></i>
+                                                    Bax
+                                                </a>
+                                                <button class="btn btn-primary btn-sm" th:if="${order.status.toString() == 'COMPLETED'}">
+                                                    <i class="bi bi-download me-1"></i>
+                                                    Yüklə
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="empty-state" th:if="${orders == null or orders.isEmpty()}">
+                                        <div class="empty-icon">
+                                            <i class="bi bi-bag"></i>
+                                        </div>
+                                        <h5>Hələ sifariş verməmisiniz</h5>
+                                        <p class="text-muted">Məhsulları kəşf edin və ilk sifarişinizi verin</p>
+                                        <a href="/" class="btn btn-primary">Məhsullara bax</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Balance Tab -->
+                        <div class="tab-pane" id="balance-tab">
+                            <div class="modern-card">
+                                <div class="card-header">
+                                    <div class="header-content">
+                                        <div class="header-icon">
+                                            <i class="bi bi-wallet2"></i>
+                                        </div>
+                                        <div class="header-text">
+                                            <h4 class="header-title">Balans və Ödəniş</h4>
+                                            <p class="header-subtitle">Maliyyə hesabınızı idarə edin</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <div class="balance-overview">
+                                        <div class="balance-card">
+                                            <div class="balance-icon">
+                                                <i class="bi bi-credit-card"></i>
+                                            </div>
+                                            <div class="balance-info">
+                                                <div class="balance-amount" th:text="${user.balance ?: '0.00'} + ' AZN'">100.00 AZN</div>
+                                                <div class="balance-label">Cari Balans</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="balance-actions">
+                                        <a href="/balance" class="btn btn-outline-primary">
+                                            <i class="bi bi-credit-card me-2"></i>Balans əlavə et
+                                        </a>
+                                        <a href="/user/transactions" class="btn btn-outline-secondary">
+                                            <i class="bi bi-list me-2"></i>Əməliyyat Tarixçəsi
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Tab -->
+                        <div class="tab-pane" id="security-tab">
+                            <div class="modern-card">
+                                <div class="card-header">
+                                    <div class="header-content">
+                                        <div class="header-icon">
+                                            <i class="bi bi-shield-lock"></i>
+                                        </div>
+                                        <div class="header-text">
+                                            <h4 class="header-title">Təhlükəsizlik</h4>
+                                            <p class="header-subtitle">Hesabınızı qoruyun</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <div class="security-section">
+                                        <h6 class="section-title">Şifrə Dəyişikliyi</h6>
+                                        <form th:action="@{/profile/change-password}" method="post">
+                                            <div class="row g-3">
+                                                <div class="col-md-12">
+                                                    <div class="form-floating">
+                                                        <input type="password" class="form-control modern-input" name="currentPassword" 
+                                                               id="currentPassword" placeholder="Cari şifrə" required>
+                                                        <label for="currentPassword">
+                                                            <i class="bi bi-lock me-2"></i>Cari şifrə
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="password" class="form-control modern-input" name="newPassword" 
+                                                               id="newPassword" placeholder="Yeni şifrə" required>
+                                                        <label for="newPassword">
+                                                            <i class="bi bi-key me-2"></i>Yeni şifrə
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="password" class="form-control modern-input" name="confirmPassword" 
+                                                               id="confirmPassword" placeholder="Şifrəni təkrarla" required>
+                                                        <label for="confirmPassword">
+                                                            <i class="bi bi-key me-2"></i>Şifrəni təkrarla
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-12">
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="bi bi-check-circle me-2"></i>
+                                                        Şifrəni Dəyiş
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    
+                                    <div class="security-section">
+                                        <h6 class="section-title">İki Faktorlu Təsdiqləmə</h6>
+                                        <div class="two-factor-status">
+                                            <div class="status-item">
+                                                <i class="bi bi-x-circle text-danger me-2"></i>
+                                                <span>İki faktorlu təsdiqləmə aktiv deyil</span>
+                                                <button class="btn btn-outline-primary btn-sm ms-auto">Aktivləşdir</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications Tab -->
+                        <div class="tab-pane" id="notifications-tab">
+                            <div class="modern-card">
+                                <div class="card-header">
+                                    <div class="header-content">
+                                        <div class="header-icon">
+                                            <i class="bi bi-bell-fill"></i>
+                                        </div>
+                                        <div class="header-text">
+                                            <h4 class="header-title">Bildirişlər</h4>
+                                            <p class="header-subtitle">Bildiriş tənzimləmələrinizi seçin</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <form th:action="@{/profile/notification-settings}" method="post">
+                                        <div class="notification-group">
+                                            <h6 class="group-title">Sifariş Bildirişləri</h6>
+                                            
+                                            <div class="notification-item">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="orderConfirmation" checked>
+                                                    <label class="form-check-label" for="orderConfirmation">
+                                                        <strong>Sifariş Təsdiqi</strong><br>
+                                                        <small class="text-muted">Sifarişiniz təsdiqlənəndə bildiriş al</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="notification-item">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="orderDelivery" checked>
+                                                    <label class="form-check-label" for="orderDelivery">
+                                                        <strong>Çatdırılma</strong><br>
+                                                        <small class="text-muted">Sifarişiniz tamamlananda bildiriş al</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="notification-group">
+                                            <h6 class="group-title">Məhsul Bildirişləri</h6>
+                                            
+                                            <div class="notification-item">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="newProducts">
+                                                    <label class="form-check-label" for="newProducts">
+                                                        <strong>Yeni Məhsullar</strong><br>
+                                                        <small class="text-muted">Yeni məhsullar əlavə ediləndə bildiriş al</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="notification-item">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="discounts">
+                                                    <label class="form-check-label" for="discounts">
+                                                        <strong>Endirimlər</strong><br>
+                                                        <small class="text-muted">Endirim və kampanyalar haqqında bildiriş al</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-check-circle me-2"></i>
+                                                Tənzimləmələri Saxla
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab navigation
+            document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active classes
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    
+                    // Show corresponding tab
+                    const tabId = this.getAttribute('data-tab') + '-tab';
+                    const tabPane = document.getElementById(tabId);
+                    if (tabPane) {
+                        tabPane.classList.add('active');
+                    }
+                });
+            });
+
+            // Form validation
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const requiredFields = this.querySelectorAll('[required]');
+                    let isValid = true;
+                    
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            field.classList.add('is-invalid');
+                            isValid = false;
+                        } else {
+                            field.classList.remove('is-invalid');
+                        }
+                    });
+                    
+                    if (!isValid) {
+                        e.preventDefault();
+                        showNotification('Zəhmət olmasa bütün məcburi sahələri doldurun', 'error');
+                    }
+                });
+            });
+            
+            // Password confirmation
+            const newPassword = document.querySelector('input[name="newPassword"]');
+            const confirmPassword = document.querySelector('input[name="confirmPassword"]');
+            
+            if (newPassword && confirmPassword) {
+                confirmPassword.addEventListener('input', function() {
+                    if (this.value !== newPassword.value) {
+                        this.setCustomValidity('Şifrələr uyğun gəlmir');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                });
+            }
+        });
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#667eea'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Add CSS for notification animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html> 

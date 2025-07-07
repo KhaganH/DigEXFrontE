@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Giriş')}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h4><i class="bi bi-box-arrow-in-right me-2"></i>Hesabınıza Daxil Olun</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- OAuth Login Options -->
+                        <div class="mb-4">
+                            <div class="d-grid gap-2">
+                                <a href="/oauth2/authorization/google" class="btn btn-outline-danger">
+                                    <i class="bi bi-google me-2"></i>Google ilə Daxil Ol
+                                </a>
+                                <a href="/oauth2/authorization/facebook" class="btn btn-outline-primary">
+                                    <i class="bi bi-facebook me-2"></i>Facebook ilə Daxil Ol
+                                </a>
+                            </div>
+                            
+                            <div class="text-center my-3">
+                                <span class="text-muted">və ya</span>
+                            </div>
+                        </div>
+
+                        <!-- Regular Login Form -->
+                        <form th:action="@{/login}" method="post" novalidate>
+                            <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <div class="mb-3">
+                                <label for="username" class="form-label">İstifadəçi adı və ya email</label>
+                                <input type="text" class="form-control" id="username" name="username" required 
+                                       aria-describedby="usernameHelp">
+                                <div id="usernameHelp" class="form-text">İstifadəçi adınızı və ya email ünvanınızı daxil edin</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Şifrə</label>
+                                <input type="password" class="form-control" id="password" name="password" required
+                                       aria-describedby="passwordHelp">
+                                <div id="passwordHelp" class="form-text">Şifrənizi daxil edin</div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="remember" name="remember-me">
+                                <label class="form-check-label" for="remember">Məni xatırla</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Daxil Ol
+                            </button>
+                        </form>
+                        
+                        <div class="text-center">
+                            <p class="mb-0">Hesabınız yoxdur? 
+                                <a href="/register" class="text-decoration-none">Qeydiyyatdan keçin</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+    
+    <script>
+        // Form validation enhancement
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

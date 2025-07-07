@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('İstifadə Şərtləri')}"></head>
+
+<body>
+    <header th:replace="~{fragments/layout :: header}"></header>
+
+    <section class="hero-section bg-gradient-danger text-white py-4">
+        <div class="container">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/" class="text-white-50 text-decoration-none">Ana Səhifə</a></li>
+                    <li class="breadcrumb-item active text-white">İstifadə Şərtləri</li>
+                </ol>
+            </nav>
+            <h1 class="h2 fw-bold"><i class="bi bi-file-text me-2"></i>İstifadə Şərtləri</h1>
+        </div>
+    </section>
+
+    <main class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-5">
+                            <div class="text-muted small mb-4">Son yenilənmə: 06 Yanvar 2025</div>
+
+                            <h3 class="fw-bold mb-4">1. Ümumi Şərtlər</h3>
+                            <p class="mb-4">
+                                DiGex platformasından istifadə etməklə siz bu istifadə şərtlərini qəbul etmiş olursunuz. 
+                                Bu şərtlər bütün istifadəçilər üçün məcburidir və dəyişikliklər bildiriş verilməklə həyata keçirilə bilər.
+                            </p>
+
+                            <h3 class="fw-bold mb-4">2. Qeydiyyat və Hesab</h3>
+                            <ul class="mb-4">
+                                <li>Qeydiyyat zamanı doğru məlumatlar təqdim etməlisiniz</li>
+                                <li>Hesabınızın təhlükəsizliyindən məsulsunuz</li>
+                                <li>Şifrənizi başqaları ilə paylaşmamalısınız</li>
+                                <li>18 yaşından kiçik şəxslər platformadan istifadə edə bilməz</li>
+                            </ul>
+
+                            <h3 class="fw-bold mb-4">3. Məhsul Alışı</h3>
+                            <ul class="mb-4">
+                                <li>Bütün məhsullar rəqəmsaldır və dərhal çatdırılır</li>
+                                <li>Məhsul alışından sonra geri qaytarma mümkün deyil</li>
+                                <li>Məhsul açarları yalnız bir dəfə istifadə oluna bilər</li>
+                                <li>Qiymətlər bildiriş verilməklə dəyişdirilə bilər</li>
+                            </ul>
+
+                            <h3 class="fw-bold mb-4">4. Ödəniş Şərtləri</h3>
+                            <ul class="mb-4">
+                                <li>Ödənişlər təhlükəsiz ödəniş sistemləri vasitəsilə həyata keçirilir</li>
+                                <li>Ödəniş məlumatlarınız şifrələnir və qorunur</li>
+                                <li>Uğursuz ödənişlər halında məbləğ geri qaytarılır</li>
+                                <li>Kommissiya haqqları mövcud ola bilər</li>
+                            </ul>
+
+                            <h3 class="fw-bold mb-4">5. Satıcı Şərtləri</h3>
+                            <ul class="mb-4">
+                                <li>Satıcılar yalnız orijinal və qanuni məhsullar təqdim edə bilər</li>
+                                <li>Məhsul təsvirləri doğru və tam olmalıdır</li>
+                                <li>Satış komissiyası hər əməliyyatdan tutulur</li>
+                                <li>Satıcı hesabları yoxlanılaraq təsdiqlənir</li>
+                            </ul>
+
+                            <h3 class="fw-bold mb-4">6. Qadağan Olunan Fəaliyyətlər</h3>
+                            <ul class="mb-4">
+                                <li>Saxtakarlıq və aldatma</li>
+                                <li>Başqasının hesabına icazəsiz giriş</li>
+                                <li>Spam və istənməyən məlumat göndərmə</li>
+                                <li>Məhsul açarlarının yenidən satışı</li>
+                                <li>Sistemə zərər verəcək fəaliyyətlər</li>
+                            </ul>
+
+                            <h3 class="fw-bold mb-4">7. Məsuliyyət</h3>
+                            <p class="mb-4">
+                                DiGex platforması məhsulların keyfiyyəti və istifadəsi ilə bağlı tam məsuliyyət daşımır. 
+                                Üçüncü tərəf məhsullarında problemlər yaranarsa, bilavasitə həmin məhsulun təminatçısı ilə əlaqə saxlamalısınız.
+                            </p>
+
+                            <h3 class="fw-bold mb-4">8. Məxfilik</h3>
+                            <p class="mb-4">
+                                İstifadəçi məlumatlarının qorunması və məxfiliyi bizim üçün prioritetdir. 
+                                Ətraflı məlumat üçün Məxfilik Siyasətimizi oxuyun.
+                            </p>
+
+                            <h3 class="fw-bold mb-4">9. Şərtlərin Dəyişdirilməsi</h3>
+                            <p class="mb-4">
+                                Bu şərtlər vaxtaşırı yenilənə bilər. Dəyişikliklər platformada elan ediləcək və 
+                                platformadan istifadəni davam etdirməklə yeni şərtləri qəbul etmiş sayılırsınız.
+                            </p>
+
+                            <h3 class="fw-bold mb-4">10. Əlaqə</h3>
+                            <p class="mb-4">
+                                Bu şərtlərlə bağlı suallarınız varsa, bizim dəstək komandamızla əlaqə saxlaya bilərsiniz:
+                                <br><strong>E-poçt:</strong> support@digex.az
+                                <br><strong>Telefon:</strong> +994 12 345 67 89
+                            </p>
+
+                            <div class="border-top pt-4 mt-5">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">© 2025 DiGex. Bütün hüquqlar qorunur.</small>
+                                    <div>
+                                        <a href="/privacy" class="btn btn-outline-secondary btn-sm me-2">Məxfilik Siyasəti</a>
+                                        <a href="/cookie-policy" class="btn btn-outline-secondary btn-sm">Cookie Siyasəti</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <style>
+        .hero-section { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+    </style>
+</body>
+</html> 

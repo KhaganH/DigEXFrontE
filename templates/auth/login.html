@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Daxil ol')}"></head>
+
+<body class="bg-light">
+    <div class="container-fluid vh-100">
+        <div class="row h-100">
+            <!-- Left Side - Image/Branding -->
+            <div class="col-lg-7 d-none d-lg-flex align-items-center justify-content-center bg-primary">
+                <div class="text-center text-white">
+                    <i class="bi bi-shop display-4 mb-3"></i>
+                    <h2 class="mb-3">DiGex Platformasına Xoş Gəlmisiniz</h2>
+                    <p class="lead">Azərbaycanda ən böyük rəqəmsal məhsul satış platforması</p>
+                    <div class="row text-center mt-4">
+                        <div class="col-4">
+                            <i class="bi bi-people display-6 mb-2"></i>
+                            <h5>10,000+</h5>
+                            <p class="small">İstifadəçi</p>
+                        </div>
+                        <div class="col-4">
+                            <i class="bi bi-box-seam display-6 mb-2"></i>
+                            <h5>5,000+</h5>
+                            <p class="small">Məhsul</p>
+                        </div>
+                        <div class="col-4">
+                            <i class="bi bi-lightning display-6 mb-2"></i>
+                            <h5>24/7</h5>
+                            <p class="small">Dəstək</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Login Form -->
+            <div class="col-lg-5 d-flex align-items-center justify-content-center">
+                <div class="w-100" style="max-width: 400px;">
+                    <!-- Logo for mobile -->
+                    <div class="text-center mb-4 d-lg-none">
+                        <i class="bi bi-shop text-primary" style="font-size: 3rem;"></i>
+                        <h3 class="text-primary">DiGex</h3>
+                    </div>
+
+                    <div class="card border-0 shadow">
+                        <div class="card-body p-4">
+                            <div class="text-center mb-4">
+                                <h4 class="mb-2">Hesabınıza Daxil Olun</h4>
+                                <p class="text-muted small">Platform imkanlarından faydalanın</p>
+                            </div>
+
+                            <!-- Error Message -->
+                            <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <small>İstifadəçi adı və ya şifrə səhvdir!</small>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+
+                            <!-- Success Message -->
+                            <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="bi bi-check-circle me-2"></i>
+                                <small>Sistemdən uğurla çıxış etdiniz!</small>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+
+                            <!-- Social Login -->
+                            <div class="mb-3">
+                                <div class="d-grid gap-2 mb-3">
+                                    <a href="/oauth2/authorization/google" class="btn btn-outline-danger">
+                                        <i class="bi bi-google me-2"></i>Google ilə Daxil Ol
+                                    </a>
+                                    <a href="/oauth2/authorization/facebook" class="btn btn-outline-primary">
+                                        <i class="bi bi-facebook me-2"></i>Facebook ilə Daxil Ol
+                                    </a>
+                                </div>
+                                
+                                <div class="position-relative my-3">
+                                    <hr>
+                                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small">
+                                        və ya
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Login Form -->
+                            <form th:action="@{/login}" method="post">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label small">İstifadəçi adı və ya Email</label>
+                                    <input type="text" class="form-control" id="username" name="username" 
+                                           placeholder="İstifadəçi adınız" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="password" class="form-label small">Şifrə</label>
+                                    <input type="password" class="form-control" id="password" name="password" 
+                                           placeholder="Şifrəniz" required>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="remember" name="remember-me">
+                                        <label class="form-check-label small" for="remember">Məni xatırla</label>
+                                    </div>
+                                    <a href="/forgot-password" class="text-decoration-none small">Şifrəni unuttun?</a>
+                                </div>
+
+                                <div class="d-grid mb-3">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-box-arrow-in-right me-2"></i>Daxil Ol
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="text-center">
+                                <p class="text-muted small mb-0">
+                                    Hesabınız yoxdur? 
+                                    <a href="/register" class="text-decoration-none fw-bold">Qeydiyyat</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Back to Home -->
+                    <div class="text-center mt-3">
+                        <a href="/" class="text-decoration-none text-muted small">
+                            <i class="bi bi-arrow-left me-1"></i>Ana səhifəyə qayıt
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+    
+    <script>
+        // Auto-focus on username field
+        document.getElementById('username').focus();
+    </script>
+</body>
+</html> 

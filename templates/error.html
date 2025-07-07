@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${errorTitle ?: 'Xəta'})}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+    
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h1 class="display-6 mb-3" th:text="${errorTitle ?: 'Xəta'}">Xəta</h1>
+                    
+                    <p class="lead text-muted mb-4" th:text="${errorMessage ?: 'Gözlənilməz xəta baş verdi.'}">
+                        Gözlənilməz xəta baş verdi.
+                    </p>
+                    
+                    <div class="mb-4" th:if="${statusCode or errorCode}">
+                        <span class="badge bg-danger fs-6" th:text="'Xəta Kodu: ' + ${errorCode ?: statusCode}">Xəta Kodu: 500</span>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-block">
+                        <a href="/" class="btn btn-primary btn-lg">
+                            <i class="bi bi-house me-2"></i>Ana Səhifəyə Qayıt
+                        </a>
+                        <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-arrow-left me-2"></i>Geri Qayıt
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            Problem davam edirsə, bizə 
+                            <a href="/contact" class="text-decoration-none">əlaqə</a> 
+                            saxlayın.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html> 

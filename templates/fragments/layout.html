@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|${title} - DiGex|">DiGex</title>
+    
+    <!-- CSRF Token for AJAX -->
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="alternate icon" th:href="@{/favicon.ico}">
+    <meta name="theme-color" content="#4e73df">
+    
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <!-- Modern Header with Navigation and Alerts -->
+    <header th:fragment="header">
+        <!-- Top Bar -->
+        <div class="bg-primary text-white py-2 d-none d-md-block">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-telephone me-2"></i>
+                            <small>Dəstək: +994 12 345 67 89</small>
+                            <span class="mx-3">|</span>
+                            <i class="bi bi-envelope me-2"></i>
+                            <small>info@digex.az</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="d-flex align-items-center justify-content-end">
+                            <i class="bi bi-shield-check me-2"></i>
+                            <small>100% Təhlükəsiz Ödənişlər</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+            <div class="container">
+                <!-- Brand -->
+                <a class="navbar-brand fw-bold text-primary fs-3" href="/">
+                    <i class="bi bi-shop me-2"></i>DiGex
+                </a>
+                
+                <!-- Mobile Toggle -->
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <!-- Navigation Items -->
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <!-- Left Menu -->
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold px-3" href="/">
+                                <i class="bi bi-house-door me-2"></i>Ana Səhifə
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold px-3" href="/products">
+                                <i class="bi bi-grid me-2"></i>Məhsullar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold px-3" href="/sellers">
+                                <i class="bi bi-people me-2"></i>Satıcılar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold px-3" href="/about">
+                                <i class="bi bi-info-circle me-2"></i>Haqqında
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <!-- Search Bar -->
+                    <form class="d-flex me-3 flex-grow-1" style="max-width: 400px;">
+                        <div class="input-group">
+                            <input class="form-control border-end-0" type="search" placeholder="Məhsul axtarın..." aria-label="Axtarış">
+                            <button class="btn btn-outline-primary border-start-0" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Right Menu -->
+                    <ul class="navbar-nav">
+                        <!-- Qonaq istifadəçilər üçün -->
+                        <li class="nav-item me-2" sec:authorize="!isAuthenticated()">
+                            <a class="btn btn-outline-primary px-4" href="/login">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Daxil Ol
+                            </a>
+                        </li>
+                        <li class="nav-item" sec:authorize="!isAuthenticated()">
+                            <a class="btn btn-primary px-4" href="/register">
+                                <i class="bi bi-person-plus me-2"></i>Qeydiyyat Ol
+                            </a>
+                        </li>
+                        
+                        <!-- Daxil olmuş istifadəçilər üçün -->
+                        <!-- Balance -->
+                        <li class="nav-item me-3" sec:authorize="isAuthenticated()">
+                            <a class="nav-link" href="/balance" title="Balans">
+                                <div class="balance-container d-flex align-items-center px-3 py-2 rounded-3">
+                                    <i class="bi bi-wallet2 me-2" style="font-size: 1.1rem;"></i>
+                                    <div class="d-flex flex-column">
+                                        <small class="mb-0 text-muted" style="font-size: 0.7rem; line-height: 1;">Balans</small>
+                                        <span class="fw-bold" style="font-size: 0.95rem; line-height: 1.2;" 
+                                              th:text="${currentUserBalance != null ? #numbers.formatDecimal(currentUserBalance, 1, 2) + ' AZN' : '0.00 AZN'}">
+                                            0.00 AZN
+                                        </span>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+
+                        <!-- Cart -->
+                        <li class="nav-item me-3" sec:authorize="isAuthenticated()">
+                            <a class="nav-link position-relative" href="/cart" title="Səbət">
+                                <i class="bi bi-cart3 fs-4"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge" style="font-size: 0.7rem;">
+                                    0
+                                </span>
+                            </a>
+                        </li>
+                        
+                        <!-- Chat -->
+                        <li class="nav-item me-3" sec:authorize="isAuthenticated()">
+                            <a class="nav-link position-relative" href="/chats" title="Söhbətlər">
+                                <i class="bi bi-chat-dots fs-4"></i>
+                            </a>
+                        </li>
+
+                        <!-- Notifications -->
+                        <li class="nav-item dropdown me-3" sec:authorize="isAuthenticated()">
+                            <a class="nav-link dropdown-toggle position-relative" href="#" role="button" 
+                               data-bs-toggle="dropdown" aria-expanded="false" title="Bildirişlər">
+                                <i class="bi bi-bell fs-4"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning" style="font-size: 0.7rem;">
+                                    3
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="width: 320px;">
+                                <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">Bildirişlər</span>
+                                    <small class="text-muted">3 yeni</small>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item py-3" href="#">
+                                        <div class="d-flex">
+                                            <i class="bi bi-check-circle text-success me-3 fs-5"></i>
+                                            <div>
+                                                <div class="fw-semibold">Sifariş təsdiqləndi</div>
+                                                <small class="text-muted">Steam Gift Card sifarişiniz hazırlanır</small>
+                                                <div><small class="text-muted">5 dəqiqə əvvəl</small></div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-3" href="#">
+                                        <div class="d-flex">
+                                            <i class="bi bi-gift text-primary me-3 fs-5"></i>
+                                            <div>
+                                                <div class="fw-semibold">Yeni endirim!</div>
+                                                <small class="text-muted">Gaming kategoriyasında 20% endirim</small>
+                                                <div><small class="text-muted">1 saat əvvəl</small></div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="text-center">
+                                    <a class="dropdown-item text-primary fw-semibold" href="/notifications">
+                                        <i class="bi bi-arrow-right me-2"></i>Hamısını gör
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- User Dropdown -->
+                        <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" 
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="user-avatar me-2">
+                                    <i class="bi bi-person-circle fs-4"></i>
+                                </div>
+                                <div class="d-none d-lg-block">
+                                    <div class="fw-semibold" sec:authentication="name">İstifadəçi</div>
+                                    <small class="text-muted">Xoş gəlmisiniz</small>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="width: 280px;">
+                                <!-- User Info Header -->
+                                <li class="dropdown-header">
+                                    <div class="d-flex align-items-center">
+                                        <div class="user-avatar-large me-3">
+                                            <i class="bi bi-person-circle fs-2 text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold" sec:authentication="name">İstifadəçi Adı</div>
+                                            <small class="text-muted" sec:authentication="principal.email">email@example.com</small>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                
+                                <!-- Basic User Options -->
+                                <li>
+                                    <a class="dropdown-item py-2" href="/profile">
+                                        <i class="bi bi-person me-3 text-primary"></i>Profil
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2" href="/orders">
+                                        <i class="bi bi-bag me-3 text-success"></i>Sifarişlərim
+                                    </a>
+                                </li>
+                                
+                                <!-- Role-based sections -->
+                                <div sec:authorize="hasRole('SELLER')">
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li class="dropdown-header">
+                                        <small class="text-muted fw-bold">
+                                            <i class="bi bi-shop me-2"></i>SATICI PANELİ
+                                        </small>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" href="/seller/dashboard">
+                                            <i class="bi bi-speedometer2 me-3 text-warning"></i>Satıcı Paneli
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" href="/seller/products">
+                                            <i class="bi bi-box me-3 text-warning"></i>Məhsullarım
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" href="/seller/orders">
+                                            <i class="bi bi-receipt me-3 text-warning"></i>Satış Sifarişləri
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" href="/seller/analytics">
+                                            <i class="bi bi-graph-up me-3 text-warning"></i>Satış Statistikası
+                                        </a>
+                                    </li>
+                                </div>
+                                
+                                <div sec:authorize="hasRole('ADMIN')">
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li class="dropdown-header">
+                                        <small class="text-muted fw-bold">
+                                            <i class="bi bi-shield-lock me-2"></i>ADMİN PANELİ
+                                        </small>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" href="/admin">
+                                            <i class="bi bi-speedometer2 me-3 text-danger"></i>Admin Paneli
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" href="/admin/users">
+                                            <i class="bi bi-people me-3 text-danger"></i>İstifadəçi İdarəsi
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" href="/admin/products">
+                                            <i class="bi bi-box me-3 text-danger"></i>Məhsul İdarəsi
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" href="/admin/sellers">
+                                            <i class="bi bi-shop me-3 text-danger"></i>Satıcı İdarəsi
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" href="/admin/reports">
+                                            <i class="bi bi-graph-down me-3 text-danger"></i>Hesabatlar
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" href="/admin/settings">
+                                            <i class="bi bi-gear me-3 text-danger"></i>Sistem Tənzimləmələri
+                                        </a>
+                                    </li>
+                                </div>
+                                
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item py-2" href="/user/settings">
+                                        <i class="bi bi-gear me-3 text-secondary"></i>Tənzimləmələr
+                                    </a>
+                                </li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post" class="m-0">
+                                        <button type="submit" class="dropdown-item py-2 text-danger">
+                                            <i class="bi bi-box-arrow-right me-3"></i>Çıxış
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Alerts Container -->
+        <div class="alerts-container">
+            <div class="container">
+                <!-- Success alerts -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mt-3 border-0 shadow-sm" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${successMessage}">Uğurlu əməliyyat</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <!-- Error alerts -->
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mt-3 border-0 shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${errorMessage}">Xəta baş verdi</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <!-- Info alerts -->
+                <div th:if="${infoMessage}" class="alert alert-info alert-dismissible fade show mt-3 border-0 shadow-sm" role="alert">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <span th:text="${infoMessage}">Məlumat</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <!-- Warning alerts -->
+                <div th:if="${warningMessage}" class="alert alert-warning alert-dismissible fade show mt-3 border-0 shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    <span th:text="${warningMessage}">Diqqət</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation (köhnə fragment - geri uyğunluq üçün) -->
+    <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-shop me-2"></i>DiGex
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Ana Səhifə</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products">Məhsullar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sellers">Satıcılar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Alerts fragment -->
+    <div th:fragment="alerts" class="container mt-3">
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${successMessage}">Uğurlu əməliyyat</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${errorMessage}">Xəta baş verdi</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${warningMessage}" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>
+            <span th:text="${warningMessage}">Xəbərdarlıq</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    <!-- Modern Footer -->
+    <footer th:fragment="footer" class="bg-dark text-light pt-5 pb-3 mt-auto">
+        <!-- Main Footer Content -->
+        <div class="container">
+            <div class="row g-4">
+                <!-- Company Info -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand mb-4">
+                        <h4 class="fw-bold text-primary mb-3">
+                            <i class="bi bi-shop me-2"></i>DiGex
+                        </h4>
+                        <p class="text-light-50 mb-4 pe-lg-3">
+                            Azərbaycanın ən böyük və etibarlı rəqəmsal məhsul bazarı. 
+                            Oyunlardan proqram təminatına, hədiyyə kartlarından abunəliklərə qədər 
+                            hər şey burada, təhlükəsiz və sürətli!
+                        </p>
+                        
+                        <!-- Newsletter Signup -->
+                        <div class="newsletter-signup">
+                            <h6 class="fw-semibold mb-3">
+                                <i class="bi bi-envelope-heart me-2"></i>Xəbər Bülleteni
+                            </h6>
+                            <form class="input-group mb-3">
+                                <input type="email" class="form-control bg-dark border-secondary text-light" 
+                                       placeholder="Email ünvanınız..." required>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </form>
+                            <small class="text-muted">Yeni məhsullar və endirimlər haqqında ilk siz bilin!</small>
+                        </div>
+                        </div>
+                        </div>
+                
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="fw-semibold mb-3 text-primary">
+                        <i class="bi bi-link-45deg me-2"></i>Sürətli Keçidlər
+                    </h6>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="/" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-house me-2"></i>Ana Səhifə
+                        </a></li>
+                        <li><a href="/products" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-grid me-2"></i>Məhsullar
+                        </a></li>
+                        <li><a href="/sellers" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-people me-2"></i>Satıcılar
+                        </a></li>
+                        <li><a href="/categories" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-tags me-2"></i>Kateqoriyalar
+                        </a></li>
+                        <li><a href="/blog" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-journal me-2"></i>Bloq
+                        </a></li>
+                        <li><a href="/about" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-info-circle me-2"></i>Haqqımızda
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <!-- Customer Support -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="fw-semibold mb-3 text-primary">
+                        <i class="bi bi-headset me-2"></i>Müştəri Dəstəyi
+                    </h6>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="/contact" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-chat-dots me-2"></i>Əlaqə
+                        </a></li>
+                        <li><a href="/help" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-question-circle me-2"></i>Kömək Mərkəzi
+                        </a></li>
+                        <li><a href="/faq" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-patch-question me-2"></i>Tez-tez Soruşulanlar
+                        </a></li>
+                        <li><a href="/ticket" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-ticket-perforated me-2"></i>Dəstək Bildirişi
+                        </a></li>
+                        <li><a href="/live-chat" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-chat-square-text me-2"></i>Canlı Söhbət
+                        </a></li>
+                        <li><a href="/returns" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-arrow-return-left me-2"></i>Qaytarma
+                        </a></li>
+                    </ul>
+    </div>
+
+                <!-- Legal & Policies -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="fw-semibold mb-3 text-primary">
+                        <i class="bi bi-shield-check me-2"></i>Hüquqi
+                    </h6>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="/terms" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-file-text me-2"></i>İstifadə Şərtləri
+                        </a></li>
+                        <li><a href="/privacy" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-lock me-2"></i>Məxfilik Siyasəti
+                        </a></li>
+                        <li><a href="/cookie-policy" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-cookie me-2"></i>Cookie Siyasəti
+                        </a></li>
+                        <li><a href="/refund" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-cash-coin me-2"></i>Geri Qaytarma
+                        </a></li>
+                        <li><a href="/seller-terms" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-shop me-2"></i>Satıcı Şərtləri
+                        </a></li>
+                        <li><a href="/dmca" class="text-light-75 text-decoration-none">
+                            <i class="bi bi-exclamation-triangle me-2"></i>DMCA
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact & Social -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="fw-semibold mb-3 text-primary">
+                        <i class="bi bi-telephone me-2"></i>Əlaqə Məlumatları
+                    </h6>
+                    <ul class="list-unstyled text-light-75">
+                        <li class="mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-geo-alt-fill text-primary me-2 mt-1"></i>
+                                <div>
+                                    <strong>Ünvan:</strong><br>
+                                    <small>Bakı şəhəri, Yasamal rayonu<br>H.Zərdabi küç. 89B</small>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-telephone-fill text-primary me-2"></i>
+                                <div>
+                                    <strong>Telefon:</strong><br>
+                                    <a href="tel:+994123456789" class="text-decoration-none text-light-75">
+                                        +994 (12) 345-67-89
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-envelope-fill text-primary me-2"></i>
+                                <div>
+                                    <strong>Email:</strong><br>
+                                    <a href="mailto:info@digex.az" class="text-decoration-none text-light-75">
+                                        info@digex.az
+                                    </a>
+                        </div>
+                        </div>
+                        </li>
+                    </ul>
+                    
+                    <!-- Social Media -->
+                    <h6 class="fw-semibold mb-3 text-primary">
+                        <i class="bi bi-share me-2"></i>Sosial Media
+                    </h6>
+                    <div class="social-links d-flex gap-2">
+                        <a href="#" class="btn btn-outline-light btn-sm" title="Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm" title="Instagram">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm" title="Telegram">
+                            <i class="bi bi-telegram"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm" title="WhatsApp">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm" title="YouTube">
+                            <i class="bi bi-youtube"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm" title="LinkedIn">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                        </div>
+                </div>
+            </div>
+            
+            <!-- Security & Payment Methods -->
+            <div class="row mt-5 pt-4 border-top border-secondary">
+                <div class="col-md-6 mb-3">
+                    <h6 class="fw-semibold mb-3 text-primary">
+                        <i class="bi bi-credit-card me-2"></i>Ödəniş Üsulları
+                    </h6>
+                    <div class="payment-methods d-flex flex-wrap gap-2">
+                        <span class="badge bg-light text-dark py-2 px-3">
+                            <i class="bi bi-credit-card me-1"></i>Visa
+                        </span>
+                        <span class="badge bg-light text-dark py-2 px-3">
+                            <i class="bi bi-credit-card me-1"></i>MasterCard
+                        </span>
+                        <span class="badge bg-light text-dark py-2 px-3">
+                            <i class="bi bi-paypal me-1"></i>PayPal
+                        </span>
+                        <span class="badge bg-light text-dark py-2 px-3">
+                            <i class="bi bi-bank me-1"></i>Bank Transfer
+                        </span>
+                        <span class="badge bg-light text-dark py-2 px-3">
+                            <i class="bi bi-wallet2 me-1"></i>E-Wallet
+                        </span>
+        </div>
+    </div>
+                <div class="col-md-6 mb-3">
+                    <h6 class="fw-semibold mb-3 text-primary">
+                        <i class="bi bi-shield-shaded me-2"></i>Təhlükəsizlik & Sertifikatlar
+                    </h6>
+                    <div class="security-badges d-flex flex-wrap gap-2">
+                        <span class="badge bg-success py-2 px-3">
+                            <i class="bi bi-shield-check me-1"></i>SSL Şifrələnmə
+                        </span>
+                        <span class="badge bg-info py-2 px-3">
+                            <i class="bi bi-award me-1"></i>PCI DSS
+                        </span>
+                        <span class="badge bg-warning text-dark py-2 px-3">
+                            <i class="bi bi-check-circle me-1"></i>Verified Seller
+                        </span>
+                        <span class="badge bg-primary py-2 px-3">
+                            <i class="bi bi-patch-check me-1"></i>Trusted Site
+                        </span>
+    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom Footer -->
+            <div class="row mt-4 pt-3 border-top border-secondary align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-c-circle me-1"></i>
+                        <span id="currentYear">2024</span> DiGex. Bütün hüquqlar qorunur.
+                        <span class="d-none d-md-inline">| Made with ❤️ in Azerbaijan</span>
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <div class="footer-meta">
+                        <span class="badge bg-success me-2">
+                            <i class="bi bi-lightning-charge me-1"></i>Sürətli Çatdırılma
+                        </span>
+                        <span class="badge bg-primary me-2">
+                            <i class="bi bi-headset me-1"></i>24/7 Dəstək
+                        </span>
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-award me-1"></i>Keyfiyyət Zəmanəti
+                        </span>
+                </div>
+            </div>
+            </div>
+        </div>
+        
+        <!-- Back to Top Button -->
+        <button id="backToTopBtn" class="btn btn-primary position-fixed bottom-0 end-0 m-3 rounded-circle shadow-lg" 
+                style="width: 50px; height: 50px; z-index: 1000; display: none;">
+            <i class="bi bi-arrow-up"></i>
+        </button>
+    </footer>
+
+    <!-- Scripts -->
+    <script th:fragment="scripts" src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom CSS for Modern Header/Footer -->
+    <style th:fragment="custom-css">
+        /* Header Custom Styles */
+        header {
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1050;
+        }
+        
+        .navbar {
+            z-index: 1050 !important;
+        }
+        
+        .navbar-brand {
+            font-size: 1.8rem !important;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none !important;
+        }
+        
+        .navbar-nav .nav-link {
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 0 2px;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border-radius: 12px;
+            margin-top: 8px;
+            z-index: 1055 !important;
+            position: absolute !important;
+        }
+        
+        .dropdown-item {
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 2px 8px;
+            padding: 8px 12px;
+        }
+        
+        .dropdown-item:hover {
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            transform: translateX(5px);
+        }
+        
+        /* Footer Custom Styles */
+        .text-light-50 { opacity: 0.8; }
+        .text-light-75 { opacity: 0.9; }
+        
+        .footer-links li {
+            margin-bottom: 8px;
+        }
+        
+        .footer-links a {
+            transition: all 0.3s ease;
+            padding: 4px 0;
+            display: inline-block;
+        }
+        
+        .footer-links a:hover {
+            color: #667eea !important;
+            transform: translateX(5px);
+        }
+        
+        .social-links .btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .social-links .btn:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-color: transparent;
+        }
+        
+        .newsletter-signup .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        /* Back to Top Button */
+        #backToTopBtn {
+            transition: all 0.3s ease;
+        }
+        
+        #backToTopBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Badge Animations */
+        .badge {
+            transition: all 0.3s ease;
+        }
+        
+        .badge:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Search Bar */
+        .input-group .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .input-group .btn-outline-primary:hover {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-color: transparent;
+        }
+        
+        /* Balance Styles */
+        .balance-container {
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(155, 89, 182, 0.1));
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            color: #2c3e50;
+        }
+        
+        .balance-container:hover {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(155, 89, 182, 0.15)) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.2);
+            border-color: rgba(52, 152, 219, 0.3);
+        }
+        
+        .balance-container i {
+            color: #3498db;
+        }
+        
+        .balance-container span {
+            color: #2c3e50 !important;
+        }
+        
+
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.5rem !important;
+            }
+            
+            .dropdown-menu {
+                margin-top: 4px;
+            }
+            
+            .social-links {
+                justify-content: center;
+            }
+            
+            .footer-meta {
+                text-align: center !important;
+                margin-top: 1rem;
+            }
+            
+
+        }
+    </style>
+    
+    <script th:fragment="custom-js">
+        document.addEventListener('DOMContentLoaded', function() {
+        // Auto-hide alerts
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+        
+            // Cart badge update function
+            window.updateCartBadge = function(count) {
+                const cartBadge = document.querySelector('.cart-badge');
+                if (cartBadge) {
+                    cartBadge.textContent = count;
+                    cartBadge.style.display = count > 0 ? 'inline' : 'none';
+                }
+            };
+            
+            // Initialize cart badge
+            const cartBadge = document.querySelector('.cart-badge');
+            if (cartBadge && cartBadge.textContent === '0') {
+                cartBadge.style.display = 'none';
+            }
+            
+            // Back to Top Button
+            const backToTopBtn = document.getElementById('backToTopBtn');
+            if (backToTopBtn) {
+                window.addEventListener('scroll', function() {
+                    if (window.pageYOffset > 300) {
+                        backToTopBtn.style.display = 'block';
+                        setTimeout(() => {
+                            backToTopBtn.style.opacity = '1';
+                        }, 10);
+                    } else {
+                        backToTopBtn.style.opacity = '0';
+                        setTimeout(() => {
+                            if (backToTopBtn.style.opacity === '0') {
+                                backToTopBtn.style.display = 'none';
+                            }
+                        }, 300);
+                    }
+                });
+                
+                backToTopBtn.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+            
+            // Newsletter signup
+            const newsletterForm = document.querySelector('.newsletter-signup form');
+            if (newsletterForm) {
+                newsletterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const email = this.querySelector('input[type="email"]').value;
+                    
+                    // Simulate newsletter signup
+                    this.querySelector('button').innerHTML = '<i class="bi bi-check"></i>';
+                    this.querySelector('button').classList.remove('btn-primary');
+                    this.querySelector('button').classList.add('btn-success');
+                    
+                    setTimeout(() => {
+                        this.querySelector('input').value = '';
+                        this.querySelector('button').innerHTML = '<i class="bi bi-send"></i>';
+                        this.querySelector('button').classList.remove('btn-success');
+                        this.querySelector('button').classList.add('btn-primary');
+                        
+                        // Show success message (you can integrate with your notification system)
+                        if (typeof showToast === 'function') {
+                            showToast('Xəbər bülleteninə uğurla abunə oldunuz!', 'success');
+                        }
+                    }, 2000);
+                });
+            }
+            
+            // Set current year
+            const currentYearSpan = document.getElementById('currentYear');
+            if (currentYearSpan) {
+                currentYearSpan.textContent = new Date().getFullYear();
+            }
+
+            // Global addToCart function - Touch friendly
+            window.addToCart = function(button) {
+                // Prevent double clicks
+                if (button.disabled) return;
+                
+                const productId = button.getAttribute('data-product-id');
+                const originalContent = button.innerHTML;
+                
+                // Disable button and show loading
+                button.disabled = true;
+                button.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div>Əlavə edilir...';
+
+                // Get CSRF token
+                const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+                
+                const headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                };
+                
+                if (csrfHeader && csrfToken) {
+                    headers[csrfHeader] = csrfToken;
+                }
+
+                fetch('/cart/add', {
+                    method: 'POST',
+                    headers: headers,
+                    body: `productId=${productId}&quantity=1`
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            if (data.redirect) {
+                                window.location.href = data.redirect;
+                                throw new Error('Redirecting...');
+                            }
+                            throw new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Show success state
+                        button.innerHTML = '<i class="bi bi-check-circle me-2"></i>Əlavə edildi!';
+                        button.classList.remove('btn-primary');
+                        button.classList.add('btn-success');
+                        
+                        // Reset after 3 seconds
+                        setTimeout(() => {
+                            button.innerHTML = originalContent;
+                            button.disabled = false;
+                            button.classList.remove('btn-success');
+                            button.classList.add('btn-primary');
+                        }, 3000);
+                        
+                        // Update cart counter
+                        if (window.updateCartBadge && data.cartCount !== undefined) {
+                            window.updateCartBadge(data.cartCount);
+                        }
+                        
+                        // Show toast notification
+                        if (typeof showToast === 'function') {
+                            showToast('Məhsul səbətə əlavə edildi!', 'success');
+                        }
+                    } else {
+                        throw new Error(data.message || 'Xəta baş verdi');
+                    }
+                })
+                .catch(error => {
+                    console.error('Cart add error:', error);
+                    
+                    // Reset button
+                    button.innerHTML = originalContent;
+                    button.disabled = false;
+                    
+                    // Show error toast
+                    if (typeof showToast === 'function') {
+                        showToast(error.message || 'Səbətə əlavə edərkən xəta baş verdi', 'error');
+                    }
+                });
+            };
+
+            // Add to cart functionality - event delegation ile
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.add-to-cart-btn') || e.target.closest('.new-add-to-cart-btn');
+                if (btn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    if (!btn.hasAttribute('data-product-id')) return;
+                    
+                    // Use global addToCart function
+                    window.addToCart(btn);
+                    return;
+                }
+            });
+            
+            // Touch event handling for mobile
+            document.addEventListener('touchstart', function(e) {
+                const btn = e.target.closest('.add-to-cart-btn') || e.target.closest('.new-add-to-cart-btn');
+                if (btn) {
+                    e.stopPropagation();
+                }
+            });
+            
+            // Legacy implementation for backward compatibility
+            document.addEventListener('click', function(e) {
+                const legacyBtn = e.target.closest('[onclick*="addToCart"]');
+                if (legacyBtn && !legacyBtn.closest('.add-to-cart-btn, .new-add-to-cart-btn')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (legacyBtn.hasAttribute('data-product-id')) {
+                        window.addToCart(legacyBtn);
+                    }
+                }
+            });
+            
+            // Deprecated - keeping for compatibility
+            function oldAddToCartHandler(e) {
+                const btn = e.target.closest('.add-to-cart-btn') || e.target.closest('.new-add-to-cart-btn');
+                if (btn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    if (!btn.hasAttribute('data-product-id')) return;
+                    
+                    const productId = btn.getAttribute('data-product-id');
+                    const originalText = btn.innerHTML;
+                    
+                    btn.innerHTML = '<i class="bi bi-spinner bi-spin"></i> Əlavə edilir...';
+                    btn.disabled = true;
+
+                    // Real implementation with cart endpoint
+                    const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+                    
+                    const headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    };
+                    
+                    if (csrfHeader && csrfToken) {
+                        headers[csrfHeader] = csrfToken;
+                    }
+
+                    fetch('/cart/add', {
+                        method: 'POST',
+                        headers: headers,
+                        body: `productId=${productId}&quantity=1`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            btn.innerHTML = '<i class="bi bi-check-circle"></i> Əlavə Edildi!';
+                            btn.classList.remove('btn-primary');
+                            btn.classList.add('btn-success');
+                            
+                            // Update cart badge
+                            if (window.updateCartBadge && data.cartCount !== undefined) {
+                                window.updateCartBadge(data.cartCount);
+                            }
+                            
+                            // Show success message
+                            if (typeof showToast === 'function') {
+                                showToast('Məhsul səbətə əlavə edildi!', 'success');
+                            }
+                            
+                            setTimeout(() => {
+                                btn.innerHTML = originalText;
+                                btn.classList.remove('btn-success');
+                                btn.classList.add('btn-primary');
+                                btn.disabled = false;
+                            }, 2500);
+                        } else {
+                            throw new Error(data.message || 'Əməliyyat uğursuz oldu');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Cart add error:', error);
+                        btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Xəta!';
+                        btn.classList.remove('btn-primary');
+                        btn.classList.add('btn-danger');
+                        
+                        if (typeof showToast === 'function') {
+                            showToast(error.message || 'Xəta baş verdi. Yenidən cəhd edin.', 'error');
+                        }
+                        
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.classList.remove('btn-danger');
+                            btn.classList.add('btn-primary');
+                            btn.disabled = false;
+                        }, 2500);
+                    });
+                }
+            }
+
+            // Cart badge update function
+            window.updateCartBadge = function(count) {
+                const cartBadge = document.querySelector('.cart-badge');
+                if (cartBadge) {
+                    cartBadge.textContent = count;
+                    if (count > 0) {
+                        cartBadge.style.display = 'inline-block';
+                    } else {
+                        cartBadge.style.display = 'none';
+                    }
+                }
+            };
+
+            // Toast notification function
+            window.showToast = function(message, type = 'info') {
+                // Remove existing toasts
+                const existingToasts = document.querySelectorAll('.custom-toast');
+                existingToasts.forEach(toast => toast.remove());
+                
+                const toast = document.createElement('div');
+                toast.className = `custom-toast alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+                toast.style.cssText = 'top: 100px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+                
+                toast.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                        ${message}
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                
+                document.body.appendChild(toast);
+                
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 3000);
+            };
+            
+            // Search form enhancement
+            const searchForm = document.querySelector('nav form');
+            if (searchForm) {
+                searchForm.addEventListener('submit', function(e) {
+                    const searchInput = this.querySelector('input[type="search"]');
+                    if (searchInput.value.trim() === '') {
+                        e.preventDefault();
+                        searchInput.focus();
+                        searchInput.classList.add('is-invalid');
+                        setTimeout(() => {
+                            searchInput.classList.remove('is-invalid');
+                        }, 2000);
+            } else {
+                        // Redirect to search page with query
+                        e.preventDefault();
+                        window.location.href = `/search?q=${encodeURIComponent(searchInput.value.trim())}`;
+                    }
+                });
+            }
+            
+            // Notification dropdown scroll
+            const notificationDropdown = document.querySelector('.dropdown-menu[style*="320px"]');
+            if (notificationDropdown) {
+                notificationDropdown.style.maxHeight = '400px';
+                notificationDropdown.style.overflowY = 'auto';
+            }
+            
+            // User dropdown enhance
+            const userDropdownItems = document.querySelectorAll('.dropdown-item');
+            userDropdownItems.forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.style.background = 'linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1))';
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    this.style.background = '';
+                });
+            });
+
+            // Balance hover effect
+            const balanceContainer = document.querySelector('.balance-container');
+            if (balanceContainer) {
+                balanceContainer.addEventListener('click', function(e) {
+                    // Add click effect
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            }
+
+            // Initialize Bootstrap dropdowns
+            document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(dropdown => {
+                new bootstrap.Dropdown(dropdown);
+            });
+        });
+
+
+    </script>
+</body>
+</html> 

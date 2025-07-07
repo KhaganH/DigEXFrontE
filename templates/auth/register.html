@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Qeydiyyat')}"></head>
+
+<body class="bg-light">
+    <div class="container-fluid vh-100">
+        <div class="row h-100">
+            <!-- Left Side - Image/Branding -->
+            <div class="col-lg-7 d-none d-lg-flex align-items-center justify-content-center bg-primary">
+                <div class="text-center text-white">
+                    <i class="bi bi-person-plus display-4 mb-3"></i>
+                    <h2 class="mb-3">DiGex Ailəsinə Qoşulun</h2>
+                    <p class="lead">Minlərlə keyfiyyətli rəqəmsal məhsula çıxış</p>
+                    <div class="row text-center mt-4">
+                        <div class="col-6">
+                            <i class="bi bi-download display-6 mb-2"></i>
+                            <h5>Ani Çatdırılma</h5>
+                            <p class="small">Dərhal əldə edin</p>
+                        </div>
+                        <div class="col-6">
+                            <i class="bi bi-shield-check display-6 mb-2"></i>
+                            <h5>Təhlükəsizlik</h5>
+                            <p class="small">Şifrələnmiş saxlama</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Register Form -->
+            <div class="col-lg-5 d-flex align-items-center justify-content-center">
+                <div class="w-100" style="max-width: 450px;">
+                    <!-- Logo for mobile -->
+                    <div class="text-center mb-4 d-lg-none">
+                        <i class="bi bi-shop text-primary" style="font-size: 3rem;"></i>
+                        <h3 class="text-primary">DiGex</h3>
+                    </div>
+
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body p-4">
+                            <div class="text-center mb-4">
+                                <h4 class="mb-2">Yeni Hesab Yaradın</h4>
+                                <p class="text-muted small">Qeydiyyatı tamamlayın</p>
+                            </div>
+
+                            <!-- Social Register -->
+                            <div class="mb-3">
+                                <div class="d-grid gap-2 mb-3">
+                                    <a href="/oauth2/authorization/google" class="btn btn-outline-danger social-btn">
+                                        <i class="bi bi-google me-2"></i>Google ilə Qeydiyyat
+                                    </a>
+                                    <a href="/oauth2/authorization/facebook" class="btn btn-outline-primary social-btn">
+                                        <i class="bi bi-facebook me-2"></i>Facebook ilə Qeydiyyat
+                                    </a>
+                                </div>
+                                
+                                <div class="position-relative my-3">
+                                    <hr>
+                                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small">
+                                        və ya
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Register Form -->
+                            <form th:action="@{/register}" method="post" th:object="${userDto}" novalidate>
+                                <div class="row">
+                                    <div class="col-12 mb-3">
+                                        <label for="username" class="form-label small fw-semibold">İstifadəçi adı</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                            <input type="text" class="form-control" id="username" 
+                                                   th:field="*{username}" placeholder="İstifadəçi adınız" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-12 mb-3">
+                                        <label for="email" class="form-label small fw-semibold">Email ünvanı</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                            <input type="email" class="form-control" id="email" 
+                                                   th:field="*{email}" placeholder="email@example.com" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-6 mb-3">
+                                        <label for="password" class="form-label small fw-semibold">Şifrə</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                            <input type="password" class="form-control" id="password" 
+                                                   th:field="*{password}" placeholder="Şifrə" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-6 mb-3">
+                                        <label for="confirmPassword" class="form-label small fw-semibold">Təkrar</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+                                            <input type="password" class="form-control" id="confirmPassword" 
+                                                   placeholder="Şifrə təkrarı" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Terms and Privacy -->
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="terms" required>
+                                        <label class="form-check-label small" for="terms">
+                                            <a href="/terms" target="_blank" class="text-decoration-none">Şərtləri</a> qəbul edirəm
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid mb-3">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-person-plus me-2"></i>Hesab Yarat
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="text-center">
+                                <p class="text-muted small mb-0">
+                                    Hesabınız var? 
+                                    <a href="/login" class="text-decoration-none fw-bold">Daxil olun</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Back to Home -->
+                    <div class="text-center mt-3">
+                        <a href="/" class="text-decoration-none text-muted small">
+                            <i class="bi bi-arrow-left me-1"></i>Ana səhifəyə qayıt
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+    
+    <script>
+        // Enhanced form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const usernameInput = document.getElementById('username');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const termsCheckbox = document.getElementById('terms');
+
+            // Password confirmation validation
+            function validatePasswords() {
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                
+                if (password !== confirmPassword && confirmPassword.length > 0) {
+                    confirmPasswordInput.setCustomValidity('Şifrələr uyğun gəlmir');
+                    confirmPasswordInput.classList.add('is-invalid');
+                    confirmPasswordInput.classList.remove('is-valid');
+                } else {
+                    confirmPasswordInput.setCustomValidity('');
+                    confirmPasswordInput.classList.remove('is-invalid');
+                    if (confirmPassword.length > 0) {
+                        confirmPasswordInput.classList.add('is-valid');
+                    }
+                }
+            }
+
+            // Username validation
+            function validateUsername() {
+                const username = usernameInput.value;
+                const pattern = /^[a-zA-Z0-9]+$/;
+                
+                if (username.length === 0) {
+                    usernameInput.setCustomValidity('');
+                    usernameInput.classList.remove('is-invalid', 'is-valid');
+                } else if (!pattern.test(username)) {
+                    usernameInput.setCustomValidity('Yalnız hərf və rəqəm istifadə edin');
+                    usernameInput.classList.add('is-invalid');
+                    usernameInput.classList.remove('is-valid');
+                } else if (username.length < 3) {
+                    usernameInput.setCustomValidity('Minimum 3 simvol olmalıdır');
+                    usernameInput.classList.add('is-invalid');
+                    usernameInput.classList.remove('is-valid');
+                } else {
+                    usernameInput.setCustomValidity('');
+                    usernameInput.classList.remove('is-invalid');
+                    usernameInput.classList.add('is-valid');
+                }
+            }
+
+            // Email validation
+            function validateEmail() {
+                const email = emailInput.value;
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                
+                if (email.length === 0) {
+                    emailInput.setCustomValidity('');
+                    emailInput.classList.remove('is-invalid', 'is-valid');
+                } else if (!emailPattern.test(email)) {
+                    emailInput.setCustomValidity('Düzgün email ünvanı daxil edin');
+                    emailInput.classList.add('is-invalid');
+                    emailInput.classList.remove('is-valid');
+                } else {
+                    emailInput.setCustomValidity('');
+                    emailInput.classList.remove('is-invalid');
+                    emailInput.classList.add('is-valid');
+                }
+            }
+
+            // Password strength validation
+            function validatePassword() {
+                const password = passwordInput.value;
+                
+                if (password.length === 0) {
+                    passwordInput.setCustomValidity('');
+                    passwordInput.classList.remove('is-invalid', 'is-valid');
+                } else if (password.length < 6) {
+                    passwordInput.setCustomValidity('Şifrə minimum 6 simvol olmalıdır');
+                    passwordInput.classList.add('is-invalid');
+                    passwordInput.classList.remove('is-valid');
+                } else {
+                    passwordInput.setCustomValidity('');
+                    passwordInput.classList.remove('is-invalid');
+                    passwordInput.classList.add('is-valid');
+                }
+                
+                // Also validate confirm password when password changes
+                validatePasswords();
+            }
+
+            // Event listeners
+            usernameInput.addEventListener('input', validateUsername);
+            emailInput.addEventListener('input', validateEmail);
+            passwordInput.addEventListener('input', validatePassword);
+            confirmPasswordInput.addEventListener('input', validatePasswords);
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Validate all fields
+                validateUsername();
+                validateEmail();
+                validatePassword();
+                validatePasswords();
+                
+                // Check if all validations pass
+                const isValid = form.checkValidity() && termsCheckbox.checked;
+                
+                if (isValid) {
+                    // Show loading state
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Hesab yaradılır...';
+                    submitBtn.disabled = true;
+                    
+                    // Submit form
+                    form.submit();
+                } else {
+                    // Show validation errors
+                    form.classList.add('was-validated');
+                }
+            });
+
+            // Auto-focus on username field
+            usernameInput.focus();
+        });
+    </script>
+</body>
+</html> 

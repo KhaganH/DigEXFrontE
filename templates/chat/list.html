@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Mesajlar')}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="bi bi-chat-dots me-2"></i>Mesajlar</h2>
+                    <div class="text-muted">
+                        <small>Toplam <span th:text="${#lists.size(chats)}">0</span> söhbət</small>
+                    </div>
+                </div>
+
+                <!-- No Chats Message -->
+                <div th:if="${chats.isEmpty()}" class="text-center py-5">
+                    <i class="bi bi-chat-x display-1 text-muted mb-4"></i>
+                    <h4 class="text-muted mb-3">Henüz mesajınız yoxdur</h4>
+                    <p class="text-muted mb-4">Bir məhsul aldığınızda satıcı ilə söhbət başlayacaq</p>
+                    <a href="/products" class="btn btn-primary">
+                        <i class="bi bi-shop me-2"></i>Məhsulları Gəzin
+                    </a>
+                </div>
+
+                <!-- Chat List -->
+                <div th:unless="${chats.isEmpty()}" class="list-group">
+                    <div th:each="chat : ${chats}" class="list-group-item list-group-item-action">
+                        <a th:href="@{/chat/{id}(id=${chat.id})}" class="text-decoration-none text-dark">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="bi bi-person-circle fs-2 text-muted"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1 fw-bold" th:text="${chat.getOtherParticipant(currentUser.id).username}">
+                                                Other User
+                                            </h6>
+                                            <p class="mb-1 text-muted small">
+                                                Sipariş: <span th:text="${chat.order.orderNumber}">Order Number</span>
+                                            </p>
+                                            <p class="mb-0 text-muted small" th:text="${chat.order.product.title}">
+                                                Product title
+                                            </p>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted" 
+                                                   th:text="${chat.lastMessageAt != null ? #temporals.format(chat.lastMessageAt, 'dd.MM.yyyy') : ''}">
+                                                Date
+                                            </small>
+                                            <div class="mt-1">
+                                                <span th:if="${chat.order.status.toString() == 'PENDING'}" 
+                                                      class="badge bg-warning text-dark">Bekləyir</span>
+                                                <span th:if="${chat.order.status.toString() == 'DELIVERED'}" 
+                                                      class="badge bg-info">Teslim Edildi</span>
+                                                <span th:if="${chat.order.status.toString() == 'COMPLETED'}" 
+                                                      class="badge bg-success">Tamamlandı</span>
+                                                <span th:if="${chat.order.status.toString() == 'CANCELLED'}" 
+                                                      class="badge bg-danger">İptal Edildi</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0 ms-2">
+                                    <i class="bi bi-chevron-right text-muted"></i>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .list-group-item {
+            border-radius: 12px !important;
+            border: 1px solid #e9ecef;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .list-group-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #007bff;
+        }
+        
+        .list-group-item:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</body>
+</html> 

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/admin-layout :: head('Para Çəkmə Tələbləri')}"></head>
+
+<body>
+    <div class="admin-container">
+        <!-- Admin Sidebar -->
+        <div th:replace="~{fragments/admin-layout :: sidebar('withdrawals')}"></div>
+
+        <!-- Ana İçerik -->
+        <div class="admin-content">
+            <div th:replace="~{fragments/admin-layout :: header}"></div>
+            <div th:replace="~{fragments/admin-layout :: alerts}"></div>
+            
+            <div class="admin-main">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h2 mb-0">
+                        <i class="bi bi-wallet me-2 text-primary"></i>Para Çəkmə Tələbləri
+                    </h1>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary active" onclick="filterRequests('all')">
+                            Hamısı
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="filterRequests('pending')">
+                            Gözləyən
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="filterRequests('approved')">
+                            Təsdiqlənən
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="filterRequests('rejected')">
+                            Rədd Edilən
+                        </button>
+                    </div>
+                </div>
+
+                <!-- İstatistiklər -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card stats-card bg-warning">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 opacity-75">Gözləyən Tələblər</h6>
+                                        <h3 class="mb-0 fw-bold" th:text="${pendingCount}">0</h3>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-clock display-6 opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stats-card bg-info">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 opacity-75">Ümumi Tələblər</h6>
+                                        <h3 class="mb-0 fw-bold" th:text="${withdrawalRequests?.size() ?: 0}">0</h3>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-list-ul display-6 opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stats-card bg-success">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 opacity-75">Təsdiqlənən</h6>
+                                        <h3 class="mb-0 fw-bold" th:text="${approvedCount ?: 0}">0</h3>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-check-circle display-6 opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stats-card bg-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 opacity-75">Toplam Məbləğ</h6>
+                                        <h3 class="mb-0 fw-bold" th:text="${totalApprovedAmount ?: '0'} + ' AZN'">0 AZN</h3>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-wallet2 display-6 opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Para Çekme Tələbləri Tablosu -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-table me-2"></i>Para Çəkmə Tələbləri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${withdrawalRequests != null and !withdrawalRequests.isEmpty()}" class="table-responsive">
+                            <table class="table table-hover" id="withdrawalTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Satıcı</th>
+                                        <th>Məbləğ</th>
+                                        <th>Bank</th>
+                                        <th>Kart</th>
+                                        <th>Kart Sahibi</th>
+                                        <th>Tarix</th>
+                                        <th>Status</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="request : ${withdrawalRequests}" 
+                                        th:data-status="${request.status.toString().toLowerCase()}"
+                                        class="withdrawal-row">
+                                        <td>
+                                            <code class="fw-bold" th:text="${'#' + request.id}">1</code>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-person-circle me-2 text-muted"></i>
+                                                <strong th:text="${request.username}">Username</strong>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary fs-6" th:text="${request.amount + ' AZN'}">100 AZN</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-bank me-2 text-muted"></i>
+                                                <span th:text="${request.bankName}">Kapital Bank</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <code class="text-muted" th:text="${request.cardNumber}">1234 5678 9012 3456</code>
+                                        </td>
+                                        <td th:text="${request.accountHolderName}">John Doe</td>
+                                        <td>
+                                            <small class="text-muted" th:text="${#temporals.format(request.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2024 10:00</small>
+                                        </td>
+                                        <td>
+                                            <span th:switch="${request.status}" class="badge fs-6">
+                                                <span th:case="'PENDING'" class="badge bg-warning">Gözləyir</span>
+                                                <span th:case="'APPROVED'" class="badge bg-success">Təsdiqləndi</span>
+                                                <span th:case="'REJECTED'" class="badge bg-danger">Rədd Edildi</span>
+                                                <span th:case="'COMPLETED'" class="badge bg-info">Tamamlandı</span>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div th:if="${request.status.toString() == 'PENDING'}" class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-success" 
+                                                        th:onclick="|approveWithdrawal(${request.id})|"
+                                                        title="Təsdiqləmək">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-danger" 
+                                                        th:onclick="|showRejectModal(${request.id})|"
+                                                        title="Rədd etmək">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </div>
+                                            <div th:if="${request.status.toString() != 'PENDING'}">
+                                                <small class="text-muted d-block" th:text="${request.processedAt != null ? 'Tarix: ' + #temporals.format(request.processedAt, 'dd.MM.yyyy HH:mm') : '-'}">01.01.2024 10:00</small>
+                                                <small class="text-muted d-block" th:text="${request.approvedByUsername != null ? 'Admin: ' + request.approvedByUsername : '-'}">Admin</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div th:if="${withdrawalRequests == null or withdrawalRequests.isEmpty()}" class="text-center py-5">
+                            <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                            <p class="text-muted">Para çəkmə tələbi yoxdur</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-x-circle text-danger me-2"></i>Tələbi Rədd Et
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Bu tələbi rədd etmək istədiyinizə əminsiniz?
+                    </div>
+                    <form id="rejectForm">
+                        <div class="mb-3">
+                            <label for="rejectionReason" class="form-label fw-semibold">Rədd Səbəbi</label>
+                            <textarea class="form-control" id="rejectionReason" rows="3" 
+                                      placeholder="Tələbin rədd edilmə səbəbini yazın..."></textarea>
+                            <div class="form-text">Bu səbəb satıcıya göstəriləcək</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-arrow-left me-2"></i>Ləğv Et
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="rejectWithdrawal()">
+                        <i class="bi bi-x-lg me-2"></i>Rədd Et
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/admin-layout :: scripts}"></div>
+    
+    <script>
+        let currentRequestId = null;
+        
+        function filterRequests(status) {
+            const rows = document.querySelectorAll('.withdrawal-row');
+            
+            rows.forEach(row => {
+                if (status === 'all') {
+                    row.style.display = '';
+                } else {
+                    const rowStatus = row.getAttribute('data-status');
+                    row.style.display = rowStatus === status ? '' : 'none';
+                }
+            });
+            
+            // Update button states
+            document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function approveWithdrawal(requestId) {
+            if (confirm('Bu para çəkmə tələbini təsdiqləmək istədiyinizə əminsiniz?\n\nTəsdiqləndikdən sonra satıcının bakiyəsindən məbləğ çıxılacaq.')) {
+                fetch(`/admin/api/withdrawals/${requestId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        return response.text().then(text => {
+                            throw new Error(text);
+                        });
+                    }
+                })
+                .catch(error => {
+                    alert('Xəta baş verdi: ' + error.message);
+                });
+            }
+        }
+        
+        function showRejectModal(requestId) {
+            currentRequestId = requestId;
+            const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+            modal.show();
+        }
+        
+        function rejectWithdrawal() {
+            if (!currentRequestId) return;
+            
+            const reason = document.getElementById('rejectionReason').value;
+            
+            const formData = new FormData();
+            if (reason.trim()) {
+                formData.append('reason', reason);
+            }
+            
+            fetch(`/admin/api/withdrawals/${currentRequestId}/reject`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(text);
+                    });
+                }
+            })
+            .catch(error => {
+                alert('Xəta baş verdi: ' + error.message);
+            });
+        }
+        
+        // Auto-refresh every 30 seconds for new requests
+        setInterval(function() {
+            if (document.visibilityState === 'visible') {
+                const currentFilter = document.querySelector('.btn-group .btn.active');
+                if (currentFilter && currentFilter.textContent.includes('Gözləyən')) {
+                    location.reload();
+                }
+            }
+        }, 30000);
+    </script>
+</body>
+</html> 

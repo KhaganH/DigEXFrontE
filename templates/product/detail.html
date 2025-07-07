@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${product.title})}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+    
+    <!-- Breadcrumb -->
+    <section class="breadcrumb-section py-3 bg-light">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Ana Səhifə</a></li>
+                    <li class="breadcrumb-item"><a href="/products" class="text-decoration-none">Məhsullar</a></li>
+                    <li class="breadcrumb-item" th:if="${product.category}">
+                        <a th:href="@{/products?category={id}(id=${product.category.id})}" 
+                           class="text-decoration-none" th:text="${product.category.name}">Kateqoriya</a>
+                    </li>
+                    <li class="breadcrumb-item active" th:text="${product.title}">Məhsul</li>
+                </ol>
+            </nav>
+        </div>
+    </section>
+
+    <!-- Product Detail Section -->
+    <main class="py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Product Image -->
+                <div class="col-lg-6 mb-4">
+                    <div class="product-image-section">
+                        <div class="main-image-container">
+                            <img th:src="${product.imageUrl}" 
+                                 th:alt="${product.title}"
+                                 class="product-main-image"
+                                 onerror="this.src='/images/no-image.png'">
+                            
+                            <!-- Premium Badge -->
+                            <div class="product-badges" th:if="${product.isPremium}">
+                                <span class="badge badge-premium">
+                                    <i class="bi bi-crown-fill"></i>
+                                    Premium
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Info -->
+                <div class="col-lg-6">
+                    <div class="product-info">
+                        <!-- Category & Title -->
+                        <div class="product-header mb-4">
+                            <div class="product-category mb-2" th:if="${product.category}">
+                                <span class="category-badge" th:text="${product.category.name}">Kateqoriya</span>
+                            </div>
+                            <h1 class="product-title" th:text="${product.title}">Məhsul Adı</h1>
+                        </div>
+
+                        <!-- Seller Info -->
+                        <div class="seller-info-card mb-4">
+                            <div class="seller-header">
+                                <div class="seller-avatar">
+                                    <i class="bi bi-shop"></i>
+                                </div>
+                                <div class="seller-details">
+                                    <h6 class="seller-name" th:text="${product.sellerUsername}">Satıcı Adı</h6>
+                                    <div class="seller-meta">
+                                        <span class="seller-rating">
+                                            <i class="bi bi-star-fill"></i>
+                                            4.8 (234 dəyərləndirmə)
+                                        </span>
+                                        <span class="seller-status online">
+                                            <i class="bi bi-circle-fill"></i>
+                                            Onlayn
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="seller-actions">
+                                    <a th:href="@{/seller/{id}(id=${product.userId})}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-person"></i>
+                                        Profil
+                                    </a>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price & Stock -->
+                        <div class="price-stock-section mb-4">
+                            <div class="price-info">
+                                <div class="current-price">
+                                    <span class="price-amount" th:text="${#numbers.formatDecimal(product.price, 1, 2)}">0.00</span>
+                                    <span class="currency">AZN</span>
+                                </div>
+                                <div class="price-note">Ani çatdırılma</div>
+                            </div>
+                            
+                            <div class="stock-info">
+                                <div th:if="${product.stock > 0}" class="stock-available">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    <span class="stock-text">Stokda</span>
+                                    <span class="stock-count" th:text="${product.stock} + ' ədəd'">0 ədəd</span>
+                                </div>
+                                <div th:unless="${product.stock > 0}" class="stock-unavailable">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                    <span class="stock-text">Stokda yoxdur</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sales Count -->
+                        <div class="sales-info mb-4">
+                            <div class="sales-stats">
+                                <div class="stat-item">
+                                    <i class="bi bi-bag-check"></i>
+                                    <span class="stat-number" th:text="${realSalesCount ?: 0}">0</span>
+                                    <span class="stat-label">satış</span>
+                                </div>
+                                <div class="stat-item">
+                                    <i class="bi bi-eye"></i>
+                                    <span class="stat-number" th:text="${formattedViewCount ?: '0'}">0</span>
+                                    <span class="stat-label">baxış</span>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Purchase Section -->
+                        <div class="purchase-section">
+                            <div th:if="${product.stock > 0}">
+                                <div class="quantity-selector mb-3">
+                                    <label class="form-label">Miqdar:</label>
+                                    <div class="quantity-controls">
+                                        <button type="button" class="quantity-btn minus" onclick="changeQuantity(-1)">
+                                            <i class="bi bi-dash"></i>
+                                        </button>
+                                        <input type="number" id="quantity" value="1" min="1" th:max="${product.stock}" class="quantity-input">
+                                        <button type="button" class="quantity-btn plus" onclick="changeQuantity(1)">
+                                            <i class="bi bi-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="total-price mb-3">
+                                    <span class="total-label">Toplam:</span>
+                                    <span class="total-amount" id="totalPrice" th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' AZN'">0.00 AZN</span>
+                                </div>
+
+                                <div class="action-buttons">
+                                    <button sec:authorize="isAuthenticated()" 
+                                            class="btn btn-primary btn-lg add-to-cart-btn" 
+                                            th:data-product-id="${product.id}">
+                                        <i class="bi bi-cart-plus"></i>
+                                        Səbətə əlavə et
+                                    </button>
+                                    <a sec:authorize="!isAuthenticated()" 
+                                       href="/login" 
+                                       class="btn btn-primary btn-lg">
+                                        <i class="bi bi-cart-plus"></i>
+                                        Səbətə əlavə et
+                                    </a>
+                                    
+
+                                </div>
+                            </div>
+
+                            <div th:unless="${product.stock > 0}" class="out-of-stock">
+                                <p class="text-muted mb-3">Bu məhsul hal-hazırda stokda yoxdur</p>
+                                <button class="btn btn-outline-secondary btn-lg disabled">
+                                    <i class="bi bi-bell"></i>
+                                    Stoka düşəndə xəbər ver
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Details Tabs -->
+            <div class="product-details-section mt-5">
+                <ul class="nav nav-tabs custom-tabs" id="productTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="description-tab" data-bs-toggle="tab" 
+                                data-bs-target="#description" type="button" role="tab">
+                            <i class="bi bi-file-text"></i>
+                            Açıqlama
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" 
+                                data-bs-target="#reviews" type="button" role="tab">
+                            <i class="bi bi-star"></i>
+                            Rəylər (<span th:text="${reviewStats.totalReviews ?: 0}">0</span>)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="seller-products-tab" data-bs-toggle="tab" 
+                                data-bs-target="#seller-products" type="button" role="tab">
+                            <i class="bi bi-grid"></i>
+                            Satıcının digər məhsulları
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content custom-tab-content" id="productTabsContent">
+                    <!-- Description Tab -->
+                    <div class="tab-pane fade show active" id="description" role="tabpanel">
+                        <div class="description-content">
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <h5 class="mb-3">Məhsul Haqqında</h5>
+                                    <div class="description-text" th:utext="${product.description}">
+                                        Məhsul açıqlaması burada göstəriləcək...
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="product-features">
+                                        <h6 class="mb-3">Xüsusiyyətlər</h6>
+                                        <ul class="feature-list">
+                                            <li><i class="bi bi-check-circle text-success"></i> Ani çatdırılma</li>
+                                            <li><i class="bi bi-check-circle text-success"></i> Rəqəmsal məhsul</li>
+                                            <li><i class="bi bi-check-circle text-success"></i> 24/7 dəstək</li>
+                                            <li><i class="bi bi-check-circle text-success"></i> Geri qaytarma zəmanəti</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reviews Tab -->
+                    <div class="tab-pane fade" id="reviews" role="tabpanel">
+                        <div class="reviews-section">
+                            <div class="reviews-summary mb-4">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="rating-overview">
+                                            <div class="average-rating">
+                                                <span class="rating-number" th:text="${reviewStats.averageRating ?: 0}">0</span>
+                                                <div class="rating-stars">
+                                                    <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                                                        <i th:class="${i <= (reviewStats.averageRating ?: 0) ? 'bi bi-star-fill' : 'bi bi-star'}"></i>
+                                                    </th:block>
+                                                </div>
+                                                <div class="rating-count" th:text="${(reviewStats.totalReviews ?: 0) + ' rəy əsasında'}">0 rəy əsasında</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="rating-breakdown">
+                                            <th:block th:each="rating : ${#numbers.sequence(5, 1, -1)}">
+                                                <div class="rating-bar">
+                                                    <span class="rating-label" th:text="${rating + ' ulduz'}">5 ulduz</span>
+                                                    <div class="progress">
+                                                        <div class="progress-bar" 
+                                                             th:style="'width: ' + ${reviewStats.ratingPercentages[rating] ?: 0} + '%'"></div>
+                                                    </div>
+                                                    <span class="rating-percent" th:text="${(reviewStats.ratingPercentages[rating] ?: 0) + '%'}">0%</span>
+                                                </div>
+                                            </th:block>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Individual Reviews -->
+                            <div class="reviews-list">
+                                <div class="review-item" th:each="review : ${reviews}">
+                                    <div class="review-header">
+                                        <div class="reviewer-info">
+                                            <div class="reviewer-avatar">
+                                                <i class="bi bi-person-circle"></i>
+                                            </div>
+                                            <div class="reviewer-details">
+                                                <h6 class="reviewer-name" th:text="${review.user.username}">İstifadəçi</h6>
+                                                <div class="review-rating">
+                                                    <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                                                        <i th:class="${i <= review.rating ? 'bi bi-star-fill' : 'bi bi-star'}"></i>
+                                                    </th:block>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="review-date" th:text="${#temporals.format(review.createdAt, 'dd.MM.yyyy')}">Tarix</div>
+                                    </div>
+                                    <div class="review-content">
+                                        <p th:text="${review.comment}">Rəy yoxdur</p>
+                                        <div class="review-helpful">
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-hand-thumbs-up"></i> 
+                                                Faydalı (<span th:text="${review.helpfulCount ?: 0}">0</span>)
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div th:if="${#lists.isEmpty(reviews)}" class="text-center py-4">
+                                    <i class="bi bi-chat-square-text fs-1 text-muted"></i>
+                                    <p class="text-muted mt-2">Hələ ki rəy yoxdur. İlk rəy yazanlardan olun!</p>
+                                </div>
+                            </div>
+
+                            <!-- Add Review -->
+                            <div class="add-review-section mt-4" th:if="${canReview}" sec:authorize="isAuthenticated()">
+                                <h6 class="mb-3">Rəy yaz</h6>
+                                <form class="review-form" th:action="@{/products/{id}/reviews(id=${product.id})}" method="post">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <div class="mb-3">
+                                        <label class="form-label">Reytinq</label>
+                                        <div class="rating-input">
+                                            <input type="radio" id="star5" name="rating" value="5" required>
+                                            <label for="star5"><i class="bi bi-star"></i></label>
+                                            <input type="radio" id="star4" name="rating" value="4">
+                                            <label for="star4"><i class="bi bi-star"></i></label>
+                                            <input type="radio" id="star3" name="rating" value="3">
+                                            <label for="star3"><i class="bi bi-star"></i></label>
+                                            <input type="radio" id="star2" name="rating" value="2">
+                                            <label for="star2"><i class="bi bi-star"></i></label>
+                                            <input type="radio" id="star1" name="rating" value="1">
+                                            <label for="star1"><i class="bi bi-star"></i></label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <textarea class="form-control" name="comment" rows="4" placeholder="Rəyinizi yazın..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-send"></i>
+                                        Rəy göndər
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div th:unless="${canReview}" sec:authorize="isAuthenticated()" class="text-center py-4">
+                                <i class="bi bi-info-circle fs-1 text-muted"></i>
+                                <p class="text-muted mt-2">Bu məhsul üçün artıq rəy yazmısınız.</p>
+                            </div>
+                            
+                            <div sec:authorize="!isAuthenticated()" class="text-center py-4">
+                                <i class="bi bi-person-plus fs-1 text-muted"></i>
+                                <p class="text-muted mt-2">Rəy yazmaq üçün <a th:href="@{/login}" class="text-decoration-none">daxil olun</a>.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seller Products Tab -->
+                    <div class="tab-pane fade" id="seller-products" role="tabpanel">
+                        <div class="seller-products-section">
+                            <div class="section-header mb-4">
+                                <h5>
+                                    <span th:text="${product.sellerUsername}">Satıcı</span> satıcısının digər məhsulları
+                                </h5>
+                                <a th:href="@{/seller/{id}(id=${product.userId})}" class="btn btn-outline-primary">
+                                    Bütün məhsullara bax
+                                </a>
+                            </div>
+                            
+                            <div class="products-grid" th:if="${relatedProducts != null and !relatedProducts.isEmpty()}">
+                                <div class="product-card" th:each="relatedProduct : ${relatedProducts}">
+                                    <div class="product-image">
+                                        <img th:src="${relatedProduct.imageUrl}" th:alt="${relatedProduct.title}">
+                                        <div class="product-overlay">
+                                            <a th:href="@{/products/{id}(id=${relatedProduct.id})}" class="btn btn-light btn-sm">
+                                                <i class="bi bi-eye"></i> Bax
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="product-info">
+                                        <div class="product-category" th:text="${relatedProduct.category?.name}">Kateqoriya</div>
+                                        <h6 class="product-title" th:text="${relatedProduct.title}">Məhsul</h6>
+                                        <div class="product-price" th:text="${relatedProduct.price} + ' AZN'">0 AZN</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div th:if="${relatedProducts == null or relatedProducts.isEmpty()}" class="text-center py-4">
+                                <i class="bi bi-box-seam text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2">Bu satıcının başqa məhsulu yoxdur</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <!-- Scripts -->
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script th:inline="javascript">
+        const productPrice = /*[[${product.price}]]*/ 0;
+        const maxStock = /*[[${product.stock}]]*/ 1;
+
+        function changeQuantity(change) {
+            const quantityInput = document.getElementById('quantity');
+            let currentValue = parseInt(quantityInput.value);
+            let newValue = currentValue + change;
+            
+            if (newValue >= 1 && newValue <= maxStock) {
+                quantityInput.value = newValue;
+                updateTotalPrice();
+            }
+        }
+
+        function updateTotalPrice() {
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const total = (productPrice * quantity).toFixed(2);
+            document.getElementById('totalPrice').textContent = total + ' AZN';
+        }
+
+        // Rating input functionality
+        document.querySelectorAll('.rating-input input[type="radio"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const selectedRating = parseInt(this.value);
+                const labels = document.querySelectorAll('.rating-input label');
+                
+                labels.forEach((label, index) => {
+                    const starIndex = 5 - index; // Stars are in reverse order (5,4,3,2,1)
+                    if (starIndex <= selectedRating) {
+                        label.style.color = '#ffc107';
+                        label.querySelector('i').className = 'bi bi-star-fill';
+                    } else {
+                        label.style.color = '#dee2e6';
+                        label.querySelector('i').className = 'bi bi-star';
+                    }
+                });
+            });
+        });
+        
+        // Rating input hover effect
+        document.querySelectorAll('.rating-input label').forEach((label, index) => {
+            label.addEventListener('mouseenter', function() {
+                const starIndex = 5 - index;
+                const labels = document.querySelectorAll('.rating-input label');
+                
+                labels.forEach((l, i) => {
+                    const sIndex = 5 - i;
+                    if (sIndex <= starIndex) {
+                        l.style.color = '#ffc107';
+                        l.querySelector('i').className = 'bi bi-star-fill';
+                    } else {
+                        l.style.color = '#dee2e6';
+                        l.querySelector('i').className = 'bi bi-star';
+                    }
+                });
+            });
+        });
+        
+        document.querySelector('.rating-input').addEventListener('mouseleave', function() {
+            const selectedInput = document.querySelector('.rating-input input[type="radio"]:checked');
+            if (selectedInput) {
+                selectedInput.dispatchEvent(new Event('change'));
+            } else {
+                // Reset all stars if none selected
+                document.querySelectorAll('.rating-input label').forEach(label => {
+                    label.style.color = '#dee2e6';
+                    label.querySelector('i').className = 'bi bi-star';
+                });
+            }
+        });
+    </script>
+
+    <style>
+        .product-image-section {
+            position: relative;
+        }
+
+        .product-main-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-badges {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .badge-premium {
+            background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+            color: #333;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: 600;
+        }
+
+        .product-info {
+            padding-left: 2rem;
+        }
+
+        .product-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .category-badge {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .seller-info-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .seller-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .seller-avatar {
+            width: 50px;
+            height: 50px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .seller-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .seller-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .seller-rating {
+            color: #ffc107;
+        }
+
+        .seller-status.online {
+            color: #28a745;
+        }
+
+        .price-stock-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .current-price {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .price-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .currency {
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+
+        .price-note {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .stock-available {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #28a745;
+        }
+
+        .stock-unavailable {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #dc3545;
+        }
+
+        .sales-stats {
+            display: flex;
+            gap: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6c757d;
+        }
+
+        .stat-number {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quantity-btn:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+
+        .quantity-input {
+            width: 80px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.5rem;
+        }
+
+        .total-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #e3f2fd;
+            border-radius: 8px;
+        }
+
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1976d2;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .custom-tabs {
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .custom-tabs .nav-link {
+            border: none;
+            padding: 1rem 1.5rem;
+            color: #6c757d;
+            font-weight: 600;
+            background: transparent;
+        }
+
+        .custom-tabs .nav-link.active {
+            color: #667eea;
+            background: white;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .custom-tab-content {
+            padding: 2rem;
+            background: white;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .description-text {
+            line-height: 1.8;
+            color: #495057;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .rating-overview {
+            text-align: center;
+        }
+
+        .rating-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffc107;
+        }
+
+        .rating-stars {
+            color: #ffc107;
+            margin: 0.5rem 0;
+        }
+
+        .rating-breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .rating-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .rating-label {
+            min-width: 60px;
+            font-size: 0.9rem;
+        }
+
+        .rating-percent {
+            min-width: 40px;
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .review-item {
+            border-bottom: 1px solid #f8f9fa;
+            padding: 1.5rem 0;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .reviewer-avatar {
+            font-size: 2rem;
+            color: #6c757d;
+        }
+
+        .reviewer-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .review-rating {
+            color: #ffc107;
+        }
+
+        .rating-input {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 0.25rem;
+        }
+
+        .rating-input input {
+            display: none;
+        }
+
+        .rating-input label {
+            font-size: 1.5rem;
+            color: #dee2e6;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .rating-input label:hover,
+        .rating-input input:checked ~ label {
+            color: #ffc107;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .product-card .product-image {
+            position: relative;
+            height: 150px;
+            overflow: hidden;
+        }
+
+        .product-card .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-card .product-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .product-card:hover .product-overlay {
+            opacity: 1;
+        }
+
+        .product-card .product-info {
+            padding: 1rem;
+        }
+
+        .product-card .product-category {
+            font-size: 0.8rem;
+            color: #667eea;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .product-card .product-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-card .product-price {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        @media (max-width: 768px) {
+            .product-info {
+                padding-left: 0;
+                margin-top: 2rem;
+            }
+
+            .price-stock-section {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .sales-stats {
+                justify-content: space-around;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</body>
+</html> 

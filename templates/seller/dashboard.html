@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/seller-layout :: head('Dashboard')}"></head>
+
+<body>
+    <div class="seller-container">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/seller-layout :: sidebar('dashboard')}"></div>
+        
+        <!-- Main Content -->
+        <div class="seller-content">
+            <!-- Main Content Area -->
+            <div class="seller-main">
+                <!-- Alerts -->
+                <div th:replace="~{fragments/seller-layout :: alerts}"></div>
+                
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-1">
+                            <i class="bi bi-speedometer2 me-2 text-success"></i>Satıcı Dashboard
+                        </h2>
+                        <p class="text-muted mb-0">
+                            Xoş gəldiniz, 
+                            <span th:if="${#authentication.principal instanceof T(com.beta.digiex.security.CustomUserDetails)}" 
+                                  sec:authentication="principal.user.username">Satıcı</span>!
+                        </p>
+                    </div>
+                    <a href="/seller/products/new" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Yeni Məhsul
+                    </a>
+                </div>
+
+                <!-- Main Stats Cards -->
+                <div class="row mb-4">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Toplam Məhsul</h6>
+                                        <h3 class="mb-0" th:text="${totalProducts ?: 0}">0</h3>
+                                        <small class="opacity-75">Əlavə edilmiş</small>
+                                    </div>
+                                    <i class="bi bi-box fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Aktiv Məhsul</h6>
+                                        <h3 class="mb-0" th:text="${activeProducts ?: 0}">0</h3>
+                                        <small class="opacity-75">Satışda</small>
+                                    </div>
+                                    <i class="bi bi-check-circle fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Bu Ay Gəlir</h6>
+                                        <h3 class="mb-0">
+                                            <span class="currency" th:text="${monthlyEarnings ?: 0}">0</span>
+                                        </h3>
+                                        <small class="opacity-75">AZN</small>
+                                    </div>
+                                    <i class="bi bi-currency-exchange fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Toplam Gəlir</h6>
+                                        <h3 class="mb-0">
+                                            <span class="currency" th:text="${totalEarnings ?: 0}">0</span>
+                                        </h3>
+                                        <small class="opacity-75">Ümumi</small>
+                                    </div>
+                                    <i class="bi bi-piggy-bank fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Stats -->
+                <div class="row mb-4">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <div class="card text-center border-success">
+                            <div class="card-body">
+                                <i class="bi bi-bag-check text-success" style="font-size: 2rem;"></i>
+                                <h5 class="mt-2 mb-1" th:text="${completedOrders ?: 0}">0</h5>
+                                <small class="text-muted">Tamamlanan</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <div class="card text-center border-warning">
+                            <div class="card-body">
+                                <i class="bi bi-clock text-warning" style="font-size: 2rem;"></i>
+                                <h5 class="mt-2 mb-1" th:text="${pendingOrders ?: 0}">0</h5>
+                                <small class="text-muted">Gözləyən</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <div class="card text-center border-primary">
+                            <div class="card-body">
+                                <i class="bi bi-eye text-primary" style="font-size: 2rem;"></i>
+                                <h5 class="mt-2 mb-1" th:text="${totalViews ?: 0}">0</h5>
+                                <small class="text-muted">Baxış</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <div class="card text-center border-info">
+                            <div class="card-body">
+                                <i class="bi bi-heart text-info" style="font-size: 2rem;"></i>
+                                <h5 class="mt-2 mb-1" th:text="${totalFavorites ?: 0}">0</h5>
+                                <small class="text-muted">Favori</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <div class="card text-center border-warning">
+                            <div class="card-body">
+                                <i class="bi bi-star text-warning" style="font-size: 2rem;"></i>
+                                <h5 class="mt-2 mb-1" th:text="${averageRating ?: '0.0'}">0.0</h5>
+                                <small class="text-muted">Reytinq</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <div class="card text-center border-danger">
+                            <div class="card-body">
+                                <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
+                                <h5 class="mt-2 mb-1" th:text="${lowStockProducts ?: 0}">0</h5>
+                                <small class="text-muted">Az Stok</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Recent Orders -->
+                    <div class="col-lg-8 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Son Sifarişlər</h5>
+                                <a href="/seller/orders" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-arrow-right me-1"></i>Hamısını Gör
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${recentOrders != null and !recentOrders.isEmpty()}">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Sifariş</th>
+                                                    <th>Məhsul</th>
+                                                    <th>Alıcı</th>
+                                                    <th>Məbləğ</th>
+                                                    <th>Status</th>
+                                                    <th>Tarix</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="order : ${recentOrders}">
+                                                    <td>
+                                                        <span class="badge bg-light text-dark">#<span th:text="${order.id}">123</span></span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="fw-semibold" th:text="${order.product?.title ?: 'Məhsul'}">Məhsul</div>
+                                                        <small class="text-muted" th:text="${order.product?.description != null ? #strings.abbreviate(order.product.description, 30) : 'Təsvir'}">Təsvir</small>
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-person-circle me-2 text-muted"></i>
+                                                            <span th:text="${order.buyer?.username ?: 'Alıcı'}">Alıcı</span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="fw-bold text-success">
+                                                            <span class="currency" th:text="${order.totalAmount ?: 0}">0</span>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge" 
+                                                              th:classappend="${order.status?.name() == 'COMPLETED'} ? 'bg-success' : 
+                                                                             ${order.status?.name() == 'PENDING'} ? 'bg-warning text-dark' : 'bg-secondary'"
+                                                              th:text="${order.status?.name() == 'COMPLETED'} ? 'Tamamlandı' :
+                                                                       ${order.status?.name() == 'PENDING'} ? 'Gözləyir' : ${order.status ?: 'Status'}">
+                                                            Status
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <small class="text-muted" th:text="${order.createdAt != null ? #temporals.format(order.createdAt, 'dd.MM.yyyy') : '01.01.2024'}">01.01.2024</small>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div th:if="${recentOrders == null or recentOrders.isEmpty()}" class="text-center py-5">
+                                    <i class="bi bi-inbox display-1 text-muted"></i>
+                                    <h5 class="mt-3 text-muted">Hələ sifariş yoxdur</h5>
+                                    <p class="text-muted">İlk sifarişinizi almaq üçün məhsul əlavə edin</p>
+                                    <a href="/seller/products/new" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle me-2"></i>İlk Məhsulunuzu Əlavə Edin
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Products -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-star me-2"></i>Ən Çox Satılanlar</h5>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${topProducts != null and !topProducts.isEmpty()}">
+                                    <div th:each="product, iterStat : ${topProducts}" class="d-flex align-items-center mb-3">
+                                        <div class="badge bg-primary rounded-circle me-3" th:text="${iterStat.count}">1</div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" th:text="${product?.title ?: 'Məhsul'}">Məhsul</div>
+                                            <small class="text-muted">
+                                                <span th:text="${product?.salesCount ?: 0}">0</span> satış
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-bold text-success">
+                                                <span class="currency" th:text="${product?.price ?: 0}">0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div th:if="${topProducts == null or topProducts.isEmpty()}" class="text-center py-4">
+                                    <i class="bi bi-graph-up text-muted" style="font-size: 3rem;"></i>
+                                    <h6 class="mt-3 text-muted">Məlumat yoxdur</h6>
+                                    <p class="text-muted small">Satış məlumatları burada görünəcək</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Tez Əməliyyatlar</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                        <a href="/seller/products/new" class="btn btn-outline-primary w-100 py-3">
+                                            <i class="bi bi-plus-circle d-block mb-2" style="font-size: 2rem;"></i>
+                                            <small>Yeni Məhsul</small>
+                                        </a>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                        <a href="/seller/products" class="btn btn-outline-success w-100 py-3">
+                                            <i class="bi bi-box d-block mb-2" style="font-size: 2rem;"></i>
+                                            <small>Məhsullarım</small>
+                                        </a>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                        <a href="/seller/orders" class="btn btn-outline-warning w-100 py-3">
+                                            <i class="bi bi-bag d-block mb-2" style="font-size: 2rem;"></i>
+                                            <small>Sifarişlərim</small>
+                                        </a>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                        <a href="/seller/earnings" class="btn btn-outline-info w-100 py-3">
+                                            <i class="bi bi-currency-exchange d-block mb-2" style="font-size: 2rem;"></i>
+                                            <small>Gəlir Analizi</small>
+                                        </a>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                        <a href="/seller/analytics" class="btn btn-outline-secondary w-100 py-3">
+                                            <i class="bi bi-graph-up d-block mb-2" style="font-size: 2rem;"></i>
+                                            <small>Analitika</small>
+                                        </a>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                        <a href="/seller/settings" class="btn btn-outline-dark w-100 py-3">
+                                            <i class="bi bi-gear d-block mb-2" style="font-size: 2rem;"></i>
+                                            <small>Tənzimləmələr</small>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Scripts -->
+    <div th:replace="~{fragments/seller-layout :: scripts}"></div>
+</body>
+</html> 

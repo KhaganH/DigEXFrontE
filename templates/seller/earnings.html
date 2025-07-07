@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/seller-layout :: head('Gəlirlər')}"></head>
+
+<body>
+    <div class="seller-container">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/seller-layout :: sidebar('earnings')}"></div>
+
+        <!-- Main Content -->
+        <div class="seller-content">
+            <!-- Main Content Area -->
+            <div class="seller-main">
+                <!-- Alerts -->
+                <div th:replace="~{fragments/seller-layout :: alerts}"></div>
+                
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-1">
+                            <i class="bi bi-cash-stack me-2 text-success"></i>Gəlirlər
+                        </h2>
+                        <p class="text-muted mb-0">Satış gəlirlərinizi və maliyyə hesabatlarınızı izləyin</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-success">
+                            <i class="bi bi-download me-2"></i>Hesabat Endir
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Earnings Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card text-white bg-success">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Ümumi Gəlir</h6>
+                                        <h3 class="mb-0">₼524.50</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-cash-stack fs-2"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card text-white bg-primary">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Bu Ay Gəlir</h6>
+                                        <h3 class="mb-0">₼89.30</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-calendar-month fs-2"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card text-white bg-warning">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Gözləyən Ödəniş</h6>
+                                        <h3 class="mb-0">₼45.20</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-clock fs-2"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card text-white bg-info">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Son 7 Gün</h6>
+                                        <h3 class="mb-0">₼23.40</h3>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-graph-up fs-2"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Earnings Chart -->
+                    <div class="col-lg-8 col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-bar-chart me-2"></i>Gəlir Qrafiki
+                                </h5>
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="chartPeriod" id="week" checked>
+                                    <label class="btn btn-outline-primary btn-sm" for="week">Həftə</label>
+                                    
+                                    <input type="radio" class="btn-check" name="chartPeriod" id="month">
+                                    <label class="btn btn-outline-primary btn-sm" for="month">Ay</label>
+                                    
+                                    <input type="radio" class="btn-check" name="chartPeriod" id="year">
+                                    <label class="btn btn-outline-primary btn-sm" for="year">İl</label>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center py-5">
+                                    <i class="bi bi-bar-chart display-1 text-muted"></i>
+                                    <p class="text-muted">Gəlir qrafiki burada göstəriləcək</p>
+                                    <small class="text-muted">Chart.js ilə tətbiq ediləcək</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Transactions -->
+                    <div class="col-lg-4 col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-clock-history me-2"></i>Son Əməliyyatlar
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="transaction-item d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                    <div>
+                                        <div class="fw-bold">Steam 50$ Gift Card</div>
+                                        <small class="text-muted">25.11.2024</small>
+                                    </div>
+                                    <div class="text-success fw-bold">+₼45.00</div>
+                                </div>
+                                
+                                <div class="transaction-item d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                    <div>
+                                        <div class="fw-bold">Minecraft Premium</div>
+                                        <small class="text-muted">24.11.2024</small>
+                                    </div>
+                                    <div class="text-success fw-bold">+₼25.50</div>
+                                </div>
+                                
+                                <div class="transaction-item d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                    <div>
+                                        <div class="fw-bold">Premium Üyelik</div>
+                                        <small class="text-muted">23.11.2024</small>
+                                    </div>
+                                    <div class="text-danger fw-bold">-₼2.00</div>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <a href="/seller/transactions" class="btn btn-outline-primary btn-sm">
+                                        Bütün Əməliyyatları Gör
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Earnings Table -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-table me-2"></i>Məhsul üzrə Gəlirlər
+                        </h5>
+                        <div>
+                            <select class="form-select form-select-sm">
+                                <option>Son 30 gün</option>
+                                <option>Son 3 ay</option>
+                                <option>Son 6 ay</option>
+                                <option>Bütün vaxt</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Məhsul</th>
+                                        <th>Satış Sayı</th>
+                                        <th>Ümumi Satış</th>
+                                        <th>Komissiya</th>
+                                        <th>Xalis Gəlir</th>
+                                        <th>Ortalama</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="/images/steam-card.jpg" alt="Steam" class="rounded me-2" style="width: 40px; height: 40px;">
+                                                <div>
+                                                    <div class="fw-bold">Steam 50$ Gift Card</div>
+                                                    <small class="text-muted">Kateqoriya: Gaming</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-primary">12</span></td>
+                                        <td>₼540.00</td>
+                                        <td class="text-danger">-₼54.00</td>
+                                        <td class="text-success fw-bold">₼486.00</td>
+                                        <td>₼40.50</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="/images/minecraft.jpg" alt="Minecraft" class="rounded me-2" style="width: 40px; height: 40px;">
+                                                <div>
+                                                    <div class="fw-bold">Minecraft Premium</div>
+                                                    <small class="text-muted">Kateqoriya: Gaming</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-primary">8</span></td>
+                                        <td>₼280.00</td>
+                                        <td class="text-danger">-₼28.00</td>
+                                        <td class="text-success fw-bold">₼252.00</td>
+                                        <td>₼31.50</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            Daha ətraflı məlumat üçün həqiqi satış məlumatları əlavə ediləcək
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Scripts -->
+    <div th:replace="~{fragments/seller-layout :: scripts}"></div>
+</body>
+</html> 

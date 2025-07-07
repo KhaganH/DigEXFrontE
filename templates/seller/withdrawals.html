@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/seller-layout :: head('Para Çəkmə')}"></head>
+
+<body>
+    <div class="seller-container">
+        <!-- Satıcı Sidebar -->
+        <div th:replace="~{fragments/seller-layout :: sidebar('withdrawals')}"></div>
+
+        <!-- Ana İçerik -->
+        <div class="seller-content">
+            <div th:replace="~{fragments/seller-layout :: alerts}"></div>
+            
+            <div class="seller-main">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h2 mb-0">
+                        <i class="bi bi-wallet me-2 text-success"></i>Para Çəkmə
+                    </h1>
+                </div>
+
+                <!-- Bakiye Kartı -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card stats-card bg-success">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 opacity-75">Mövcud Bakiyə</h6>
+                                        <h3 class="mb-0 fw-bold" th:text="${balance + ' AZN'}">0 AZN</h3>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-wallet2 display-6 opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Para Çekme Formu -->
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-bank me-2"></i>Yeni Para Çəkmə Tələbi
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form th:action="@{/seller/withdrawals/create}" method="post" th:object="${withdrawalForm}">
+                                    <div class="mb-3">
+                                        <label for="amount" class="form-label fw-semibold">Çəkmək İstədiyiniz Məbləğ (AZN)</label>
+                                        <input type="number" class="form-control" id="amount" th:field="*{amount}" 
+                                               step="0.01" min="10" th:max="${balance}" th:data-balance="${balance}" required>
+                                        <div class="form-text">Minimum 10 AZN çəkə bilərsiniz</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="bankName" class="form-label fw-semibold">Bank Adı</label>
+                                        <select class="form-select" id="bankName" th:field="*{bankName}" required>
+                                            <option value="">Bank seçin</option>
+                                            <option value="Kapital Bank">Kapital Bank</option>
+                                            <option value="AccessBank">AccessBank</option>
+                                            <option value="Rabitəbank">Rabitəbank</option>
+                                            <option value="Bank Respublika">Bank Respublika</option>
+                                            <option value="Unibank">Unibank</option>
+                                            <option value="ABB Bank">ABB Bank</option>
+                                            <option value="PAŞA Bank">PAŞA Bank</option>
+                                            <option value="Günay Bank">Günay Bank</option>
+                                            <option value="Digər">Digər</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="cardNumber" class="form-label fw-semibold">Kart Nömrəsi</label>
+                                        <input type="text" class="form-control" id="cardNumber" th:field="*{cardNumber}" 
+                                               placeholder="xxxx xxxx xxxx xxxx" maxlength="19" required>
+                                        <div class="form-text">16 rəqəmli kart nömrənizi daxil edin</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="accountHolderName" class="form-label fw-semibold">Kart Sahibinin Adı Soyadı</label>
+                                        <input type="text" class="form-control" id="accountHolderName" th:field="*{accountHolderName}" 
+                                               placeholder="Ad Soyad" required>
+                                        <div class="form-text">Kartınızda yazıldığı kimi daxil edin</div>
+                                    </div>
+                                    
+                                    <div class="alert alert-info border-0">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <strong>Qeyd:</strong> Para çəkmə tələbiniz admin tərəfindən yoxlanılacaq və təsdiqlənəcək. 
+                                        Təsdiqləndikdən sonra 1-3 iş günü ərzində hesabınıza köçürüləcək.
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="bi bi-send me-2"></i>Tələb Göndər
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Para Çekme Təlimatları -->
+                    <div class="col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-question-circle me-2"></i>Təlimatlar
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li class="mb-3 d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-3 fs-5"></i>
+                                        <span>Minimum çəkmə məbləği 10 AZN-dir</span>
+                                    </li>
+                                    <li class="mb-3 d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-3 fs-5"></i>
+                                        <span>Tələbiniz 24 saat ərzində yoxlanılacaq</span>
+                                    </li>
+                                    <li class="mb-3 d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-3 fs-5"></i>
+                                        <span>Təsdiqlənən tələblər 1-3 iş günü ərzində ödənilir</span>
+                                    </li>
+                                    <li class="mb-3 d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-3 fs-5"></i>
+                                        <span>Azərbaycandakı bütün banklar dəstəklənir</span>
+                                    </li>
+                                    <li class="mb-3 d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-3 fs-5"></i>
+                                        <span>Kart məlumatlarınız təhlükəsiz şəkildə saxlanılır</span>
+                                    </li>
+                                </ul>
+                                
+                                <div class="alert alert-warning border-0 mt-4">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <strong>Diqqət:</strong> Yanlış bank məlumatları tələbin rədd edilməsinə səbəb ola bilər.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Para Çekme Tarixçəsi -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-clock-history me-2"></i>Para Çəkmə Tarixçəsi
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${withdrawalRequests != null and !withdrawalRequests.isEmpty()}" class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Tarix</th>
+                                                <th>Məbləğ</th>
+                                                <th>Bank</th>
+                                                <th>Kart</th>
+                                                <th>Status</th>
+                                                <th>Admin Qeydi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="request : ${withdrawalRequests}">
+                                                <td>
+                                                    <small class="text-muted" th:text="${#temporals.format(request.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2024 10:00</small>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-bold text-success" th:text="${request.amount + ' AZN'}">100 AZN</span>
+                                                </td>
+                                                <td th:text="${request.bankName}">Kapital Bank</td>
+                                                <td>
+                                                    <code class="text-muted" th:text="${'****' + request.cardNumber.substring(request.cardNumber.length() - 4)}">****1234</code>
+                                                </td>
+                                                <td>
+                                                    <span th:switch="${request.status}" class="badge fs-6">
+                                                        <span th:case="'PENDING'" class="badge bg-warning">Gözləyir</span>
+                                                        <span th:case="'APPROVED'" class="badge bg-success">Təsdiqləndi</span>
+                                                        <span th:case="'REJECTED'" class="badge bg-danger">Rədd Edildi</span>
+                                                        <span th:case="'COMPLETED'" class="badge bg-info">Tamamlandı</span>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small th:text="${request.adminNotes ?: '-'}" class="text-muted">-</small>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div th:if="${withdrawalRequests == null or withdrawalRequests.isEmpty()}" class="text-center py-5">
+                                    <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                                    <p class="text-muted">Hələ para çəkmə tələbiniz yoxdur</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/seller-layout :: scripts}"></div>
+    
+    <script>
+        // Kart nömrəsi formatlaması
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            if (formattedValue.length > 19) {
+                formattedValue = formattedValue.substring(0, 19);
+            }
+            e.target.value = formattedValue;
+        });
+        
+        // Bakiye kontrolü
+        document.getElementById('amount').addEventListener('input', function(e) {
+            const balance = parseFloat(e.target.dataset.balance);
+            const amount = parseFloat(e.target.value);
+            
+            console.log('Balance:', balance, 'Amount:', amount); // Debug için
+            
+            if (isNaN(amount) || amount === '') {
+                e.target.setCustomValidity('');
+                return;
+            }
+            
+            if (amount > balance) {
+                e.target.setCustomValidity('Bakiyənizi aşan məbləğ daxil edə bilməzsiniz (Bakiyə: ' + balance + ' AZN)');
+            } else if (amount < 10) {
+                e.target.setCustomValidity('Minimum çəkmə məbləği 10 AZN-dir');
+            } else {
+                e.target.setCustomValidity('');
+            }
+        });
+        
+        // Form submit kontrolü
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const amountInput = document.getElementById('amount');
+            const balance = parseFloat(amountInput.dataset.balance);
+            const amount = parseFloat(amountInput.value);
+            
+            if (amount > balance) {
+                e.preventDefault();
+                alert('Bakiyənizi aşan məbləğ daxil edə bilməzsiniz!\nBakiyə: ' + balance + ' AZN\nTələb edilən: ' + amount + ' AZN');
+                return false;
+            }
+            
+            if (amount < 10) {
+                e.preventDefault();
+                alert('Minimum çəkmə məbləği 10 AZN-dir');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html> 

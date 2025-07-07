@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/admin-layout :: head('Balans Tələbləri')}"></head>
+
+<body>
+    <div class="admin-container">
+        <!-- Admin Sidebar -->
+        <div th:replace="~{fragments/admin-layout :: sidebar('balance-requests')}"></div>
+
+        <!-- Ana İçerik -->
+        <div class="admin-content">
+            <div th:replace="~{fragments/admin-layout :: header}"></div>
+            <div th:replace="~{fragments/admin-layout :: alerts}"></div>
+            
+            <div class="admin-main">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h2 mb-0">
+                        <i class="bi bi-wallet me-2 text-primary"></i>C2C Balans Tələbləri
+                    </h1>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary active" onclick="filterRequests('all')">
+                            Hamısı
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="filterRequests('pending')">
+                            Gözləyən
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="filterRequests('approved')">
+                            Təsdiqlənən
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="filterRequests('rejected')">
+                            Rədd Edilən
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistiklər -->
+                <div class="row mb-4">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="card-title text-white-50">Gözləyən Tələblər</h6>
+                                        <h3 class="mb-0" th:text="${pendingCount ?: 0}">0</h3>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-clock-fill display-6 opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="card-title text-white-50">Bu Ay Təsdiqlənən</h6>
+                                        <h3 class="mb-0" th:text="${monthlyApproved ?: 0}">0</h3>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-check-circle-fill display-6 opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="card-title text-white-50">Bu Ay Məbləği</h6>
+                                        <h3 class="mb-0">
+                                            <span th:text="${monthlyAmount ?: 0}">0</span> AZN
+                                        </h3>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-cash-coin display-6 opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bakiyə Tələbləri Cədvəli -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-table me-2"></i>Bakiyə Tələbləri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${balanceRequests != null and !balanceRequests.isEmpty()}" class="table-responsive">
+                            <table class="table table-hover" id="requestsTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>İstifadəçi</th>
+                                        <th>Məbləğ</th>
+                                        <th>Ödəmə Üsulu</th>
+                                        <th>Dekont</th>
+                                        <th>Tarix</th>
+                                        <th>Status</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="request : ${balanceRequests}"
+                                        class="request-row"
+                                        th:data-status="${request.status.name()}">
+                                        <td th:text="${request.id}">#1</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle bg-primary text-white me-2">
+                                                    <span th:text="${request.user.username.substring(0,1).toUpperCase()}">A</span>
+                                                </div>
+                                                <div>
+                                                    <strong th:text="${request.user.username}">istifadəçi</strong>
+                                                    <br>
+                                                    <small class="text-muted" th:text="${request.user.email}">email@example.com</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success" th:text="${request.amount + ' AZN'}">50.00 AZN</strong>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <strong th:text="${request.paymentMethod.bankName}">Kapital Bank</strong>
+                                                <br>
+                                                <span class="font-monospace fw-bold text-primary" 
+                                                      th:text="${request.paymentMethod.cardNumber}"
+                                                      style="font-size: 14px; letter-spacing: 1px;">
+                                                    4169 1234 5678 9012
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                    th:onclick="|showReceipt('${request.receiptImagePath}')|">
+                                                <i class="bi bi-image me-1"></i>Dekont Gör
+                                            </button>
+                                        </td>
+                                        <td th:text="${#temporals.format(request.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2024 10:30</td>
+                                        <td>
+                                            <span th:if="${request.status.name() == 'PENDING'}" class="badge bg-warning">Gözləyir</span>
+                                            <span th:if="${request.status.name() == 'APPROVED'}" class="badge bg-success">Təsdiqlənib</span>
+                                            <span th:if="${request.status.name() == 'REJECTED'}" class="badge bg-danger">Rədd Edilib</span>
+                                        </td>
+                                        <td>
+                                            <div th:if="${request.status.name() == 'PENDING'}" class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-success" 
+                                                        th:onclick="|approveRequest(${request.id})|"
+                                                        title="Təsdiqlə">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-danger" 
+                                                        th:onclick="|showRejectModal(${request.id})|"
+                                                        title="Rədd Et">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </div>
+                                            <div th:if="${request.status.name() != 'PENDING'}">
+                                                <small class="text-muted">
+                                                    <span th:text="${request.approvedBy?.username}">Admin</span>
+                                                    <br>
+                                                    <span th:text="${#temporals.format(request.processedAt, 'dd.MM.yyyy HH:mm')}">02.01.2024 11:00</span>
+                                                </small>
+                                                <div th:if="${request.adminNotes != null and !request.adminNotes.isEmpty()}" 
+                                                     class="mt-1">
+                                                    <button type="button" class="btn btn-sm btn-outline-info" 
+                                                            th:onclick="|showNotes('${request.adminNotes}')|">
+                                                        <i class="bi bi-chat-dots"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div th:if="${balanceRequests == null or balanceRequests.isEmpty()}" class="text-center py-5">
+                            <i class="bi bi-wallet display-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">Hələ heç bir bakiyə tələbi yoxdur</h5>
+                            <p class="text-muted">İstifadəçilər bakiyə yüklədikdə burada görünəcək</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dekont Modal -->
+    <div class="modal fade" id="receiptModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-image me-2"></i>Dekont Şəkli
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="receiptImage" src="" alt="Dekont" class="img-fluid" style="max-height: 500px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rədd Etmə Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-x-circle me-2"></i>Tələbi Rədd Et
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="rejectForm" onsubmit="rejectRequest(event)">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="rejectionReason" class="form-label">Rədd Etmə Səbəbi</label>
+                            <textarea class="form-control" id="rejectionReason" name="rejectionReason" 
+                                      rows="3" placeholder="Tələbin rədd edilmə səbəbini yazın..." required></textarea>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Diqqət:</strong> Bu əməliyyat geri qaytarıla bilməz.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" id="rejectRequestId" value="">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-arrow-left me-1"></i>Geri
+                        </button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-x-circle me-1"></i>Rədd Et
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Qeydlər Modal -->
+    <div class="modal fade" id="notesModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-chat-dots me-2"></i>Admin Qeydi
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="adminNotesText"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/admin-layout :: scripts}"></div>
+    
+    <script>
+        // Dekont şəklini göstər
+        function showReceipt(imagePath) {
+            console.log('Image path:', imagePath);
+            console.log('Full URL:', window.location.origin + imagePath);
+            
+            const img = document.getElementById('receiptImage');
+            img.src = imagePath;
+            
+            // Image load event
+            img.onload = function() {
+                console.log('Image loaded successfully');
+            };
+            
+            img.onerror = function() {
+                console.error('Image failed to load:', imagePath);
+                alert('Şəkil yüklənərkən xəta baş verdi: ' + imagePath);
+            };
+            
+            new bootstrap.Modal(document.getElementById('receiptModal')).show();
+        }
+
+        // Rədd etmə modalını göstər
+        function showRejectModal(requestId) {
+            document.getElementById('rejectRequestId').value = requestId;
+            document.getElementById('rejectionReason').value = '';
+            new bootstrap.Modal(document.getElementById('rejectModal')).show();
+        }
+
+        // Admin qeydlərini göstər
+        function showNotes(notes) {
+            document.getElementById('adminNotesText').textContent = notes;
+            new bootstrap.Modal(document.getElementById('notesModal')).show();
+        }
+
+        // Tələbi təsdiqlə
+        function approveRequest(requestId) {
+            if (confirm('Bu bakiyə tələbini təsdiqləmək istədiyinizə əminsinizmi?')) {
+                fetch(`/admin/api/balance-requests/${requestId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [document.querySelector('meta[name="_csrf_header"]').content]: 
+                            document.querySelector('meta[name="_csrf"]').content
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        return response.text().then(text => {
+                            throw new Error(text);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Xəta:', error);
+                    alert('Tələb təsdiqlənilərkən xəta baş verdi: ' + error.message);
+                });
+            }
+        }
+
+        // Tələbi rədd et
+        function rejectRequest(event) {
+            event.preventDefault();
+            
+            const requestId = document.getElementById('rejectRequestId').value;
+            const reason = document.getElementById('rejectionReason').value;
+            
+            const formData = new FormData();
+            formData.append('rejectionReason', reason);
+            
+            fetch(`/admin/api/balance-requests/${requestId}/reject`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    [document.querySelector('meta[name="_csrf_header"]').content]: 
+                        document.querySelector('meta[name="_csrf"]').content
+                },
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(text);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Xəta:', error);
+                alert('Tələb rədd edilərkən xəta baş verdi: ' + error.message);
+            });
+        }
+
+        // Tələbləri filtr et
+        function filterRequests(status) {
+            const rows = document.querySelectorAll('.request-row');
+            const buttons = document.querySelectorAll('.btn-group .btn');
+            
+            // Düymələrin aktiv statusunu dəyiş
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            rows.forEach(row => {
+                if (status === 'all') {
+                    row.style.display = '';
+                } else {
+                    const rowStatus = row.dataset.status.toLowerCase();
+                    row.style.display = rowStatus === status ? '' : 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

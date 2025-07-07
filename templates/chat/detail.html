@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Söhbət - ' + ${otherUser.username})}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+
+    <div class="container my-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Chat Başlığı -->
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-person-circle fs-4 me-3"></i>
+                                <div>
+                                    <h5 class="mb-0" th:text="${otherUser.username}">İstifadəçi</h5>
+                                    <small class="opacity-75">
+                                        Sifariş: <span th:text="${chat.order.orderNumber}">Sifariş Nömrəsi</span>
+                                    </small>
+                                    <div id="istifadeci-statusu" class="small opacity-75">
+                                        <span id="status-ikonu" class="status-indicator offline">
+                                            <i class="bi bi-circle-fill"></i>
+                                        </span>
+                                        <span id="status-yazisi">Offline</span>
+                                    </div>
+                                    <div id="yazir-statusu" class="small opacity-75" style="display: none;">
+                                        <i class="bi bi-three-dots text-warning"></i> yazır...
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <a th:href="@{/order/{id}(id=${chat.order.id})}" class="btn btn-light btn-sm me-2">
+                                    <i class="bi bi-bag me-1"></i>Sifariş Detalları
+                                </a>
+                                <span id="baglanti-statusu" class="badge bg-success">
+                                    <i class="bi bi-wifi"></i> Bağlı
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Mesajları -->
+                <div class="card">
+                    <div class="card-body p-0">
+                        <div id="chat-mesajlari" class="chat-container" style="height: 500px; overflow-y: auto; padding: 1rem;">
+                            <div th:if="${messages.isEmpty()}" class="text-center text-muted py-5">
+                                <i class="bi bi-chat-dots display-4 mb-3"></i>
+                                <p>Hələ mesaj yoxdur. İlk mesajı göndərin!</p>
+                            </div>
+                            
+                            <div th:each="mesaj : ${messages}" class="mb-3" th:attr="data-mesaj-id=${mesaj.id}">
+                                <div th:if="${mesaj.type.toString() == 'SYSTEM'}" class="text-center">
+                                    <div class="alert alert-info py-2 mx-auto" style="max-width: 80%;">
+                                        <small><i class="bi bi-info-circle me-1"></i><span th:text="${mesaj.content}">Sistem mesajı</span></small>
+                                    </div>
+                                </div>
+                                
+                                <div th:unless="${mesaj.type.toString() == 'SYSTEM'}" 
+                                     th:class="${mesaj.sender.id == currentUser.id} ? 'd-flex justify-content-end' : 'd-flex justify-content-start'">
+                                    <div th:class="${mesaj.sender.id == currentUser.id} ? 'mesaj-balonu men' : 'mesaj-balonu diger'"
+                                         style="max-width: 70%;">
+                                        <div class="mesaj-mezmunu">
+                                            <p class="mb-1" th:text="${mesaj.content}">Mesaj məzmunu</p>
+                                            <small class="text-muted">
+                                                <span th:text="${#temporals.format(mesaj.sentAt, 'dd.MM.yyyy HH:mm')}">Tarix</span>
+                                                <i th:if="${mesaj.sender.id == currentUser.id and mesaj.isRead}" 
+                                                   class="bi bi-check2-all text-primary ms-1" title="Oxundu"></i>
+                                                <i th:if="${mesaj.sender.id == currentUser.id and !mesaj.isRead}" 
+                                                   class="bi bi-check2 text-muted ms-1" title="Göndərildi"></i>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mesaj Giriş Sahəsi -->
+                    <div class="card-footer bg-light">
+                        <form id="mesajFormu" class="d-flex gap-2">
+                            <input type="text" id="mesajGiris" class="form-control" 
+                                   placeholder="Mesajınızı yazın..." maxlength="1000" required>
+                            <button type="submit" class="btn btn-primary" id="gondərmeDuyməsi">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .chat-container {
+            background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+        }
+        
+        .mesaj-balonu {
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            margin-bottom: 0.5rem;
+            word-wrap: break-word;
+        }
+        
+        .mesaj-balonu.men {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .mesaj-balonu.diger {
+            background: #e9ecef;
+            color: #333;
+            border-bottom-left-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .mesaj-mezmunu p {
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        #mesajGiris:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .mesaj-balonu.yeni-animasiya {
+            animation: yeniMesajAnimasiya 0.3s ease-in-out;
+        }
+
+        @keyframes yeniMesajAnimasiya {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Online status styles */
+        .status-indicator {
+            font-size: 0.8rem;
+            margin-right: 5px;
+        }
+
+        .status-indicator.online {
+            color: #28a745;
+        }
+
+        .status-indicator.recently {
+            color: #ffc107;
+        }
+
+        .status-indicator.offline {
+            color: #6c757d;
+        }
+
+        .status-indicator i {
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.online i {
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+
+    <!-- SockJS və STOMP JavaScript kitabxanaları -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Dəyişənlər
+        var chatId = /*[[${chat.id}]]*/ 0;
+        var hazirki_istifadeci_id = /*[[${currentUser.id}]]*/ 0;
+        var diger_istifadeci_id = /*[[${otherUser.id}]]*/ 0;
+        var diger_istifadeci_adi = /*[[${otherUser.username}]]*/ '';
+        
+        // WebSocket bağlantısı
+        var stompClient = null;
+        var socket = null;
+        var yazir_zamanlayici = null;
+        
+        console.log('Chat ID:', chatId, 'Hazırki istifadəçi ID:', hazirki_istifadeci_id, 'Digər istifadəçi ID:', diger_istifadeci_id);
+        
+        // WebSocket bağlantısını yarat
+        function webSocketBaglantisiYarat() {
+            try {
+                console.log('WebSocket bağlantısı yaradılır...');
+                socket = new SockJS('/ws');
+                stompClient = new StompJs.Client({
+                    webSocketFactory: () => socket,
+                    debug: function (str) {
+                        console.log('STOMP: ' + str);
+                    },
+                    reconnectDelay: 5000,
+                    heartbeatIncoming: 4000,
+                    heartbeatOutgoing: 4000,
+                });
+
+                stompClient.onConnect = function (frame) {
+                    console.log('WebSocket bağlantısı uğurla quruldu: ' + frame);
+                    baglantiStatusunuYenile(true);
+                    
+                    // Chat kanalına abunə ol
+                    var chatSubscription = stompClient.subscribe('/user/topic/chat/' + chatId, function (mesaj) {
+                        console.log('Chat mesajı alındı:', mesaj.body);
+                        var mesajObyekti = JSON.parse(mesaj.body);
+                        yeniMesajEmal(mesajObyekti);
+                    });
+                    console.log('Chat kanalına abunə olundu:', '/user/topic/chat/' + chatId);
+
+                    // İstifadəçi status kanalına abunə ol
+                    var statusSubscription = stompClient.subscribe('/topic/user-status/' + diger_istifadeci_id, function (statusMesaj) {
+                        console.log('Status mesajı alındı:', statusMesaj.body);
+                        var statusObyekti = JSON.parse(statusMesaj.body);
+                        istifadeciStatusunuYenile(statusObyekti.status);
+                    });
+                    console.log('Status kanalına abunə olundu:', '/topic/user-status/' + diger_istifadeci_id);
+
+                    // Mesajları oxunmuş et
+                    mesajlariOxunmusEt();
+
+                    // Digər istifadəçinin statusunu yoxla
+                    digerIstifadeciStatusunuYoxla();
+                };
+
+                stompClient.onStompError = function (frame) {
+                    console.error('WebSocket STOMP xətası: ' + frame.headers['message']);
+                    console.error('Əlavə məlumat: ' + frame.body);
+                    baglantiStatusunuYenile(false);
+                };
+
+                stompClient.onWebSocketError = function (event) {
+                    console.error('WebSocket xətası:', event);
+                    baglantiStatusunuYenile(false);
+                };
+
+                stompClient.onWebSocketClose = function (event) {
+                    console.log('WebSocket bağlantısı bağlandı:', event);
+                    baglantiStatusunuYenile(false);
+                };
+
+                stompClient.onDisconnect = function (frame) {
+                    console.log('STOMP bağlantısı kəsildi:', frame);
+                    baglantiStatusunuYenile(false);
+                };
+
+                // Bağlantını aktivləşdir
+                stompClient.activate();
+                console.log('WebSocket aktivləşdirildi');
+                
+            } catch (error) {
+                console.error('WebSocket bağlantı yaratma xətası:', error);
+                baglantiStatusunuYenile(false);
+            }
+        }
+
+        // Bağlantı statusunu yenilə
+        function baglantiStatusunuYenile(bagli) {
+            var statusElement = document.getElementById('baglanti-statusu');
+            if (bagli) {
+                statusElement.className = 'badge bg-success';
+                statusElement.innerHTML = '<i class="bi bi-wifi"></i> Bağlı';
+            } else {
+                statusElement.className = 'badge bg-danger';
+                statusElement.innerHTML = '<i class="bi bi-wifi-off"></i> Bağlantı yoxdur';
+            }
+        }
+
+        // İstifadəçi statusunu yenilə
+        function istifadeciStatusunuYenile(status) {
+            var statusIkonu = document.getElementById('status-ikonu');
+            var statusYazisi = document.getElementById('status-yazisi');
+            
+            statusIkonu.className = 'status-indicator ' + status;
+            
+            switch(status) {
+                case 'online':
+                    statusYazisi.textContent = 'Online';
+                    break;
+                case 'recently':
+                    statusYazisi.textContent = 'Son görülmə: az əvvəl';
+                    break;
+                case 'offline':
+                default:
+                    statusYazisi.textContent = 'Offline';
+                    break;
+            }
+        }
+
+        // Digər istifadəçinin statusunu yoxla
+        function digerIstifadeciStatusunuYoxla() {
+            fetch('/api/user/' + diger_istifadeci_id + '/status')
+                .then(response => response.json())
+                .then(data => {
+                    istifadeciStatusunuYenile(data.status);
+                })
+                .catch(error => {
+                    console.log('Status yoxlama xətası:', error);
+                    istifadeciStatusunuYenile('offline');
+                });
+        }
+
+        // Yeni mesajı emal et
+        function yeniMesajEmal(mesaj) {
+            console.log('Yeni mesaj alındı:', mesaj);
+            
+            if (mesaj.operation === 'NEW_MESSAGE') {
+                yeniMesajGoster(mesaj);
+                
+                // Səhifə aktiv deyilsə bildirim göstər
+                if (document.hidden && mesaj.senderId !== hazirki_istifadeci_id) {
+                    if (Notification.permission === 'granted') {
+                        new Notification('Yeni mesaj: ' + mesaj.senderName, {
+                            body: mesaj.content,
+                            icon: '/favicon.ico'
+                        });
+                    }
+                }
+                
+            } else if (mesaj.operation === 'TYPING') {
+                if (mesaj.senderId !== hazirki_istifadeci_id) {
+                    yazirStatusunuGoster(true);
+                }
+                
+            } else if (mesaj.operation === 'READ') {
+                if (mesaj.senderId !== hazirki_istifadeci_id) {
+                    mesajlariOxunmusGoster();
+                }
+            }
+        }
+
+        // Yeni mesajı DOM-a əlavə et
+        function yeniMesajGoster(mesaj) {
+            // Əgər artıq bu mesaj ID ilə mesaj varsa, təkrarlamayaq
+            var existing = document.querySelector('[data-mesaj-id="' + mesaj.messageId + '"]');
+            if (existing && mesaj.messageId) {
+                console.log('Mesaj artıq mövcuddur, keçildi:', mesaj.messageId);
+                return;
+            }
+
+            var chatContainer = document.getElementById('chat-mesajlari');
+            var mesajDiv = document.createElement('div');
+            mesajDiv.className = 'mb-3 mesaj-balonu yeni-animasiya';
+            
+            // Temporary ID əgər real ID yoxdursa
+            var mesajId = mesaj.messageId || 'temp-' + Date.now();
+            mesajDiv.setAttribute('data-mesaj-id', mesajId);
+            
+            var jusifyClass = mesaj.senderId === hazirki_istifadeci_id ? 'justify-content-end' : 'justify-content-start';
+            var mesajClass = mesaj.senderId === hazirki_istifadeci_id ? 'mesaj-balonu men' : 'mesaj-balonu diger';
+            
+            var tarix = mesaj.sentAt ? new Date(mesaj.sentAt).toLocaleString('az-AZ') : new Date().toLocaleString('az-AZ');
+            var oxunduIcon = '';
+            
+            if (mesaj.senderId === hazirki_istifadeci_id) {
+                oxunduIcon = mesaj.isRead ? 
+                    '<i class="bi bi-check2-all text-primary ms-1" title="Oxundu"></i>' : 
+                    '<i class="bi bi-check2 text-muted ms-1" title="Göndərildi"></i>';
+            }
+            
+            mesajDiv.innerHTML = `
+                <div class="d-flex ${jusifyClass}">
+                    <div class="${mesajClass}" style="max-width: 70%;">
+                        <div class="mesaj-mezmunu">
+                            <p class="mb-1">${mesaj.content}</p>
+                            <small class="text-muted">
+                                ${tarix}
+                                ${oxunduIcon}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.appendChild(mesajDiv);
+            asagiyaKaydir();
+        }
+
+        // "Yazır..." statusunu göstər
+        function yazirStatusunuGoster(goster) {
+            var yazirElement = document.getElementById('yazir-statusu');
+            yazirElement.style.display = goster ? 'block' : 'none';
+            
+            if (goster) {
+                // 3 saniyə sonra gizlə
+                setTimeout(() => yazirStatusunuGoster(false), 3000);
+            }
+        }
+
+        // Mesajları oxunmuş göstər
+        function mesajlariOxunmusGoster() {
+            var menimMesajlarim = document.querySelectorAll('[data-mesaj-id] .bi-check2');
+            menimMesajlarim.forEach(function(icon) {
+                icon.className = 'bi bi-check2-all text-primary ms-1';
+                icon.title = 'Oxundu';
+            });
+        }
+
+        // Mesaj göndər
+        function mesajGonder(mezmun) {
+            if (!stompClient || !stompClient.connected) {
+                console.error('WebSocket bağlantısı yoxdur!');
+                alert('WebSocket bağlantısı yoxdur. Yenidən cəhd edin.');
+                return false;
+            }
+
+            console.log('Mesaj göndərilir:', mezmun);
+
+            // Mesajı dərhal göstər (optimistic update)
+            var tempMesaj = {
+                messageId: null, // Server cavabında real ID gələcək
+                chatId: chatId,
+                senderId: hazirki_istifadeci_id,
+                senderName: 'Siz',
+                content: mezmun,
+                sentAt: new Date().toISOString(),
+                isRead: false,
+                operation: 'NEW_MESSAGE'
+            };
+            
+            yeniMesajGoster(tempMesaj);
+
+            var mesajObyekti = {
+                chatId: chatId,
+                content: mezmun,
+                operation: 'NEW_MESSAGE'
+            };
+
+            try {
+                stompClient.publish({
+                    destination: '/app/chat/' + chatId + '/message',
+                    body: JSON.stringify(mesajObyekti)
+                });
+                console.log('Mesaj WebSocket-lə göndərildi');
+                return true;
+            } catch (error) {
+                console.error('Mesaj göndərmə xətası:', error);
+                alert('Mesaj göndərilərkən xəta baş verdi');
+                return false;
+            }
+        }
+
+        // "Yazır..." statusu göndər
+        function yazirStatusuGonder() {
+            if (!stompClient || !stompClient.connected) return;
+
+            var yazirObyekti = {
+                chatId: chatId,
+                operation: 'TYPING'
+            };
+
+            stompClient.publish({
+                destination: '/app/chat/' + chatId + '/message',
+                body: JSON.stringify(yazirObyekti)
+            });
+        }
+
+        // Mesajları oxunmuş et
+        function mesajlariOxunmusEt() {
+            if (!stompClient || !stompClient.connected) return;
+
+            var oxunduObyekti = {
+                chatId: chatId,
+                operation: 'READ'
+            };
+
+            stompClient.publish({
+                destination: '/app/chat/' + chatId + '/message',
+                body: JSON.stringify(oxunduObyekti)
+            });
+        }
+
+        // Aşağıya kaydır
+        function asagiyaKaydir() {
+            var chatContainer = document.getElementById('chat-mesajlari');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Bildirimlər üçün icazə al
+        function bildirimIcazesiAl() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        // Səhifə yükləndikdə
+        document.addEventListener('DOMContentLoaded', function() {
+            webSocketBaglantisiYarat();
+            bildirimIcazesiAl();
+            asagiyaKaydir();
+            
+            var mesajGiris = document.getElementById('mesajGiris');
+            if (mesajGiris) {
+                mesajGiris.focus();
+            }
+
+            // "Yazır..." funksiyası
+            mesajGiris.addEventListener('input', function() {
+                if (yazir_zamanlayici) {
+                    clearTimeout(yazir_zamanlayici);
+                }
+                
+                yazirStatusuGonder();
+                
+                yazir_zamanlayici = setTimeout(function() {
+                    // Yazma bitdi
+                }, 1000);
+            });
+        });
+
+        // Mesaj formu
+        document.getElementById('mesajFormu').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            var mesajGiris = document.getElementById('mesajGiris');
+            var gondermeDuymesi = document.getElementById('gondərmeDuyməsi');
+            var mezmun = mesajGiris.value.trim();
+            
+            if (!mezmun) return;
+            
+            // Formu deaktiv et
+            mesajGiris.disabled = true;
+            gondermeDuymesi.disabled = true;
+            gondermeDuymesi.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+            
+            if (mesajGonder(mezmun)) {
+                mesajGiris.value = '';
+            }
+            
+            // Formu yenidən aktiv et
+            setTimeout(function() {
+                mesajGiris.disabled = false;
+                gondermeDuymesi.disabled = false;
+                gondermeDuymesi.innerHTML = '<i class="bi bi-send"></i>';
+                mesajGiris.focus();
+            }, 500);
+        });
+
+        // Səhifə bağlananda WebSocket bağlantısını kəs
+        window.addEventListener('beforeunload', function() {
+            if (stompClient) {
+                stompClient.deactivate();
+            }
+        });
+
+        // Səhifə gizləndikdə/göründükdə
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Səhifə göründükdə mesajları oxunmuş et
+                mesajlariOxunmusEt();
+            }
+        });
+        /*]]>*/
+    </script>
+</body>
+</html> 

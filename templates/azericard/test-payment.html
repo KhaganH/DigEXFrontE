@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azericard Test Ödəniş</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center bg-white rounded-pill px-4 py-2 shadow-sm mb-3">
+                        <img src="https://azericard.com/assets/img/azericard-logo.png" alt="Azericard" height="30" class="me-2">
+                        <span class="fw-bold text-primary">Test Ödəniş Sistemi</span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Payment Form -->
+                    <div class="col-md-8">
+                        <div class="card shadow">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-credit-card me-2"></i>Kart Məlumatları
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="paymentForm">
+                                    <!-- Order Info -->
+                                    <div class="alert alert-info mb-4">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <strong>Sifariş:</strong> <span th:text="${order}">ORDER123</span>
+                                            </div>
+                                            <div class="col-6">
+                                                <strong>Məbləğ:</strong> <span th:text="${amount}">25.00</span> AZN
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Card Number -->
+                                    <div class="mb-3">
+                                        <label for="cardNumber" class="form-label">Kart Nömrəsi</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                                            <input type="text" class="form-control" id="cardNumber" 
+                                                   placeholder="0000 0000 0000 0000" maxlength="19" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <!-- Expiry Date -->
+                                        <div class="col-6">
+                                            <label for="expiryDate" class="form-label">Son İstifadə</label>
+                                            <input type="text" class="form-control" id="expiryDate" 
+                                                   placeholder="MM/YY" maxlength="5" required>
+                                        </div>
+                                        <!-- CVV -->
+                                        <div class="col-6">
+                                            <label for="cvv" class="form-label">CVV</label>
+                                            <input type="text" class="form-control" id="cvv" 
+                                                   placeholder="123" maxlength="4" required>
+                                        </div>
+                                    </div>
+
+                                    <!-- Cardholder Name -->
+                                    <div class="mb-3">
+                                        <label for="cardholderName" class="form-label">Kart Sahibinin Adı</label>
+                                        <input type="text" class="form-control" id="cardholderName" 
+                                               placeholder="AD SOYAD" required>
+                                    </div>
+
+                                    <!-- 3D Secure Simulation -->
+                                    <div class="alert alert-warning">
+                                        <h6><i class="bi bi-shield-check me-2"></i>3D Secure Təhlükəsizlik</h6>
+                                        <p class="mb-2">SMS OTP kodu daxil edin:</p>
+                                        <input type="text" class="form-control" id="smsOtp" 
+                                               placeholder="SMS kodu" maxlength="4" required>
+                                        <small class="text-muted">Test üçün: <strong th:text="${testCards.sms_otp}">1111</strong></small>
+                                    </div>
+
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-success btn-lg" id="payBtn">
+                                            <i class="bi bi-lock me-2"></i>Ödənişi Təsdiqlə
+                                        </button>
+                                        <a href="/balance" class="btn btn-outline-secondary">
+                                            <i class="bi bi-arrow-left me-2"></i>Geri Qayıt
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test Cards Info -->
+                    <div class="col-md-4">
+                        <div class="card shadow">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>Test Kartları
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- Visa Test Card -->
+                                <div class="mb-3">
+                                    <h6 class="text-primary">
+                                        <i class="bi bi-credit-card me-1"></i>Visa Test
+                                    </h6>
+                                    <div class="small">
+                                        <div><strong>Nömrə:</strong> <code th:text="${testCards.visa.pan}">4127208100975761</code></div>
+                                        <div><strong>Tarix:</strong> <code th:text="${testCards.visa.exp_month + '/' + testCards.visa.exp_year}">04/30</code></div>
+                                        <div><strong>CVV:</strong> <code th:text="${testCards.visa.cvv}">139</code></div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm mt-1 use-test-card" 
+                                            th:data-pan="${testCards.visa.pan}"
+                                            th:data-exp="${testCards.visa.exp_month + '/' + testCards.visa.exp_year}"
+                                            th:data-cvv="${testCards.visa.cvv}">
+                                        İstifadə Et
+                                    </button>
+                                </div>
+
+                                <!-- Mastercard Test Card -->
+                                <div class="mb-3">
+                                    <h6 class="text-warning">
+                                        <i class="bi bi-credit-card me-1"></i>Mastercard Test
+                                    </h6>
+                                    <div class="small">
+                                        <div><strong>Nömrə:</strong> <code th:text="${testCards.mastercard.pan}">5522099313088791</code></div>
+                                        <div><strong>Tarix:</strong> <code th:text="${testCards.mastercard.exp_month + '/' + testCards.mastercard.exp_year}">04/30</code></div>
+                                        <div><strong>CVV:</strong> <code th:text="${testCards.mastercard.cvv}">303</code></div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-warning btn-sm mt-1 use-test-card"
+                                            th:data-pan="${testCards.mastercard.pan}"
+                                            th:data-exp="${testCards.mastercard.exp_month + '/' + testCards.mastercard.exp_year}"
+                                            th:data-cvv="${testCards.mastercard.cvv}">
+                                        İstifadə Et
+                                    </button>
+                                </div>
+
+                                <!-- SMS OTP -->
+                                <div class="alert alert-success">
+                                    <small>
+                                        <strong>SMS OTP:</strong> <code th:text="${testCards.sms_otp}">1111</code>
+                                    </small>
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <small>
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        Bu test mühitidir. Gerçək ödəniş aparılmır.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        // Get Thymeleaf variables
+        const orderData = {
+            order: /*[[${order}]]*/ 'ORDER123',
+            amount: /*[[${amount}]]*/ 25,
+            timestamp: /*[[${timestamp}]]*/ '20250101',
+            email: /*[[${email}]]*/ 'test@test.com'
+        };
+        const testOtp = /*[[${testCards.sms_otp}]]*/ '1111';
+    </script>
+    <script>
+        // Format card number
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            if (formattedValue !== e.target.value) {
+                e.target.value = formattedValue;
+            }
+        });
+
+        // Format expiry date
+        document.getElementById('expiryDate').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+
+        // CVV numeric only
+        document.getElementById('cvv').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // SMS OTP numeric only
+        document.getElementById('smsOtp').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // Use test card buttons
+        document.querySelectorAll('.use-test-card').forEach(button => {
+            button.addEventListener('click', function() {
+                const pan = this.dataset.pan;
+                const exp = this.dataset.exp;
+                const cvv = this.dataset.cvv;
+
+                document.getElementById('cardNumber').value = pan.match(/.{1,4}/g).join(' ');
+                document.getElementById('expiryDate').value = exp;
+                document.getElementById('cvv').value = cvv;
+                document.getElementById('cardholderName').value = 'TEST USER';
+                document.getElementById('smsOtp').value = testOtp;
+            });
+        });
+
+        // Form submission
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const payBtn = document.getElementById('payBtn');
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            const expiryDate = document.getElementById('expiryDate').value;
+            const cvv = document.getElementById('cvv').value;
+            const smsOtp = document.getElementById('smsOtp').value;
+
+            // Basic validation
+            if (cardNumber.length < 15 || !expiryDate || cvv.length < 3 || smsOtp.length < 4) {
+                alert('Zəhmət olmasa bütün məlumatları düzgün daxil edin!');
+                return;
+            }
+
+            // Show loading
+            payBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Ödəniş Edilir...';
+            payBtn.disabled = true;
+
+            // Simulate 3D Secure processing
+            setTimeout(() => {
+                                 if (smsOtp === testOtp) {
+                     // Success - redirect to callback
+                     window.location.href = `/api/azericard/test-callback?order=${orderData.order}&amount=${orderData.amount}&timestamp=${orderData.timestamp}&email=${orderData.email}&status=success`;
+                 } else {
+                     alert('SMS OTP kodu yanlışdır! Test üçün: ' + testOtp);
+                    payBtn.innerHTML = '<i class="bi bi-lock me-2"></i>Ödənişi Təsdiqlə';
+                    payBtn.disabled = false;
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Sipariş Detalları')}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Order Details Card -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-bag-check me-2"></i>
+                            Sipariş Detalları
+                        </h5>
+                        <span class="badge" 
+                              th:classappend="${order.status.toString() == 'PENDING' ? 'bg-warning' : 
+                                             order.status.toString() == 'DELIVERED' ? 'bg-info' : 
+                                             order.status.toString() == 'COMPLETED' ? 'bg-success' : 'bg-secondary'}"
+                              th:text="${order.status.toString() == 'PENDING' ? 'Bekləyir' : 
+                                       order.status.toString() == 'DELIVERED' ? 'Teslim Edildi' : 
+                                       order.status.toString() == 'COMPLETED' ? 'Tamamlandı' : order.status}">
+                            Status
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Sipariş Məlumatları</h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Sipariş Nömrəsi:</strong></td>
+                                        <td><code th:text="${order.orderNumber}">DGX-001</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Sipariş Tarixi:</strong></td>
+                                        <td th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2024 10:00</td>
+                                    </tr>
+                                    <tr th:if="${order.deliveredAt != null}">
+                                        <td><strong>Teslim Tarixi:</strong></td>
+                                        <td th:text="${#temporals.format(order.deliveredAt, 'dd.MM.yyyy HH:mm')}">01.01.2024 12:00</td>
+                                    </tr>
+                                    <tr th:if="${order.completedAt != null}">
+                                        <td><strong>Tamamlanma Tarixi:</strong></td>
+                                        <td th:text="${#temporals.format(order.completedAt, 'dd.MM.yyyy HH:mm')}">01.01.2024 14:00</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Ödəmə Məlumatları</h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Məhsul Qiyməti:</strong></td>
+                                        <td th:text="${order.totalAmount + ' AZN'}">0 AZN</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Platform Komisyonu:</strong></td>
+                                        <td th:text="${order.commissionAmount + ' AZN'}">0 AZN</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Satıcıya Verilən:</strong></td>
+                                        <td class="text-success fw-bold" th:text="${order.sellerAmount + ' AZN'}">0 AZN</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Details -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-box-seam me-2"></i>
+                            Məhsul Məlumatları
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <img th:if="${order.product.imageUrl != null and !order.product.imageUrl.isEmpty()}" 
+                                     th:src="${order.product.imageUrl}" 
+                                     class="img-fluid rounded"
+                                     th:alt="${order.product.title}">
+                                <div th:unless="${order.product.imageUrl != null and !order.product.imageUrl.isEmpty()}" 
+                                     class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                     style="height: 150px;">
+                                    <i class="bi bi-box-seam text-muted fs-1"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <h5 th:text="${order.product.title}">Product Title</h5>
+                                <p class="text-muted" th:text="${order.product.description}">Product description...</p>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <strong>Miqdar:</strong> <span th:text="${order.quantity}">1</span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <strong>Vahid Qiyməti:</strong> <span th:text="${order.unitPrice + ' AZN'}">0 AZN</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Info -->
+                <div th:if="${order.deliveryInfo != null and !order.deliveryInfo.isEmpty()}" class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-truck me-2"></i>
+                            Təslim Məlumatları
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <span th:text="${order.deliveryInfo}">Delivery information...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Actions Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-gear me-2"></i>
+                            Əməliyyatlar
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Chat Link -->
+                        <a th:href="@{/chat/order/{orderId}(orderId=${order.id})}" class="btn btn-primary btn-sm w-100 mb-2">
+                            <i class="bi bi-chat-dots me-2"></i>
+                            <span th:if="${isBuyer}">Satıcı ilə Söhbət</span>
+                            <span th:if="${isSeller}">Alıcı ilə Söhbət</span>
+                        </a>
+
+                        <!-- Buyer Actions -->
+                        <div th:if="${isBuyer}">
+                            <div th:if="${order.status.toString() == 'DELIVERED'}">
+                                <button type="button" class="btn btn-success btn-sm w-100" onclick="confirmDelivery()">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    Təslimatı Təsdiqlə
+                                </button>
+                                <small class="text-muted d-block mt-1">
+                                    Məhsulu aldığınızı təsdiqləyin və satıcıya ödəniş edilsin
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Seller Actions -->
+                        <div th:if="${isSeller}">
+                            <div th:if="${order.status.toString() == 'PENDING'}">
+                                <button type="button" class="btn btn-warning btn-sm w-100" data-bs-toggle="modal" data-bs-target="#deliveryModal">
+                                    <i class="bi bi-truck me-2"></i>
+                                    Teslim Et
+                                </button>
+                                <small class="text-muted d-block mt-1">
+                                    Məhsulu təslim etdiyinizi bildirin
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Info Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-people me-2"></i>
+                            Tərəflər
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <h6>Alıcı</h6>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-person-circle me-2 text-primary"></i>
+                                    <span th:text="${order.buyer.username}">Buyer</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h6>Satıcı</h6>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-shop me-2 text-success"></i>
+                                    <span th:text="${order.seller.username}">Seller</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Modal (For Seller) -->
+    <div class="modal fade" id="deliveryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Təslim Məlumatları</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="deliveryForm">
+                        <div class="mb-3">
+                            <label for="deliveryInfo" class="form-label">Təslim Məlumatları *</label>
+                            <textarea class="form-control" id="deliveryInfo" rows="4" required 
+                                      placeholder="Məhsulun necə təslim ediləcəyini yazın (hesab nömrəsi, təlimatlar və s.)"></textarea>
+                            <div class="form-text">
+                                Alıcıya məhsulun necə əldə ediləcəyini detallı şəkildə izah edin
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ləğv Et</button>
+                    <button type="button" class="btn btn-primary" onclick="submitDelivery()">
+                        <i class="bi bi-truck me-2"></i>Teslim Et
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script>
+        function confirmDelivery() {
+            if (confirm('Məhsulu aldığınızı təsdiqləyirsiniz? Bu əməliyyat geri alına bilməz.')) {
+                const orderId = /*[[${order.id}]]*/ '1';
+                fetch(`/orders/${orderId}/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                })
+                .then(response => response.text())
+                .then(result => {
+                    alert('Təslimat təsdiqləndi!');
+                    location.reload();
+                })
+                .catch(error => {
+                    alert('Xəta baş verdi: ' + error);
+                });
+            }
+        }
+
+        function submitDelivery() {
+            const deliveryInfo = document.getElementById('deliveryInfo').value.trim();
+            
+            if (!deliveryInfo) {
+                alert('Təslim məlumatlarını daxil edin');
+                return;
+            }
+
+            const orderId = /*[[${order.id}]]*/ '1';
+            const formData = new FormData();
+            formData.append('deliveryInfo', deliveryInfo);
+
+            fetch(`/seller/orders/${orderId}/deliver`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                alert('Sipariş teslim edildi!');
+                location.reload();
+            })
+            .catch(error => {
+                alert('Xəta baş verdi: ' + error);
+            });
+        }
+    </script>
+</body>
+</html> 

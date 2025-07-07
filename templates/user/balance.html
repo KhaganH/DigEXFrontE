@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Balans İdarəetməsi')}"></head>
+
+<body>
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="py-4">
+        <div class="container-fluid" style="max-width: 1200px;">
+            
+            <!-- Page Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+                        <div>
+                            <h1 class="h2 mb-0 text-primary fw-bold">
+                                <i class="bi bi-wallet2 me-2"></i>Balans İdarəetməsi
+                            </h1>
+                            <p class="text-muted mt-1 mb-0">Balansınızı idarə edin və əməliyyat tarixçəsini görün</p>
+                        </div>
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <a href="/user/balance/load" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-1"></i>Balans Yüklə
+                            </a>
+                            <button type="button" class="btn btn-success" id="quickPulPalBtn">
+                                <i class="bi bi-credit-card me-1"></i>PulPal ile Yüklə
+                            </button>
+                            <button type="button" class="btn btn-info" id="quickAzericardBtn">
+                                <i class="bi bi-credit-card-2-front me-1"></i>Azericard ile Yüklə
+                            </button>
+                            <button type="button" class="btn btn-warning" onclick="testPulPalAPI()">
+                                <i class="bi bi-bug me-1"></i>Test API
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" id="refreshBtn">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Yenilə
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balance Cards -->
+            <div class="row g-4 mb-4">
+                <!-- Current Balance -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #007bff, #0056b3);">
+                        <div class="card-body text-white p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title text-white-50 mb-2 text-uppercase small">Cari Balans</h6>
+                                    <h2 class="mb-0 fw-bold" id="currentBalance" th:text="${currentBalance != null ? #numbers.formatDecimal(currentBalance, 1, 2) : '0.00'}">0.00</h2>
+                                    <small class="text-white-75">AZN</small>
+                                </div>
+                                <div class="opacity-25">
+                                    <i class="bi bi-wallet2 fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Deposits -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #28a745, #1e7e34);">
+                        <div class="card-body text-white p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title text-white-50 mb-2 text-uppercase small">Toplam Yükləmələr</h6>
+                                    <h2 class="mb-0 fw-bold" th:text="${totalDeposits != null ? #numbers.formatDecimal(totalDeposits, 1, 2) : '0.00'}">0.00</h2>
+                                    <small class="text-white-75">AZN</small>
+                                </div>
+                                <div class="opacity-25">
+                                    <i class="bi bi-arrow-down-circle fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Purchases -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #ffc107, #e0a800);">
+                        <div class="card-body text-white p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title text-white-50 mb-2 text-uppercase small">Toplam Alışlar</h6>
+                                    <h2 class="mb-0 fw-bold" th:text="${totalPurchases != null ? #numbers.formatDecimal(totalPurchases, 1, 2) : '0.00'}">0.00</h2>
+                                    <small class="text-white-75">AZN</small>
+                                </div>
+                                <div class="opacity-25">
+                                    <i class="bi bi-basket fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Withdrawals -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #17a2b8, #138496);">
+                        <div class="card-body text-white p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title text-white-50 mb-2 text-uppercase small">Toplam Çəkmələr</h6>
+                                    <h2 class="mb-0 fw-bold" th:text="${totalWithdrawals != null ? #numbers.formatDecimal(totalWithdrawals, 1, 2) : '0.00'}">0.00</h2>
+                                    <small class="text-white-75">AZN</small>
+                                </div>
+                                <div class="opacity-25">
+                                    <i class="bi bi-arrow-up-circle fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-0 py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0 fw-bold">
+                                        <i class="bi bi-clock-history me-2 text-primary"></i>Son Əməliyyatlar
+                                    </h5>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a href="/user/transactions" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-list me-1"></i>Hamısını Gör
+                                    </a>
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
+                                                data-bs-toggle="dropdown">
+                                            <i class="bi bi-funnel me-1"></i>Filter
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#" onclick="filterTransactions('all')">Hamısı</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="filterTransactions('DEPOSIT')">Yükləmələr</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="filterTransactions('PURCHASE')">Alışlar</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="filterTransactions('SALE')">Satışlar</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <!-- Transactions Table -->
+                            <div th:if="${recentTransactions != null and !recentTransactions.isEmpty()}">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="border-0 ps-4">Tarix</th>
+                                                <th class="border-0">Növ</th>
+                                                <th class="border-0">Təsvir</th>
+                                                <th class="border-0 text-end">Məbləğ</th>
+                                                <th class="border-0 text-end pe-4">Balans</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="transaction : ${recentTransactions}" class="transaction-row">
+                                                <td class="ps-4 py-3">
+                                                    <div>
+                                                        <span class="fw-medium text-dark d-block" 
+                                                              th:text="${#temporals.format(transaction.createdAt, 'dd.MM.yyyy')}">01.01.2024</span>
+                                                        <small class="text-muted" 
+                                                               th:text="${#temporals.format(transaction.createdAt, 'HH:mm')}">12:00</small>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3">
+                                                    <span th:switch="${transaction.type.name()}" class="badge fs-6 px-3 py-2">
+                                                        <span th:case="'DEPOSIT'" class="bg-success-subtle text-success badge fs-6 px-3 py-2">Balans Yükləmə</span>
+                                                        <span th:case="'PURCHASE'" class="bg-danger-subtle text-danger badge fs-6 px-3 py-2">Alış</span>
+                                                        <span th:case="'SALE'" class="bg-info-subtle text-info badge fs-6 px-3 py-2">Satış</span>
+                                                        <span th:case="'REFUND'" class="bg-warning-subtle text-warning badge fs-6 px-3 py-2">Geri qaytarma</span>
+                                                        <span th:case="'COMMISSION'" class="bg-secondary-subtle text-secondary badge fs-6 px-3 py-2">Komissiya</span>
+                                                        <span th:case="*" class="bg-secondary-subtle text-secondary badge fs-6 px-3 py-2" th:text="${transaction.type}">Əməliyyat</span>
+                                                    </span>
+                                                </td>
+                                                <td class="py-3">
+                                                    <span class="text-dark" th:text="${transaction.description}">Əməliyyat təsviri</span>
+                                                </td>
+                                                <td class="text-end py-3">
+                                                    <span class="fw-bold" th:class="${transaction.amount >= 0} ? 'text-success' : 'text-danger'">
+                                                        <span th:if="${transaction.amount >= 0}">+</span>
+                                                        <span th:text="${#numbers.formatDecimal(transaction.amount, 1, 2)}">0.00</span>
+                                                        <small class="ms-1">AZN</small>
+                                                    </span>
+                                                </td>
+                                                <td class="text-end pe-4 py-3">
+                                                    <span class="text-dark fw-medium">
+                                                        <span th:text="${#numbers.formatDecimal(transaction.balanceAfter, 1, 2)}">0.00</span>
+                                                        <small class="text-muted ms-1">AZN</small>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Empty State -->
+                            <div th:if="${recentTransactions == null or recentTransactions.isEmpty()}" 
+                                 class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="bi bi-receipt text-muted" style="font-size: 4rem;"></i>
+                                </div>
+                                <h5 class="text-muted mb-2">Hələ əməliyyat yoxdur</h5>
+                                <p class="text-muted mb-4">İlk balans yükləməsi üçün yuxarıdakı düyməni sıxın</p>
+                                <a href="/user/balance/load" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle me-2"></i>İlk Yükləməni Et
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- PulPal Quick Payment Modal -->
+    <div class="modal fade" id="quickPaymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-credit-card me-2 text-success"></i>PulPal ile Hızlı Ödeme
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="quickPaymentForm">
+                        <div class="mb-3">
+                            <label for="paymentAmount" class="form-label">Yükləmək istədiyiniz məbləğ (AZN)</label>
+                            <input type="number" class="form-control" id="paymentAmount" 
+                                   min="1" max="10000" step="0.01" placeholder="25.00" required>
+                            <div class="form-text">Minimum: 1 AZN, Maksimum: 10,000 AZN</div>
+                        </div>
+                        
+                        <!-- Quick Amount Buttons -->
+                        <div class="mb-3">
+                            <label class="form-label">Hızlı seçimlər:</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm quick-amount" data-amount="10">10 AZN</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm quick-amount" data-amount="25">25 AZN</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm quick-amount" data-amount="50">50 AZN</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm quick-amount" data-amount="100">100 AZN</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm quick-amount" data-amount="250">250 AZN</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm quick-amount" data-amount="500">500 AZN</button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="paymentDescription" class="form-label">Təsvir (istəyə bağlı)</label>
+                            <input type="text" class="form-control" id="paymentDescription" 
+                                   placeholder="Hızlı balans yükləməsi" maxlength="100">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-success" id="processPulPalPayment">
+                        <i class="bi bi-credit-card me-1"></i>PulPal'a Yönlendir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Azericard Quick Payment Modal -->
+    <div class="modal fade" id="quickAzericardModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-credit-card-2-front me-2 text-info"></i>Azericard ile Hızlı Ödeme
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="quickAzericardForm">
+                        <div class="mb-3">
+                            <label for="azericardPaymentAmount" class="form-label">Yükləmək istədiyiniz məbləğ (AZN)</label>
+                            <input type="number" class="form-control" id="azericardPaymentAmount" 
+                                   min="1" max="10000" step="0.01" placeholder="25.00" required>
+                            <div class="form-text">Minimum: 1 AZN, Maksimum: 10,000 AZN</div>
+                        </div>
+                        
+                        <!-- Quick Amount Buttons -->
+                        <div class="mb-3">
+                            <label class="form-label">Hızlı seçimlər:</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-info btn-sm azericard-quick-amount" data-amount="10">10 AZN</button>
+                                <button type="button" class="btn btn-outline-info btn-sm azericard-quick-amount" data-amount="25">25 AZN</button>
+                                <button type="button" class="btn btn-outline-info btn-sm azericard-quick-amount" data-amount="50">50 AZN</button>
+                                <button type="button" class="btn btn-outline-info btn-sm azericard-quick-amount" data-amount="100">100 AZN</button>
+                                <button type="button" class="btn btn-outline-info btn-sm azericard-quick-amount" data-amount="250">250 AZN</button>
+                                <button type="button" class="btn btn-outline-info btn-sm azericard-quick-amount" data-amount="500">500 AZN</button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="azericardPaymentDescription" class="form-label">Təsvir (istəyə bağlı)</label>
+                            <input type="text" class="form-control" id="azericardPaymentDescription" 
+                                   placeholder="Azericard balans yükləməsi" maxlength="100">
+                        </div>
+                        
+                        <!-- Test Kartları Info -->
+                        <div class="alert alert-info" style="display: none;" id="testCardsInfo">
+                            <h6><i class="bi bi-info-circle me-2"></i>Test Kartları:</h6>
+                            <small>
+                                <strong>Visa:</strong> 4127208100975761 | <strong>MM/YY:</strong> 04/30 | <strong>CVV:</strong> 139<br>
+                                <strong>Mastercard:</strong> 5522099313088791 | <strong>MM/YY:</strong> 04/30 | <strong>CVV:</strong> 303<br>
+                                <strong>SMS OTP:</strong> 1111
+                            </small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-info" id="processAzericardPayment">
+                        <i class="bi bi-credit-card-2-front me-1"></i>Azericard'a Yönlendir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <style>
+        .card {
+            border-radius: 12px !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+        }
+        
+        .table-responsive {
+            border-radius: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .transaction-row {
+            transition: background-color 0.2s ease;
+        }
+        
+        .transaction-row:hover {
+            background-color: #f8f9fa !important;
+        }
+        
+                 .quick-amount.active {
+             background-color: var(--bs-primary) !important;
+             color: white !important;
+             border-color: var(--bs-primary) !important;
+         }
+         
+         .loading-spin {
+             animation: spin 1s linear infinite;
+         }
+         
+         @keyframes spin {
+             0% { transform: rotate(0deg); }
+             100% { transform: rotate(360deg); }
+         }
+        
+                 @media (max-width: 576px) {
+             .container-fluid {
+                 padding-left: 15px;
+                 padding-right: 15px;
+             }
+             
+             .card-body {
+                 padding: 1rem !important;
+             }
+             
+             .table-responsive {
+                 font-size: 0.9rem;
+             }
+             
+             .btn {
+                 padding: 0.5rem 1rem;
+             }
+         }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Balance page JavaScript loaded');
+            
+            // Check for success/error messages from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            const message = urlParams.get('message');
+            
+            if (status === 'success') {
+                const successMessage = message ? decodeURIComponent(message.replace(/\+/g, ' ')) : 'Ödəmə uğurla tamamlandı!';
+                showSuccessMessage(successMessage);
+                // Refresh page after 3 seconds to show updated balance
+                setTimeout(() => {
+                    window.location.href = '/balance';
+                }, 3000);
+            } else if (status === 'error') {
+                const errorMessage = message ? decodeURIComponent(message.replace(/\+/g, ' ')) : 'Ödəmə əməliyyatında xəta baş verdi.';
+                showErrorMessage(errorMessage);
+            }
+            
+            // Quick PulPal Payment Button
+            const quickPulPalBtn = document.getElementById('quickPulPalBtn');
+            const quickPaymentModal = new bootstrap.Modal(document.getElementById('quickPaymentModal'));
+            const processPulPalBtn = document.getElementById('processPulPalPayment');
+            
+            console.log('Elements found:', {
+                quickPulPalBtn: !!quickPulPalBtn,
+                processPulPalBtn: !!processPulPalBtn,
+                modal: !!document.getElementById('quickPaymentModal')
+            });
+            
+            // Refresh Button
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            // Quick amount buttons
+            const quickAmountBtns = document.querySelectorAll('.quick-amount');
+            const paymentAmountInput = document.getElementById('paymentAmount');
+
+            // Quick PulPal button click
+            if (quickPulPalBtn) {
+                quickPulPalBtn.addEventListener('click', function() {
+                    console.log('PulPal button clicked');
+                    quickPaymentModal.show();
+                });
+            } else {
+                console.error('quickPulPalBtn not found');
+            }
+
+            // Quick Azericard Payment Button
+            const quickAzericardBtn = document.getElementById('quickAzericardBtn');
+            const quickAzericardModal = new bootstrap.Modal(document.getElementById('quickAzericardModal'));
+            const processAzericardBtn = document.getElementById('processAzericardPayment');
+            
+            // Azericard quick amount buttons
+            const azericardQuickAmountBtns = document.querySelectorAll('.azericard-quick-amount');
+            const azericardPaymentAmountInput = document.getElementById('azericardPaymentAmount');
+
+            // Quick Azericard button click
+            if (quickAzericardBtn) {
+                quickAzericardBtn.addEventListener('click', function() {
+                    console.log('Azericard button clicked');
+                    quickAzericardModal.show();
+                    // Show test cards info in test mode
+                    document.getElementById('testCardsInfo').style.display = 'block';
+                });
+            } else {
+                console.error('quickAzericardBtn not found');
+            }
+
+                         // Quick amount button selection
+             quickAmountBtns.forEach(btn => {
+                 btn.addEventListener('click', function() {
+                     // Remove active class from all buttons
+                     quickAmountBtns.forEach(b => {
+                         b.classList.remove('active');
+                         b.classList.add('btn-outline-primary');
+                         b.classList.remove('btn-primary');
+                     });
+                     // Add active class to clicked button
+                     this.classList.add('active');
+                     this.classList.remove('btn-outline-primary');
+                     this.classList.add('btn-primary');
+                     // Set amount in input
+                     paymentAmountInput.value = this.dataset.amount;
+                 });
+             });
+
+             // Azericard Quick amount button selection
+             azericardQuickAmountBtns.forEach(btn => {
+                 btn.addEventListener('click', function() {
+                     // Remove active class from all buttons
+                     azericardQuickAmountBtns.forEach(b => {
+                         b.classList.remove('active');
+                         b.classList.add('btn-outline-info');
+                         b.classList.remove('btn-info');
+                     });
+                     // Add active class to clicked button
+                     this.classList.add('active');
+                     this.classList.remove('btn-outline-info');
+                     this.classList.add('btn-info');
+                     // Set amount in input
+                     azericardPaymentAmountInput.value = this.dataset.amount;
+                 });
+             });
+
+            // Process PulPal Payment
+            if (processPulPalBtn) {
+                processPulPalBtn.addEventListener('click', function() {
+                    console.log('Process PulPal payment clicked');
+                    const amount = parseFloat(paymentAmountInput.value);
+                    const description = document.getElementById('paymentDescription').value || 'Hızlı balans yükləməsi';
+
+                    console.log('Amount:', amount, 'Description:', description);
+
+                    if (!amount || amount < 1 || amount > 10000) {
+                        alert('Zəhmət olmasa 1 ilə 10,000 AZN arasında məbləğ daxil edin.');
+                        return;
+                    }
+
+                    // Show loading
+                    this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Yönləndiriliyor...';
+                    this.disabled = true;
+
+                    // Get CSRF token
+                    const csrfTokenElement = document.querySelector('meta[name="_csrf"]');
+                    const csrfHeaderElement = document.querySelector('meta[name="_csrf_header"]');
+                    
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('amount', amount);
+                    formData.append('description', description);
+
+                    // Send request to PulPal
+                    const headers = {};
+                    if (csrfTokenElement && csrfHeaderElement) {
+                        const csrfToken = csrfTokenElement.getAttribute('content');
+                        const csrfHeader = csrfHeaderElement.getAttribute('content');
+                        if (csrfToken && csrfHeader) {
+                            headers[csrfHeader] = csrfToken;
+                        }
+                    }
+                    
+                    console.log('Sending request to PulPal API...');
+                    console.log('Headers:', headers);
+                    console.log('FormData:', formData);
+                    
+                    fetch('/api/pulpal/generate-payment-url', {
+                        method: 'POST',
+                        headers: headers,
+                        body: formData
+                    })
+                                        .then(response => {
+                        console.log('Response status:', response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Response data:', data);
+                        if (data.paymentUrl) {
+                            // Show success message
+                            this.innerHTML = '<i class="bi bi-check-circle me-1"></i>Yönləndiriliyor...';
+                            this.classList.add('btn-success');
+                            // Redirect to PulPal
+                            setTimeout(() => {
+                                window.location.href = data.paymentUrl;
+                            }, 500);
+                        } else {
+                            alert(data.message || 'Ödəmə URL\'i yaradıla bilmədi. Zəhmət olmasa yenidən cəhd edin.');
+                            // Reset button
+                            this.innerHTML = '<i class="bi bi-credit-card me-1"></i>PulPal\'a Yönləndir';
+                            this.disabled = false;
+                        }
+                    })
+                                                             .catch(error => {
+                        console.error('Fetch error:', error);
+                        alert('Bağlantı xətası. Zəhmət olmasa internet bağlantınızı yoxlayın və yenidən cəhd edin.');
+                        // Reset button
+                        this.innerHTML = '<i class="bi bi-credit-card me-1"></i>PulPal\'a Yönləndir';
+                        this.classList.remove('btn-success');
+                        this.disabled = false;
+                    });
+                });
+            }
+
+            // Process Azericard Payment
+            if (processAzericardBtn) {
+                processAzericardBtn.addEventListener('click', function() {
+                    console.log('Process Azericard payment clicked');
+                    const amount = parseFloat(azericardPaymentAmountInput.value);
+                    const description = document.getElementById('azericardPaymentDescription').value || 'Azericard balans yükləməsi';
+
+                    console.log('Amount:', amount, 'Description:', description);
+
+                    if (!amount || amount < 1 || amount > 10000) {
+                        alert('Zəhmət olmasa 1 ilə 10,000 AZN arasında məbləğ daxil edin.');
+                        return;
+                    }
+
+                    // Show loading
+                    this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Yönləndiriliyor...';
+                    this.disabled = true;
+
+                    // Get CSRF token
+                    const csrfTokenElement = document.querySelector('meta[name="_csrf"]');
+                    const csrfHeaderElement = document.querySelector('meta[name="_csrf_header"]');
+                    
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('amount', amount);
+                    formData.append('description', description);
+
+                    // Send request to Azericard
+                    const headers = {};
+                    if (csrfTokenElement && csrfHeaderElement) {
+                        const csrfToken = csrfTokenElement.getAttribute('content');
+                        const csrfHeader = csrfHeaderElement.getAttribute('content');
+                        if (csrfToken && csrfHeader) {
+                            headers[csrfHeader] = csrfToken;
+                        }
+                    }
+                    
+                    console.log('Sending request to Azericard API...');
+                    console.log('Headers:', headers);
+                    console.log('FormData:', formData);
+                    
+                    fetch('/api/azericard/generate-payment-url', {
+                        method: 'POST',
+                        headers: headers,
+                        body: formData
+                    })
+                    .then(response => {
+                        console.log('Response status:', response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Response data:', data);
+                        if (data.paymentUrl) {
+                            // Show success message
+                            this.innerHTML = '<i class="bi bi-check-circle me-1"></i>Yönləndiriliyor...';
+                            this.classList.add('btn-success');
+                            // Redirect to Azericard
+                            setTimeout(() => {
+                                window.location.href = data.paymentUrl;
+                            }, 500);
+                        } else {
+                            alert(data.error || 'Ödəniş URL-i yaradıla bilmədi. Zəhmət olmasa yenidən cəhd edin.');
+                            // Reset button
+                            this.innerHTML = '<i class="bi bi-credit-card-2-front me-1"></i>Azericard\'a Yönləndir';
+                            this.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                        alert('Bağlantı xətası. Zəhmət olmasa internet bağlantınızı yoxlayın və yenidən cəhd edin.');
+                        // Reset button
+                        this.innerHTML = '<i class="bi bi-credit-card-2-front me-1"></i>Azericard\'a Yönləndir';
+                        this.classList.remove('btn-success');
+                        this.disabled = false;
+                    });
+                });
+            }
+
+            // Refresh Balance
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+                    const originalClass = icon.className;
+                    
+                                         // Show loading
+                     icon.className = 'bi bi-arrow-clockwise me-1 loading-spin';
+                     this.disabled = true;
+
+                    // Get CSRF token (optional for GET requests but good practice)
+                    const csrfTokenElement = document.querySelector('meta[name="_csrf"]');
+                    const csrfHeaderElement = document.querySelector('meta[name="_csrf_header"]');
+                    
+                    const headers = {};
+                    if (csrfTokenElement && csrfHeaderElement) {
+                        const csrfToken = csrfTokenElement.getAttribute('content');
+                        const csrfHeader = csrfHeaderElement.getAttribute('content');
+                        if (csrfToken && csrfHeader) {
+                            headers[csrfHeader] = csrfToken;
+                        }
+                    }
+
+                    fetch('/api/balance', {
+                        method: 'GET',
+                        headers: headers
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                                                 if (data.success) {
+                             document.getElementById('currentBalance').textContent = parseFloat(data.balance).toFixed(2);
+                             
+                             // Show success feedback
+                             icon.className = 'bi bi-check-circle me-1';
+                             this.classList.add('btn-success');
+                             this.classList.remove('btn-outline-primary');
+                             setTimeout(() => {
+                                 this.classList.remove('btn-success');
+                                 this.classList.add('btn-outline-primary');
+                                 icon.className = originalClass;
+                             }, 1500);
+                         }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Balans yenilənərkən xəta baş verdi.');
+                    })
+                    .finally(() => {
+                        // Reset button
+                        icon.className = originalClass;
+                        this.disabled = false;
+                    });
+                });
+            }
+
+            // Transaction filtering
+            window.filterTransactions = function(type) {
+                const rows = document.querySelectorAll('.transaction-row');
+                
+                rows.forEach(row => {
+                    if (type === 'all') {
+                        row.style.display = '';
+                    } else {
+                        const badge = row.querySelector('.badge');
+                        const transactionType = badge.textContent.trim();
+                        
+                        let shouldShow = false;
+                        if (type === 'DEPOSIT' && transactionType === 'Balans Yükləmə') shouldShow = true;
+                        if (type === 'PURCHASE' && transactionType === 'Alış') shouldShow = true;
+                        if (type === 'SALE' && transactionType === 'Satış') shouldShow = true;
+                        
+                        row.style.display = shouldShow ? '' : 'none';
+                    }
+                });
+            };
+
+            // Auto refresh every 30 seconds
+            setInterval(function() {
+                if (refreshBtn && !refreshBtn.disabled) {
+                    refreshBtn.click();
+                }
+            }, 30000);
+        });
+
+                 // Test PulPal API function
+        function testPulPalAPI() {
+            console.log('Testing PulPal API...');
+            
+            const csrfTokenElement = document.querySelector('meta[name="_csrf"]');
+            const csrfHeaderElement = document.querySelector('meta[name="_csrf_header"]');
+            
+            console.log('CSRF Token Element:', csrfTokenElement);
+            console.log('CSRF Header Element:', csrfHeaderElement);
+            
+            const formData = new FormData();
+            formData.append('amount', '25');
+            formData.append('description', 'Test ödəmə');
+            
+            console.log('FormData entries:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            
+            const headers = {};
+            if (csrfTokenElement && csrfHeaderElement) {
+                const csrfToken = csrfTokenElement.getAttribute('content');
+                const csrfHeader = csrfHeaderElement.getAttribute('content');
+                console.log('CSRF Token:', csrfToken);
+                console.log('CSRF Header:', csrfHeader);
+                if (csrfToken && csrfHeader) {
+                    headers[csrfHeader] = csrfToken;
+                }
+            }
+            
+            console.log('Request headers:', headers);
+            
+            fetch('/api/pulpal/generate-payment-url', {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            })
+            .then(response => {
+                console.log('Test response status:', response.status);
+                console.log('Test response ok:', response.ok);
+                console.log('Test response statusText:', response.statusText);
+                
+                // Try to get response as text first
+                return response.text().then(text => {
+                    console.log('Raw response text:', text);
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('JSON parse error:', e);
+                        return { error: 'Invalid JSON', raw: text };
+                    }
+                });
+            })
+            .then(data => {
+                console.log('Test response data (parsed):', data);
+                console.log('Data type:', typeof data);
+                console.log('Data keys:', Object.keys(data));
+                
+                if (data.paymentUrl) {
+                    console.log('Payment URL found:', data.paymentUrl);
+                } else {
+                    console.log('No payment URL in response');
+                }
+                
+                alert('API Test Nəticəsi:\nStatus: Uğurlu\nMəlumat: ' + JSON.stringify(data, null, 2));
+            })
+            .catch(error => {
+                console.error('Test API error:', error);
+                alert('API Test Xətası: ' + error.message);
+            });
+        }
+        
+        // Success and error message functions
+        function showSuccessMessage(message) {
+            const alertHtml = `
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong>Uğurlu!</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.querySelector('.container-fluid').insertAdjacentHTML('afterbegin', alertHtml);
+        }
+        
+        function showErrorMessage(message) {
+            const alertHtml = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Xəta!</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.querySelector('.container-fluid').insertAdjacentHTML('afterbegin', alertHtml);
+        }
+    </script>
+</body>
+</html> 

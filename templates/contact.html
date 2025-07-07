@@ -1,0 +1,75 @@
+    <!DOCTYPE html>
+    <html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head th:replace="~{fragments/layout :: head('Əlaqə')}"></head>
+    <body>
+        <!-- Modern Header -->
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <main class="container my-5">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="text-center mb-5">
+                        <h1 class="display-4">Bizə Yazın</h1>
+                        <p class="lead">Suallarınız və təklifləriniz üçün bizimlə əlaqə saxlayın</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-geo-alt text-primary display-4 mb-3"></i>
+                                    <h5>Ünvanımız</h5>
+                                    <p class="text-muted">Bakı şəhəri, Azərbaycan</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-envelope text-primary display-4 mb-3"></i>
+                                    <h5>Email</h5>
+                                    <p class="text-muted">info@digex.az</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Mesaj Göndərin</h5>
+                            <form>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="name" class="form-label">Adınız</label>
+                                        <input type="text" class="form-control" id="name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="subject" class="form-label">Mövzu</label>
+                                    <input type="text" class="form-control" id="subject" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">Mesajınız</label>
+                                    <textarea class="form-control" id="message" rows="5" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Göndər</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div th:replace="~{fragments/layout :: modals}"></div>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+        <script th:replace="~{fragments/layout :: scripts}"></script>
+        <script th:replace="~{fragments/layout :: custom-js}"></script>
+    </body>
+    </html>

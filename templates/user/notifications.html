@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Bildirişlər')}"></head>
+
+<style>
+    :root {
+        --primary-color: #2C3E50;
+        --secondary-color: #3498DB;
+        --accent-color: #E74C3C;
+        --success-color: #27AE60;
+        --warning-color: #F39C12;
+        --light-bg: #F8F9FA;
+        --border-color: #E9ECEF;
+        --text-muted: #6C757D;
+        --shadow: 0 2px 10px rgba(0,0,0,0.1);
+        --border-radius: 8px;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .main-container {
+        padding: 2rem 0;
+        min-height: 100vh;
+    }
+
+    .notifications-header {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        text-align: center;
+    }
+
+    .notifications-header h1 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .notifications-header p {
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .notifications-stats {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1.5rem;
+    }
+
+    .stat-item {
+        background: var(--light-bg);
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        text-align: center;
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+
+    .notifications-container {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .notifications-toolbar {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .toolbar-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-toolbar {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: white;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-toolbar:hover {
+        background: var(--secondary-color);
+        color: white;
+        border-color: var(--secondary-color);
+        text-decoration: none;
+    }
+
+    .notification-item {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+
+    .notification-item:hover {
+        background: var(--light-bg);
+    }
+
+    .notification-item.unread {
+        background: rgba(52, 152, 219, 0.05);
+        border-left: 4px solid var(--secondary-color);
+    }
+
+    .notification-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.2rem;
+        color: white;
+    }
+
+    .notification-icon.info {
+        background: var(--secondary-color);
+    }
+
+    .notification-icon.success {
+        background: var(--success-color);
+    }
+
+    .notification-icon.warning {
+        background: var(--warning-color);
+    }
+
+    .notification-icon.error {
+        background: var(--accent-color);
+    }
+
+    .notification-body {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .notification-message {
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-bottom: 0.75rem;
+    }
+
+    .notification-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+
+    .notification-time {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .notification-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-notification {
+        padding: 0.25rem 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background: white;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.75rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-notification:hover {
+        background: var(--secondary-color);
+        color: white;
+        border-color: var(--secondary-color);
+        text-decoration: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-muted);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+        .notifications-stats {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .notifications-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toolbar-actions {
+            justify-content: center;
+        }
+
+        .notification-content {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .notification-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+    }
+</style>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+
+    <main class="main-container">
+        <div class="container">
+            <!-- Notifications Header -->
+            <div class="notifications-header">
+                <h1><i class="bi bi-bell-fill me-2"></i>Bildirişlər</h1>
+                <p>Hesabınız və fəaliyyətlərinizlə bağlı bildirişlər</p>
+                
+                <div class="notifications-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" th:text="${notifications?.size() ?: 0}">0</span>
+                        <div class="stat-label">Ümumi</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" th:text="${unreadCount ?: 0}">0</span>
+                        <div class="stat-label">Oxunmamış</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Container -->
+            <div class="notifications-container">
+                <!-- Toolbar -->
+                <div class="notifications-toolbar">
+                    <div>
+                        <h5 class="mb-0">Bildirişlərim</h5>
+                    </div>
+                    <div class="toolbar-actions">
+                        <a href="#" class="btn-toolbar" onclick="markAllAsRead()">
+                            <i class="bi bi-check-all me-1"></i>Hamısını oxunmuş işarələ
+                        </a>
+                        <a href="#" class="btn-toolbar" onclick="deleteAllRead()">
+                            <i class="bi bi-trash me-1"></i>Oxunmuşları sil
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Notifications List -->
+                <div class="notifications-list">
+                    <div th:if="${notifications?.isEmpty()}" class="empty-state">
+                        <i class="bi bi-bell-slash"></i>
+                        <h3>Bildiriş yoxdur</h3>
+                        <p>Hazırda heç bir bildirişiniz yoxdur. Yeni fəaliyyətlər olduqda burada görünəcək.</p>
+                    </div>
+
+                    <div th:each="notification : ${notifications}" 
+                         class="notification-item" 
+                         th:classappend="${notification.read ? '' : 'unread'}">
+                        <div class="notification-content">
+                            <div class="notification-icon info">
+                                <i class="bi bi-info-circle"></i>
+                            </div>
+                            <div class="notification-body">
+                                <div class="notification-title" th:text="${notification.title ?: 'Bildiriş'}">
+                                    Bildiriş başlığı
+                                </div>
+                                <div class="notification-message" th:text="${notification.message ?: 'Bildiriş məzmunu'}">
+                                    Bildiriş məzmunu buradadır
+                                </div>
+                                <div class="notification-meta">
+                                    <div class="notification-time">
+                                        <i class="bi bi-clock me-1"></i>
+                                        <span th:text="${notification.createdAt != null ? #temporals.format(notification.createdAt, 'dd.MM.yyyy HH:mm') : 'Bilinmir'}">
+                                            21.12.2024 14:30
+                                        </span>
+                                    </div>
+                                    <div class="notification-actions">
+                                        <a href="#" th:if="${!notification.read}" class="btn-notification" 
+                                           th:onclick="'markAsRead(' + ${notification.id} + ')'">
+                                            <i class="bi bi-check"></i> Oxunmuş
+                                        </a>
+                                        <a href="#" class="btn-notification" 
+                                           th:onclick="'deleteNotification(' + ${notification.id} + ')'">
+                                            <i class="bi bi-trash"></i> Sil
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+
+    <!-- Modal for login/register -->
+    <div th:replace="~{fragments/layout :: loginModal}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Mark notification as read
+        function markAsRead(notificationId) {
+            fetch(`/api/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Bildiriş oxunmuş işarələnərkən xəta baş verdi');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bildiriş oxunmuş işarələnərkən xəta baş verdi');
+            });
+        }
+
+        // Delete notification
+        function deleteNotification(notificationId) {
+            if (confirm('Bu bildirişi silmək istədiyinizə əminsiniz?')) {
+                fetch(`/api/notifications/${notificationId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Bildiriş silinərkən xəta baş verdi');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Bildiriş silinərkən xəta baş verdi');
+                });
+            }
+        }
+
+        // Mark all as read
+        function markAllAsRead() {
+            fetch('/api/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Bildirişlər oxunmuş işarələnərkən xəta baş verdi');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bildirişlər oxunmuş işarələnərkən xəta baş verdi');
+            });
+        }
+
+        // Delete all read notifications
+        function deleteAllRead() {
+            if (confirm('Bütün oxunmuş bildirişləri silmək istədiyinizə əminsiniz?')) {
+                fetch('/api/notifications/delete-read', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Bildirişlər silinərkən xəta baş verdi');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Bildirişlər silinərkən xəta baş verdi');
+                });
+            }
+        }
+    </script>
+</body>
+</html> 

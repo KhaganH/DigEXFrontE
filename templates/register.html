@@ -1,0 +1,146 @@
+        <!DOCTYPE html>
+        <html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+        <head th:replace="~{fragments/layout :: head('Qeydiyyat')}"></head>
+
+        <body>
+            <!-- Modern Header -->
+            <header th:replace="~{fragments/layout :: header}"></header>
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="container mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-5">
+                        <div class="card shadow">
+                            <div class="card-header bg-success text-white text-center">
+                                <h4><i class="bi bi-person-plus me-2"></i>Yeni Hesab Yaradın</h4>
+                            </div>
+                            <div class="card-body">
+                                <!-- OAuth Registration Options -->
+                                <div class="mb-4">
+                                    <div class="d-grid gap-2">
+                                        <a href="/oauth2/authorization/google" class="btn btn-outline-danger">
+                                            <i class="bi bi-google me-2"></i>Google ilə Qeydiyyat
+                                        </a>
+                                        <a href="/oauth2/authorization/facebook" class="btn btn-outline-primary">
+                                            <i class="bi bi-facebook me-2"></i>Facebook ilə Qeydiyyat
+                                        </a>
+                                    </div>
+
+                                    <div class="text-center my-3">
+                                        <span class="text-muted">və ya</span>
+                                    </div>
+                                </div>
+
+                                <!-- Regular Registration Form -->
+                                <form th:action="@{/register}" method="post" novalidate>
+                                    <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <div class="mb-3">
+                                        <label for="username" class="form-label">İstifadəçi adı</label>
+                                        <input type="text" class="form-control" id="username" name="username" required
+                                               pattern="[a-zA-Z0-9_]{3,20}" aria-describedby="usernameHelp">
+                                        <div id="usernameHelp" class="form-text">3-20 simvol, yalnız hərf, rəqəm və alt xətt (_)</div>
+                                        <div class="invalid-feedback">
+                                            İstifadəçi adı 3-20 simvol olmalı və yalnız hərf, rəqəm, alt xətt içərməlidir
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" name="email" required
+                                               aria-describedby="emailHelp">
+                                        <div id="emailHelp" class="form-text">Düzgün email ünvanı daxil edin</div>
+                                        <div class="invalid-feedback">
+                                            Düzgün email ünvanı daxil edin
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label">Şifrə</label>
+                                        <input type="password" class="form-control" id="password" name="password" required
+                                               minlength="6" aria-describedby="passwordHelp">
+                                        <div id="passwordHelp" class="form-text">Minimum 6 simvol</div>
+                                        <div class="invalid-feedback">
+                                            Şifrə ən azı 6 simvol olmalıdır
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="confirmPassword" class="form-label">Şifrəni təsdiq et</label>
+                                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required
+                                               minlength="6" aria-describedby="confirmPasswordHelp">
+                                        <div id="confirmPasswordHelp" class="form-text">Şifrənizi təkrar daxil edin</div>
+                                        <div class="invalid-feedback">
+                                            Şifrələr uyğun gəlmir
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-success w-100 mb-3">
+                                        <i class="bi bi-person-plus me-2"></i>Hesab Yarat
+                                    </button>
+                                </form>
+
+                                <div class="text-center">
+                                    <p class="mb-0">Hesabınız var?
+                                        <a href="/login" class="text-decoration-none">Daxil olun</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:replace="~{fragments/layout :: footer}"></div>
+            <div th:replace="~{fragments/layout :: scripts}"></div>
+
+            <script>
+                // Enhanced password confirmation validation
+                document.addEventListener('DOMContentLoaded', function() {
+                    const form = document.querySelector('form');
+                    const password = document.getElementById('password');
+                    const confirmPassword = document.getElementById('confirmPassword');
+
+                    // Form validation
+                    if (form) {
+                        form.addEventListener('submit', function(event) {
+                            if (!form.checkValidity()) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            }
+                            form.classList.add('was-validated');
+                        });
+                    }
+
+                    // Password confirmation validation
+                    if (password && confirmPassword) {
+                        function validatePasswords() {
+                            if (password.value !== confirmPassword.value) {
+                                confirmPassword.setCustomValidity('Şifrələr uyğun gəlmir');
+                                confirmPassword.classList.add('is-invalid');
+                                confirmPassword.classList.remove('is-valid');
+                            } else {
+                                confirmPassword.setCustomValidity('');
+                                confirmPassword.classList.remove('is-invalid');
+                                if (confirmPassword.value && confirmPassword.value.length >= 6) {
+                                    confirmPassword.classList.add('is-valid');
+                                }
+                            }
+                        }
+
+                        confirmPassword.addEventListener('input', validatePasswords);
+                        password.addEventListener('input', validatePasswords);
+                    }
+
+                    // Real-time validation for inputs
+                    const inputs = form?.querySelectorAll('input[required]');
+                    inputs?.forEach(input => {
+                        input.addEventListener('blur', function() {
+                            if (this.checkValidity()) {
+                                this.classList.remove('is-invalid');
+                                this.classList.add('is-valid');
+                            } else {
+                                this.classList.remove('is-valid');
+                                this.classList.add('is-invalid');
+                            }
+                        });
+                    });
+                });
+            </script>
+        </body>
+        </html>

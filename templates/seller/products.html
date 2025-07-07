@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/seller-layout :: head('Məhsullarım')}"></head>
+
+<body>
+    <div class="seller-container">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/seller-layout :: sidebar('products')}"></div>
+        
+        <!-- Main Content -->
+        <div class="seller-content">
+            <!-- Main Content Area -->
+            <div class="seller-main">
+                <!-- Alerts -->
+                <div th:replace="~{fragments/seller-layout :: alerts}"></div>
+                
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-1">
+                            <i class="bi bi-box me-2 text-primary"></i>Məhsullarım
+                        </h2>
+                        <p class="text-muted mb-0">Rəqəmsal məhsullarınızı idarə edin və satışa təklif edin</p>
+                    </div>
+                    <a href="/seller/products/new" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Yeni Məhsul
+                    </a>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Toplam Məhsul</h6>
+                                        <h3 class="mb-0" th:text="${products != null ? products.size() : 0}">0</h3>
+                                        <small class="opacity-75">Cəmi</small>
+                                    </div>
+                                    <i class="bi bi-box fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Aktiv</h6>
+                                        <h3 class="mb-0" th:text="${products != null ? #lists.size(products.?[active == true]) : 0}">0</h3>
+                                        <small class="opacity-75">Satışda</small>
+                                    </div>
+                                    <i class="bi bi-check-circle fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Gözləyən</h6>
+                                        <h3 class="mb-0" th:text="${products != null ? #lists.size(products.?[approved == false]) : 0}">0</h3>
+                                        <small class="opacity-75">Təsdiq</small>
+                                    </div>
+                                    <i class="bi bi-clock fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-danger text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Az Stok</h6>
+                                        <h3 class="mb-0" th:text="${products != null ? #lists.size(products.?[stock < 5]) : 0}">0</h3>
+                                        <small class="opacity-75">< 5</small>
+                                    </div>
+                                    <i class="bi bi-exclamation-triangle fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-list me-2"></i>Məhsul Siyahısı
+                                </h5>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-funnel me-1"></i>Filtr
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-search me-1"></i>Axtar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${products != null and !products.isEmpty()}" class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Məhsul</th>
+                                                <th>Qiymət</th>
+                                                <th>Stok</th>
+                                                <th>Status</th>
+                                                <th>Satışlar</th>
+                                                <th>Tarix</th>
+                                                <th>Əməliyyatlar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="product : ${products}">
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="me-3">
+                                                            <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                                                 style="width: 50px; height: 50px;">
+                                                                <i class="bi bi-box text-muted fs-4"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-semibold" th:text="${product?.title ?: 'Məhsul'}">Məhsul Adı</div>
+                                                            <small class="text-muted" th:text="${product?.description != null ? #strings.abbreviate(product.description, 50) : 'Təsvir'}">Təsvir</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-bold text-success">
+                                                        <span class="currency" th:text="${product?.price ?: 0}">0</span>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge" 
+                                                          th:classappend="${product?.stock > 10} ? 'bg-success' : (${product?.stock > 5} ? 'bg-warning text-dark' : 'bg-danger')"
+                                                          th:text="${product?.stock ?: 0}">0</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge" 
+                                                          th:classappend="${product?.approved && product?.active} ? 'bg-success' : (${!product?.approved} ? 'bg-warning text-dark' : 'bg-secondary')"
+                                                          th:text="${product?.approved && product?.active} ? 'Aktiv' : (${!product?.approved} ? 'Gözləyir' : 'Deaktiv')">Status</span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-muted" th:text="${product?.salesCount ?: 0}">0</span>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted" th:text="${product?.createdAt != null ? #temporals.format(product.createdAt, 'dd.MM.yyyy') : '01.01.2024'}">01.01.2024</small>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a th:href="@{'/seller/products/' + ${product.id}}" class="btn btn-outline-primary btn-sm" title="Bax">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                        <a th:href="@{'/seller/products/' + ${product.id} + '/edit'}" class="btn btn-outline-warning btn-sm" title="Redaktə et">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                        <button class="btn btn-outline-success btn-sm" onclick="makePremium(this)" 
+                                                                th:data-id="${product.id}" th:data-title="${product.title}"
+                                                                title="Premium İlan Et (2 AZN)">
+                                                            <i class="bi bi-star"></i>
+                                                        </button>
+                                                        <button class="btn btn-outline-danger btn-sm" onclick="confirmDelete(this)" 
+                                                                th:data-id="${product.id}" th:data-title="${product.title}"
+                                                                title="Sil">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Empty State -->
+                                <div th:if="${products == null or products.isEmpty()}" class="text-center py-5">
+                                    <i class="bi bi-box display-1 text-muted"></i>
+                                    <h5 class="mt-3 text-muted">Hələ məhsulunuz yoxdur</h5>
+                                    <p class="text-muted">İlk rəqəmsal məhsulunuzu əlavə edin və satışa başlayın</p>
+                                    <a href="/seller/products/new" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle me-2"></i>İlk Məhsulunuzu Əlavə Edin
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Deletion Request Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-shield-exclamation text-warning me-2"></i>Məhsul Silmə Talebi
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Güvenlik üçün məhsul silmə admin tərəfindən təsdiqlənməlidir.</strong>
+                    </div>
+                    
+                    <p><strong>Silmək istədiyiniz məhsul:</strong></p>
+                    <p class="text-muted fs-6"><strong id="productTitle"></strong></p>
+                    
+                    <div class="mb-3">
+                        <label for="deletionReason" class="form-label"><strong>Silmə səbəbi (Məcburi)</strong></label>
+                        <textarea class="form-control" id="deletionReason" rows="3" 
+                                  placeholder="Məhsulu niyə silmək istədiyinizi izah edin..."></textarea>
+                        <small class="form-text text-muted">
+                            Bu məlumat admin tərəfindən nəzərdən keçiriləcək
+                        </small>
+                    </div>
+                    
+                    <div class="bg-light p-3 rounded">
+                        <h6 class="text-info mb-2">
+                            <i class="bi bi-shield-check me-1"></i>Qeyd:
+                        </h6>
+                        <ul class="list-unstyled mb-0 small">
+                            <li><i class="bi bi-arrow-right text-muted me-1"></i>Aktiv siparişi olan məhsullar silinə bilməz</li>
+                            <li><i class="bi bi-arrow-right text-muted me-1"></i>Admin talebinizi 24 saat ərzində yoxlayacaq</li>
+                            <li><i class="bi bi-arrow-right text-muted me-1"></i>Təsdiq edildikdən sonra məhsul kalıcı olaraq silinəcək</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ləğv Et</button>
+                    <button type="button" class="btn btn-warning" id="confirmDeleteBtn">
+                        <i class="bi bi-send me-1"></i>Silmə Talebi Gönder
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Confirmation Modal -->
+    <div class="modal fade" id="premiumModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-star-fill text-warning me-2"></i>Premium İlan Et
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Məhsulunuzu premium edin!</strong>
+                    </div>
+                    <p>Bu məhsulu premium etmək istədiyinizdən əminsiniz?</p>
+                    <p class="text-muted"><strong id="premiumProductTitle"></strong></p>
+                    
+                    <div class="bg-light p-3 rounded">
+                        <h6 class="text-warning mb-2">
+                            <i class="bi bi-star-fill me-1"></i>Premium Üstünlüklər:
+                        </h6>
+                        <ul class="list-unstyled mb-2">
+                            <li><i class="bi bi-check-circle text-success me-1"></i>Axtarış nəticələrində üstdə görünsün</li>
+                            <li><i class="bi bi-check-circle text-success me-1"></i>Ana səhifədə öne çıxarılsın</li>
+                            <li><i class="bi bi-check-circle text-success me-1"></i>1 gün müddətində aktiv</li>
+                        </ul>
+                        <div class="text-center">
+                            <strong class="text-danger fs-5">
+                                <i class="bi bi-currency-exchange me-1"></i>Günlük Qiymət: 2.00 AZN
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ləğv Et</button>
+                    <button type="button" class="btn btn-warning" id="confirmPremiumBtn">
+                        <i class="bi bi-star-fill me-1"></i>Premium Et (2 AZN)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Scripts -->
+    <div th:replace="~{fragments/seller-layout :: scripts}"></div>
+    
+    <script>
+        let deleteProductId = null;
+        let premiumProductId = null;
+        
+        function confirmDelete(button) {
+            deleteProductId = button.getAttribute('data-id');
+            const productTitle = button.getAttribute('data-title');
+            
+            document.getElementById('productTitle').textContent = productTitle;
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+        
+        function makePremium(button) {
+            premiumProductId = button.getAttribute('data-id');
+            const productTitle = button.getAttribute('data-title');
+            
+            document.getElementById('premiumProductTitle').textContent = productTitle;
+            
+            const modal = new bootstrap.Modal(document.getElementById('premiumModal'));
+            modal.show();
+        }
+        
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (deleteProductId) {
+                const reason = document.getElementById('deletionReason').value.trim();
+                
+                if (!reason) {
+                    alert('Silmə səbəbini yazmalısınız!');
+                    document.getElementById('deletionReason').focus();
+                    return;
+                }
+                
+                if (reason.length < 10) {
+                    alert('Silmə səbəbi ən azı 10 karakter olmalıdır!');
+                    document.getElementById('deletionReason').focus();
+                    return;
+                }
+                
+                // Create a form to submit POST request with CSRF token
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/seller/products/' + deleteProductId + '/request-deletion';
+                
+                // Add CSRF token
+                const csrfToken = document.querySelector('meta[name="_csrf"]');
+                if (csrfToken) {
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '_csrf';
+                    tokenInput.value = csrfToken.getAttribute('content');
+                    form.appendChild(tokenInput);
+                }
+                
+                // Add reason
+                const reasonInput = document.createElement('input');
+                reasonInput.type = 'hidden';
+                reasonInput.name = 'reason';
+                reasonInput.value = reason;
+                form.appendChild(reasonInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+        
+        document.getElementById('confirmPremiumBtn').addEventListener('click', function() {
+            if (premiumProductId) {
+                // Premium etmek için AJAX isteği gönder
+                fetch('/seller/products/' + premiumProductId + '/make-premium', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Məhsul uğurla premium edildi! 2 AZN balansınızdan çıxarıldı.');
+                        location.reload();
+                    } else {
+                        alert('Xəta: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Xəta baş verdi: ' + error.message);
+                });
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('premiumModal'));
+                modal.hide();
+            }
+        });
+    </script>
+</body>
+</html> 

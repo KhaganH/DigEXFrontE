@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Axtarış - DiGex')}"></head>
+
+<body>
+    <header th:replace="~{fragments/layout :: header}"></header>
+
+    <section class="py-5">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="mb-3">
+                        <i class="bi bi-search me-2"></i>
+                        Axtarış Nəticələri
+                    </h2>
+                    <div th:if="${searchQuery != null and !searchQuery.isEmpty()}">
+                        <p class="text-muted">
+                            "<span class="fw-bold text-primary" th:text="${searchQuery}"></span>" üçün 
+                            <span class="fw-bold" th:text="${resultCount}">0</span> nəticə tapıldı
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Results -->
+            <div th:if="${resultCount == 0 and searchQuery != null and !searchQuery.isEmpty()}" class="row">
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-search" style="font-size: 4rem; color: #6c757d;"></i>
+                    <h4 class="mt-3 mb-3">Heç bir nəticə tapılmadı</h4>
+                    <p class="text-muted mb-4">Axtarış sorğunuzu dəyişdirməyi cəhd edin.</p>
+                    <a href="/products" class="btn btn-primary">
+                        <i class="bi bi-grid"></i> Bütün Məhsullara bax
+                    </a>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <div th:if="${resultCount > 0}" class="row">
+                <div class="col-lg-4 col-md-6 mb-4" th:each="product : ${products}">
+                    <div class="card h-100 product-card">
+                        <div class="card-img-container" style="height: 200px; overflow: hidden;">
+                            <img th:if="${product.imageUrl != null and !product.imageUrl.isEmpty()}" 
+                                 th:src="${product.imageUrl}" 
+                                 th:alt="${product.title}"
+                                 class="card-img-top" 
+                                 style="height: 100%; object-fit: cover; cursor: pointer;"
+                                 th:onclick="'window.location.href=\'/products/' + ${product.id} + '\''">
+                            <div th:unless="${product.imageUrl != null and !product.imageUrl.isEmpty()}" 
+                                 class="d-flex align-items-center justify-content-center h-100 bg-light"
+                                 style="cursor: pointer;"
+                                 th:onclick="'window.location.href=\'/products/' + ${product.id} + '\''">
+                                <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <div class="mb-2">
+                                <span class="badge bg-primary-subtle text-primary" 
+                                      th:text="${product.category?.name ?: 'Digər'}">Kateqoriya</span>
+                            </div>
+                            <h6 class="card-title" 
+                                style="cursor: pointer;"
+                                th:onclick="'window.location.href=\'/products/' + ${product.id} + '\''">
+                                <span th:text="${product.title}">Məhsul Adı</span>
+                            </h6>
+                            <p class="card-text text-muted small" th:text="${#strings.abbreviate(product.description, 80)}">Təsvir</p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="h5 mb-0 text-primary" th:text="${product.price + ' AZN'}">0 AZN</div>
+                                    <div>
+                                        <span class="badge bg-success" th:if="${product.stock > 0}">
+                                            <i class="bi bi-check-circle"></i> Stokda
+                                        </span>
+                                        <span class="badge bg-danger" th:if="${product.stock <= 0}">
+                                            <i class="bi bi-x-circle"></i> Bitib
+                                        </span>
+                                    </div>
+                                </div>
+                                <div th:if="${product.stock > 0}">
+                                    <button sec:authorize="isAuthenticated()" 
+                                            class="btn btn-primary btn-sm w-100 add-to-cart-btn"
+                                            th:data-product-id="${product.id}"
+                                            onclick="event.stopPropagation();">
+                                        <i class="bi bi-cart-plus"></i> Səbətə əlavə et
+                                    </button>
+                                    <a sec:authorize="!isAuthenticated()" 
+                                       href="/login" 
+                                       class="btn btn-primary btn-sm w-100"
+                                       onclick="event.stopPropagation();">
+                                        <i class="bi bi-cart-plus"></i> Səbətə əlavə et
+                                    </a>
+                                </div>
+                                <div th:if="${product.stock <= 0}">
+                                    <a th:href="@{/products/{id}(id=${product.id})}" 
+                                       class="btn btn-outline-secondary btn-sm w-100"
+                                       onclick="event.stopPropagation();">
+                                        <i class="bi bi-eye"></i> Məhsula bax
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <style>
+        .product-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add to cart functionality
+            document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (!this.hasAttribute('data-product-id')) return;
+                    
+                    const productId = this.getAttribute('data-product-id');
+                    const originalText = this.innerHTML;
+                    
+                    this.innerHTML = '<i class="bi bi-spinner bi-spin"></i> Əlavə edilir...';
+                    this.disabled = true;
+
+                    fetch('/cart/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: `productId=${productId}&quantity=1`
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            this.innerHTML = '<i class="bi bi-check-circle"></i> Əlavə Edildi!';
+                            this.classList.remove('btn-primary');
+                            this.classList.add('btn-success');
+                            
+                            if (typeof showToast === 'function') {
+                                showToast('Məhsul səbətə əlavə edildi!', 'success');
+                            }
+                            
+                            setTimeout(() => {
+                                this.innerHTML = originalText;
+                                this.classList.remove('btn-success');
+                                this.classList.add('btn-primary');
+                                this.disabled = false;
+                            }, 2500);
+                        } else {
+                            throw new Error('Failed');
+                        }
+                    })
+                    .catch(error => {
+                        this.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Xəta!';
+                        this.classList.remove('btn-primary');
+                        this.classList.add('btn-danger');
+                        
+                        if (typeof showToast === 'function') {
+                            showToast('Xəta baş verdi. Yenidən cəhd edin.', 'error');
+                        }
+                        
+                        setTimeout(() => {
+                            this.innerHTML = originalText;
+                            this.classList.remove('btn-danger');
+                            this.classList.add('btn-primary');
+                            this.disabled = false;
+                        }, 2500);
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

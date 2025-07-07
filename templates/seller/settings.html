@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/seller-layout :: head('Tənzimləmələr')}"></head>
+
+<body>
+    <div class="seller-container">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/seller-layout :: sidebar('settings')}"></div>
+
+        <!-- Main Content -->
+        <div class="seller-content">
+            <!-- Main Content Area -->
+            <div class="seller-main">
+                <!-- Alerts -->
+                <div th:replace="~{fragments/seller-layout :: alerts}"></div>
+                
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-1">
+                            <i class="bi bi-gear me-2 text-primary"></i>Tənzimləmələr
+                        </h2>
+                        <p class="text-muted mb-0">Hesab və satış tənzimləmələrinizi idarə edin</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Account Settings -->
+                    <div class="col-lg-8 col-12">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-person-gear me-2"></i>Hesab Tənzimləmələri
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form action="/seller/settings/account" method="post">
+                                    <input type="hidden" name="_csrf" th:if="${_csrf}" th:value="${_csrf.token}" />
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="username" class="form-label">İstifadəçi Adı</label>
+                                            <input type="text" class="form-control" id="username" name="username" 
+                                                   th:value="${seller.username}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="email" class="form-label">E-mail</label>
+                                            <input type="email" class="form-control" id="email" name="email" 
+                                                   th:value="${seller.email}" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="phone" class="form-label">Telefon</label>
+                                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                                   th:value="${seller.phone}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="storeName" class="form-label">Mağaza Adı</label>
+                                            <input type="text" class="form-control" id="storeName" name="storeName" 
+                                                   th:value="${seller.storeName}">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="storeDescription" class="form-label">Mağaza Təsviri</label>
+                                        <textarea class="form-control" id="storeDescription" name="storeDescription" 
+                                                  rows="3" th:text="${seller.storeDescription}"></textarea>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle me-2"></i>Yadda Saxla
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Password Settings -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-shield-lock me-2"></i>Şifrə Dəyişdirmə
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form action="/seller/settings/password" method="post">
+                                    <input type="hidden" name="_csrf" th:if="${_csrf}" th:value="${_csrf.token}" />
+                                    
+                                    <div class="mb-3">
+                                        <label for="currentPassword" class="form-label">Cari Şifrə</label>
+                                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="newPassword" class="form-label">Yeni Şifrə</label>
+                                            <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="confirmPassword" class="form-label">Şifrəni Təkrarla</label>
+                                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="bi bi-key me-2"></i>Şifrəni Dəyişdir
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Notification Settings -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-bell me-2"></i>Bildiriş Tənzimləmələri
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form action="/seller/settings/notifications" method="post">
+                                    <input type="hidden" name="_csrf" th:if="${_csrf}" th:value="${_csrf.token}" />
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="emailNotifications" 
+                                               name="emailNotifications" checked>
+                                        <label class="form-check-label" for="emailNotifications">
+                                            E-mail Bildirişləri
+                                        </label>
+                                        <small class="form-text text-muted d-block">Yeni sifarişlər və ya məhsul yeniləmələri haqqında e-mail alın</small>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="smsNotifications" 
+                                               name="smsNotifications">
+                                        <label class="form-check-label" for="smsNotifications">
+                                            SMS Bildirişləri
+                                        </label>
+                                        <small class="form-text text-muted d-block">Vacib sifarişlər üçün SMS bildirişləri</small>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="orderNotifications" 
+                                               name="orderNotifications" checked>
+                                        <label class="form-check-label" for="orderNotifications">
+                                            Sifariş Bildirişləri
+                                        </label>
+                                        <small class="form-text text-muted d-block">Yeni sifarişlər haqqında dərhal məlumat alın</small>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check-circle me-2"></i>Tənzimləmələri Saxla
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Info Sidebar -->
+                    <div class="col-lg-4 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>Hesab Məlumatları
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <small class="text-muted">Balans:</small>
+                                    <div class="h5 text-success" th:text="'₼' + ${seller.balance}">₼0.00</div>
+                                </div>
+                                <div class="mb-3">
+                                    <small class="text-muted">Üzv olma tarixi:</small>
+                                    <div th:text="${#temporals.format(seller.createdAt, 'dd.MM.yyyy')}"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <small class="text-muted">Ümumi satış:</small>
+                                    <div>₼0.00</div>
+                                </div>
+                                <div class="mb-3">
+                                    <small class="text-muted">Aktiv məhsullar:</small>
+                                    <div>0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-question-circle me-2"></i>Kömək
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="small text-muted">Tənzimləmələr haqqında sualınız var?</p>
+                                <a href="/contact" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="bi bi-envelope me-1"></i>Dəstək ilə Əlaqə
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Scripts -->
+    <div th:replace="~{fragments/seller-layout :: scripts}"></div>
+</body>
+</html> 

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Satıcı Profili')}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+    
+    <!-- Breadcrumb -->
+    <section class="breadcrumb-section py-3 bg-light">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Ana Səhifə</a></li>
+                    <li class="breadcrumb-item"><a href="/sellers" class="text-decoration-none">Satıcılar</a></li>
+                    <li class="breadcrumb-item active" th:text="${seller.username}">Satıcı</li>
+                </ol>
+            </nav>
+        </div>
+    </section>
+
+    <!-- Seller Profile Section -->
+    <main class="py-5">
+        <div class="container">
+            <!-- Seller Header -->
+            <div class="seller-header-card mb-5">
+                <div class="row">
+                    <div class="col-lg-3">
+                        <div class="seller-avatar-section">
+                            <div class="seller-avatar">
+                                <i class="bi bi-shop"></i>
+                            </div>
+                            <div class="seller-status online">
+                                <i class="bi bi-circle-fill"></i>
+                                Onlayn
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <div class="seller-info">
+                            <h1 class="seller-name" th:text="${seller.username}">Satıcı Adı</h1>
+                            <div class="seller-meta">
+                                <div class="rating-section">
+                                    <div class="rating-stars">
+                                        <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                                            <i th:class="${i <= (averageRating ?: 0) ? 'bi bi-star-fill' : 'bi bi-star'}"></i>
+                                        </th:block>
+                                    </div>
+                                    <span class="rating-text" th:text="${#numbers.formatDecimal(averageRating, 1, 1)} + ' (reytinq)'">0.0 (reytinq)</span>
+                                </div>
+                                
+                                <div class="seller-stats">
+                                    <div class="stat-item">
+                                        <i class="bi bi-calendar3"></i>
+                                        <span th:text="${#temporals.format(seller.createdAt, 'MMMM yyyy')}">Yanvar 2024</span>
+                                        <span class="stat-label">tarixindən bəri</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <i class="bi bi-bag-check"></i>
+                                        <span class="stat-number" th:text="${totalSalesCount}">0</span>
+                                        <span class="stat-label">satış</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <i class="bi bi-people"></i>
+                                        <span class="stat-number">892</span>
+                                        <span class="stat-label">müştəri</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3">
+                        <div class="seller-actions">
+                            <button class="btn btn-primary btn-lg">
+                                <i class="bi bi-chat-dots"></i>
+                                Mesaj göndər
+                            </button>
+                            <button class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-heart"></i>
+                                Takip et
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seller Stats Cards -->
+            <div class="stats-section mb-5">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 class="stat-number" th:text="${totalProducts}">0</h3>
+                                <p class="stat-label">Məhsul</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon success">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 class="stat-number" th:text="${activeProducts}">0</h3>
+                                <p class="stat-label">Aktiv Məhsul</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon warning">
+                                <i class="bi bi-star"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 class="stat-number" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">0.0</h3>
+                                <p class="stat-label">Reytinq</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon info">
+                                <i class="bi bi-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 class="stat-number">2 saat</h3>
+                                <p class="stat-label">Cavab müddəti</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seller Products -->
+            <div class="seller-products-section">
+                <div class="section-header mb-4">
+                    <h2>Satıcının Məhsulları</h2>
+                    <div class="view-controls">
+                        <button class="btn btn-outline-secondary btn-sm" id="gridViewBtn">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm active" id="listViewBtn">
+                            <i class="bi bi-list"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-section mb-4">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <select class="form-select" id="categoryFilter">
+                                <option value="">Bütün kateqoriyalar</option>
+                                <option th:each="category : ${categories}" 
+                                        th:value="${category.id}" 
+                                        th:text="${category.name}">Kateqoriya</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="sortFilter">
+                                <option value="newest">Ən yeni</option>
+                                <option value="price_low">Qiymət: Aşağıdan yuxarı</option>
+                                <option value="price_high">Qiymət: Yuxarıdan aşağı</option>
+                                <option value="popular">Ən populyar</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="search-box">
+                                <input type="text" class="form-control" placeholder="Məhsul axtar..." id="searchInput">
+                                <i class="bi bi-search"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="products-container" th:if="${products != null and !products.isEmpty()}">
+                    <div class="products-grid" id="productsGrid">
+                        <div class="product-card" th:each="product : ${products}">
+                            <div class="product-image">
+                                <img th:src="${product.imageUrl}" 
+                                     th:alt="${product.title}"
+                                     onerror="this.src='/images/no-image.png'">
+                                
+                                <!-- Premium Badge -->
+                                <div class="product-badges" th:if="${product.isPremium}">
+                                    <span class="badge badge-premium">
+                                        <i class="bi bi-crown-fill"></i>
+                                        Premium
+                                    </span>
+                                </div>
+                                
+                                <!-- Product Overlay -->
+                                <div class="product-overlay d-none d-md-flex">
+                                    <a th:href="@{/products/{id}(id=${product.id})}" class="btn btn-light btn-sm">
+                                        <i class="bi bi-eye"></i>
+                                        Bax
+                                    </a>
+                                    <button class="btn btn-primary btn-sm ms-2 add-to-cart-btn" 
+                                            th:data-product-id="${product.id}">
+                                        <i class="bi bi-cart-plus"></i>
+                                        Səbət
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="product-info">
+                                <div class="product-category" th:if="${product.category}">
+                                    <span th:text="${product.category.name}">Kateqoriya</span>
+                                </div>
+                                
+                                <h6 class="product-title">
+                                    <a th:href="@{/products/{id}(id=${product.id})}" 
+                                       th:text="${product.title}">Məhsul adı</a>
+                                </h6>
+                                
+                                <div class="product-meta">
+                                    <div class="product-price">
+                                        <span class="price-amount" th:text="${#numbers.formatDecimal(product.price, 1, 2)}">0.00</span>
+                                        <span class="price-currency">AZN</span>
+                                    </div>
+                                    
+                                    <div class="product-stats">
+                                        <span class="sales-count">
+                                            <i class="bi bi-bag-check"></i>
+                                            <span th:text="${product.salesCount ?: 0}">0</span>
+                                        </span>
+                                        <span class="stock-status" th:if="${product.stock > 0}">
+                                            <i class="bi bi-check-circle text-success"></i>
+                                            Stokda
+                                        </span>
+                                        <span class="stock-status" th:unless="${product.stock > 0}">
+                                            <i class="bi bi-x-circle text-danger"></i>
+                                            Stokda yox
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mobile Actions -->
+                                <div class="mobile-actions d-md-none">
+                                    <a th:href="@{/products/{id}(id=${product.id})}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i>
+                                        Bax
+                                    </a>
+                                    <button class="btn btn-primary btn-sm add-to-cart-btn touch-friendly" 
+                                            th:data-product-id="${product.id}">
+                                        <i class="bi bi-cart-plus"></i>
+                                        Səbət
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${products == null or products.isEmpty()}" class="empty-state">
+                    <div class="empty-icon">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <h4>Məhsul tapılmadı</h4>
+                    <p>Bu satıcının hazırda aktiv məhsulu yoxdur.</p>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-section mt-5" th:if="${totalPages > 1}">
+                    <nav aria-label="Məhsul səhifələri">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${currentPage <= 0} ? 'disabled'">
+                                <a class="page-link" th:href="@{/seller/{id}(id=${seller.id}, page=${currentPage - 1})}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            
+                            <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
+                                class="page-item" 
+                                th:classappend="${i == currentPage} ? 'active'">
+                                <a class="page-link" 
+                                   th:href="@{/seller/{id}(id=${seller.id}, page=${i})}" 
+                                   th:text="${i + 1}">1</a>
+                            </li>
+                            
+                            <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                                <a class="page-link" th:href="@{/seller/{id}(id=${seller.id}, page=${currentPage + 1})}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <!-- Scripts -->
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script>
+        // View Toggle
+        document.getElementById('gridViewBtn').addEventListener('click', function() {
+            document.getElementById('productsGrid').classList.remove('list-view');
+            document.getElementById('gridViewBtn').classList.add('active');
+            document.getElementById('listViewBtn').classList.remove('active');
+        });
+
+        document.getElementById('listViewBtn').addEventListener('click', function() {
+            document.getElementById('productsGrid').classList.add('list-view');
+            document.getElementById('listViewBtn').classList.add('active');
+            document.getElementById('gridViewBtn').classList.remove('active');
+        });
+
+        // Search functionality
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterProducts();
+            }, 300);
+        });
+
+        // Filter functionality
+        document.getElementById('categoryFilter').addEventListener('change', filterProducts);
+        document.getElementById('sortFilter').addEventListener('change', filterProducts);
+
+        function filterProducts() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const sort = document.getElementById('sortFilter').value;
+            
+            // Here you would typically make an AJAX call to filter products
+            // For now, we'll just reload the page with the filters
+            const params = new URLSearchParams();
+            if (search) params.append('search', search);
+            if (category) params.append('category', category);
+            if (sort) params.append('sort', sort);
+            
+            const url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            window.location.href = url;
+        }
+    </script>
+
+    <style>
+        .seller-header-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .seller-avatar-section {
+            text-align: center;
+        }
+
+        .seller-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            margin: 0 auto 1rem;
+        }
+
+        .seller-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .seller-status.online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .seller-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .rating-section {
+            margin-bottom: 1rem;
+        }
+
+        .rating-stars {
+            color: #ffc107;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .rating-text {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .seller-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6c757d;
+        }
+
+        .stat-number {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .seller-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .stats-section .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .stats-section .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: white;
+            background: #667eea;
+        }
+
+        .stat-icon.success {
+            background: #28a745;
+        }
+
+        .stat-icon.warning {
+            background: #ffc107;
+        }
+
+        .stat-icon.info {
+            background: #17a2b8;
+        }
+
+        .stat-card .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .stat-label {
+            color: #6c757d;
+            margin: 0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .view-controls .btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .filters-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .products-grid.list-view {
+            grid-template-columns: 1fr;
+        }
+
+        .products-grid.list-view .product-card {
+            display: flex;
+            padding: 1rem;
+        }
+
+        .products-grid.list-view .product-image {
+            width: 150px;
+            height: 150px;
+            flex-shrink: 0;
+            margin-right: 1rem;
+        }
+
+        .products-grid.list-view .product-info {
+            flex: 1;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .product-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-badges {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+        }
+
+        .badge-premium {
+            background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+            color: #333;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .product-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .product-card:hover .product-overlay {
+            opacity: 1;
+        }
+
+        .product-info {
+            padding: 1rem;
+        }
+
+        .product-category {
+            font-size: 0.8rem;
+            color: #667eea;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-title {
+            margin-bottom: 0.75rem;
+        }
+
+        .product-title a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .product-title a:hover {
+            color: #667eea;
+        }
+
+        .product-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .product-price {
+            display: flex;
+            align-items: baseline;
+            gap: 0.25rem;
+        }
+
+        .price-amount {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .price-currency {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .product-stats {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        .sales-count {
+            color: #6c757d;
+        }
+
+        .stock-status {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .mobile-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .mobile-actions .btn {
+            flex: 1;
+        }
+
+        .touch-friendly {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            z-index: 10;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: #dee2e6;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h4 {
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: #9ca3af;
+        }
+
+        @media (max-width: 768px) {
+            .seller-header-card {
+                padding: 1rem;
+            }
+
+            .seller-name {
+                font-size: 1.75rem;
+            }
+
+            .seller-stats {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .seller-actions {
+                flex-direction: row;
+                margin-top: 1rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .filters-section .row > div {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</body>
+</html>

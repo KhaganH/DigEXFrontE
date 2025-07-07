@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Haqqımızda | DiGex Beta</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+            color: white;
+            padding: 5rem 0;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .content-section {
+            padding: 4rem 0;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--secondary-color);
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: none;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .feature-icon.security {
+            background: linear-gradient(45deg, var(--success-color), #1e7e34);
+        }
+
+        .feature-icon.speed {
+            background: linear-gradient(45deg, var(--warning-color), #e0a800);
+        }
+
+        .feature-icon.support {
+            background: linear-gradient(45deg, var(--info-color), #117a8b);
+        }
+
+        .feature-icon.innovation {
+            background: linear-gradient(45deg, var(--danger-color), #c82333);
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .feature-description {
+            color: var(--secondary-color);
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .stats-section {
+            background: linear-gradient(135deg, var(--dark-color) 0%, #495057 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 2rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--warning-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .team-section {
+            background: white;
+            padding: 4rem 0;
+        }
+
+        .team-member {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .team-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary-color), var(--info-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .team-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .team-role {
+            color: var(--primary-color);
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .team-description {
+            color: var(--secondary-color);
+            line-height: 1.5;
+        }
+
+        .mission-section {
+            background: linear-gradient(135deg, var(--success-color) 0%, #1e7e34 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .mission-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .mission-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        .mission-text {
+            font-size: 1.2rem;
+            line-height: 1.7;
+            opacity: 0.95;
+        }
+
+        .cta-section {
+            background: var(--light-color);
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 1rem;
+        }
+
+        .cta-subtitle {
+            font-size: 1.1rem;
+            color: var(--secondary-color);
+            margin-bottom: 2rem;
+        }
+
+        .btn-cta {
+            background: linear-gradient(45deg, var(--primary-color), #0056b3);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            margin: 0 0.5rem;
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,123,255,0.3);
+            color: white;
+        }
+
+        .btn-cta.secondary {
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-cta.secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .feature-card {
+                padding: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stat-number {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+                            <h1 class="hero-title">DiGex Beta Haqqında</h1>
+            <p class="hero-subtitle">
+                Azərbaycanın ən böyük rəqəmsal məhsul platforması. Oyun kodları, proqram lisenziyaları və daha çoxunu təhlükəsiz şəkildə alın və satın.
+            </p>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="content-section">
+        <div class="container">
+                            <h2 class="section-title">Niyə DiGex?</h2>
+            <p class="section-subtitle">
+                Müasir texnologiyalar və istifadəçi təcrübəsi ilə rəqəmsal ticarəti daha asan və təhlükəsiz edirik
+            </p>
+            
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon security">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h4 class="feature-title">Təhlükəsizlik</h4>
+                        <p class="feature-description">
+                            SSL şifrələmə və təhlükəsiz ödəniş sistemləri ilə məlumatlarınız tam qorunur.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon speed">
+                            <i class="bi bi-lightning-charge"></i>
+                        </div>
+                        <h4 class="feature-title">Sürət</h4>
+                        <p class="feature-description">
+                            Avtomatik çatdırılma sistemi ilə məhsullarınızı dərhal əldə edin.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon support">
+                            <i class="bi bi-headset"></i>
+                        </div>
+                        <h4 class="feature-title">Dəstək</h4>
+                        <p class="feature-description">
+                            24/7 müştəri dəstəyi ilə hər zaman yanınızdayıq.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon innovation">
+                            <i class="bi bi-rocket-takeoff"></i>
+                        </div>
+                        <h4 class="feature-title">İnnovasiya</h4>
+                        <p class="feature-description">
+                            Daim yenilənən texnologiyalar və xüsusiyyətlər.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+                            <h2 class="section-title text-white mb-4">Rəqəmlərlə DiGex</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">10K+</div>
+                    <div class="stat-label">Aktiv İstifadəçi</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">Güvənilir Satıcı</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">50K+</div>
+                    <div class="stat-label">Uğurlu Satış</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">99.9%</div>
+                    <div class="stat-label">Müştəri Məmnuniyyəti</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission Section -->
+    <section class="mission-section">
+        <div class="container">
+            <div class="mission-content">
+                <h2 class="mission-title">Missiyamız</h2>
+                <p class="mission-text">
+                    DiGex olaraq, Azərbaycanda rəqəmsal ticarəti inkişaf etdirmək və hər kəsə keyfiyyətli rəqəmsal məhsullara 
+                    asan çıxış təmin etmək missiyasını daşıyırıq. Biz satıcılar və alıcılar arasında etibarlı körpü rolunu oynayır, 
+                    təhlükəsiz və şəffaf ticarət mühiti yaradırıq.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section">
+        <div class="container">
+            <h2 class="section-title">Komandamız</h2>
+            <p class="section-subtitle">
+                Təcrübəli və həvəsli mütəxəssislərdən ibarət komandamız DiGex-i daha da yaxşılaşdırmaq üçün çalışır
+            </p>
+            
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="team-member">
+                        <div class="team-avatar">AH</div>
+                        <h4 class="team-name">Azər Həsənov</h4>
+                        <p class="team-role">Baş İcraçı Direktor</p>
+                        <p class="team-description">
+                            10+ il texnologiya sahəsində təcrübə. Rəqəmsal platformaların inkişafında mütəxəssis.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="team-member">
+                        <div class="team-avatar">NM</div>
+                        <h4 class="team-name">Nigar Məmmədova</h4>
+                        <p class="team-role">Texniki Direktor</p>
+                        <p class="team-description">
+                            Full-stack developer və sistem arxitekti. Platformanın texniki inkişafına rəhbərlik edir.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="team-member">
+                        <div class="team-avatar">RQ</div>
+                        <h4 class="team-name">Rəşad Quliyev</h4>
+                        <p class="team-role">Məhsul Meneceri</p>
+                        <p class="team-description">
+                            İstifadəçi təcrübəsi və məhsul inkişafı üzrə mütəxəssis. Müştəri ehtiyaclarını analiz edir.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+                            <h2 class="cta-title">DIGIEX ailəsinə qoşulun</h2>
+            <p class="cta-subtitle">
+                Rəqəmsal məhsullar dünyasında yerinizi alın və gəlir əldə etməyə başlayın
+            </p>
+            <div>
+                <a href="/register" class="btn-cta">Qeydiyyatdan Keç</a>
+                <a href="/user/seller-request" class="btn-cta secondary">Satıcı Ol</a>
+            </div>
+        </div>
+    </section>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

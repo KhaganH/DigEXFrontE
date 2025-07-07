@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('DMCA Siyasəti')}"></head>
+
+<body>
+    <header th:replace="~{fragments/layout :: header}"></header>
+
+    <section class="hero-section bg-gradient-dark text-white py-4">
+        <div class="container">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/" class="text-white-50 text-decoration-none">Ana Səhifə</a></li>
+                    <li class="breadcrumb-item active text-white">DMCA</li>
+                </ol>
+            </nav>
+            <h1 class="h2 fw-bold"><i class="bi bi-shield-x me-2"></i>DMCA Siyasəti</h1>
+        </div>
+    </section>
+
+    <main class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-5">
+                            <h3 class="fw-bold mb-4">Müəllif Hüquqları</h3>
+                            <p class="mb-4">
+                                DiGex müəllif hüquqlarına hörmətlə yanaşır və qanuni tələblərə uyğun fəaliyyət göstərir.
+                            </p>
+
+                            <h3 class="fw-bold mb-4">Qadağan Məzmun</h3>
+                            <ul class="mb-4">
+                                <li>Qanunsuz proqram təminatı</li>
+                                <li>Saxtakarlıq məhsulları</li>
+                                <li>Müəllif hüquqlarını pozan məzmun</li>
+                                <li>Lisenziyasız məhsullar</li>
+                            </ul>
+
+                            <h3 class="fw-bold mb-4">Şikayət Proseduru</h3>
+                            <p class="mb-4">
+                                Müəllif hüquqlarının pozulduğunu düşünürsünüzsə, bizimlə əlaqə saxlayın:
+                            </p>
+
+                            <div class="alert alert-warning">
+                                <strong>E-poçt:</strong> dmca@digex.az<br>
+                                <strong>Mövzu:</strong> DMCA Şikayəti<br>
+                                <strong>Məzmun:</strong> Pozuntu təsviri və sübutlar
+                            </div>
+
+                            <p class="small text-muted mt-4">
+                                Bütün şikayətlər 24-48 saat ərzində nəzərdən keçirilir və müvafiq tədbirlər görülür.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <style>
+        .hero-section { background: linear-gradient(135deg, #343a40 0%, #212529 100%); }
+    </style>
+</body>
+</html> 

@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/seller-layout :: head('Mesajlar')}"></head>
+
+<body>
+    <div class="seller-container">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/seller-layout :: sidebar('messages')}"></div>
+
+        <!-- Main Content -->
+        <div class="seller-content">
+            <!-- Main Content Area -->
+            <div class="seller-main">
+                <!-- Alerts -->
+                <div th:replace="~{fragments/seller-layout :: alerts}"></div>
+                
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-1">
+                            <i class="bi bi-chat-dots me-2 text-primary"></i>Mesajlar
+                        </h2>
+                        <p class="text-muted mb-0">Müştərilərlə əlaqə saxlayın və dəstək təqdim edin</p>
+                    </div>
+                    <div>
+                        <span id="online-count" class="badge bg-success me-2">
+                            <i class="bi bi-circle-fill"></i> 0 Online
+                        </span>
+                        <button class="btn btn-primary" onclick="refreshChats()">
+                            <i class="bi bi-arrow-repeat me-2"></i>Yenilə
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Messages Sidebar -->
+                    <div class="col-lg-4 col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Söhbətlər</h6>
+                                <span class="badge bg-primary" th:text="${chats?.size() ?: 0}">0</span>
+                            </div>
+                            <div class="card-body p-0">
+                                <div th:if="${chats == null or chats.isEmpty()}" class="text-center py-4">
+                                    <i class="bi bi-chat-dots-fill text-muted" style="font-size: 2rem;"></i>
+                                    <p class="text-muted mt-2 mb-0">Hələ mesaj yoxdur</p>
+                                    <small class="text-muted">Müştərilər sifarişlərindən sonra sizinlə əlaqə saxlaya bilərlər</small>
+                                </div>
+                                
+                                <div class="list-group list-group-flush" th:unless="${chats == null or chats.isEmpty()}">
+                                    <div th:each="chat : ${chats}" 
+                                         th:with="otherUser=${chat.buyer.id == seller.id ? chat.seller : chat.buyer},
+                                                  unreadCount=${unreadCounts.get(chat.id) ?: 0},
+                                                  onlineStatus=${onlineStatuses.get(otherUser.id) ?: 'offline'}"
+                                         class="list-group-item list-group-item-action chat-item"
+                                         th:classappend="${chatStat.first} ? 'active' : ''"
+                                         th:onclick="'loadChat(' + ${chat.id} + ')'"
+                                         th:attr="data-chat-id=${chat.id}">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="d-flex">
+                                                <div class="position-relative">
+                                                    <div class="avatar-circle bg-primary text-white me-3">
+                                                        <span class="fw-bold" th:text="${#strings.substring(otherUser.username, 0, 2).toUpperCase()}">MÜ</span>
+                                                    </div>
+                                                    <!-- Online status indicator -->
+                                                    <span th:class="'position-absolute top-0 start-100 translate-middle p-1 border border-light rounded-circle status-dot status-' + ${onlineStatus}"
+                                                          th:title="${onlineStatus == 'online' ? 'Online' : (onlineStatus == 'recently' ? 'Az əvvəl online idi' : 'Offline')}">
+                                                        <span class="visually-hidden">Status</span>
+                                                    </span>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center">
+                                                        <h6 class="mb-1 me-2" th:text="${otherUser.username}">Müştəri</h6>
+                                                        <span th:class="'badge badge-sm status-badge-' + ${onlineStatus}"
+                                                              th:text="${onlineStatus == 'online' ? 'Online' : (onlineStatus == 'recently' ? 'Az əvvəl' : 'Offline')}">
+                                                        </span>
+                                                    </div>
+                                                    <p class="mb-1 small text-muted">
+                                                        Sifariş: <span th:text="${chat.order.orderNumber}">ORD-001</span>
+                                                    </p>
+                                                    <small class="text-muted" 
+                                                           th:text="${chat.lastMessageAt != null ? #temporals.format(chat.lastMessageAt, 'dd.MM.yyyy HH:mm') : 'Hələ mesaj yoxdur'}">
+                                                        10 dəq əvvəl
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <span th:if="${unreadCount > 0}" 
+                                                  class="badge bg-danger rounded-pill unread-badge"
+                                                  th:text="${unreadCount}">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Area -->
+                    <div class="col-lg-8 col-12">
+                        <div class="card chat-card h-100">
+                            <!-- Initial state when no chat is selected -->
+                            <div id="no-chat-selected" th:style="${chats != null and !chats.isEmpty()} ? 'display: none;' : ''">
+                                <div class="card-body d-flex align-items-center justify-content-center" style="height: 500px;">
+                                    <div class="text-center">
+                                        <i class="bi bi-chat-quote display-1 text-muted mb-3"></i>
+                                        <h5 class="text-muted">Chat seçin</h5>
+                                        <p class="text-muted">Müştərilərlə danışmaq üçün soldakı siyahıdan chat seçin</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat interface (hidden initially) -->
+                            <div id="chat-interface" th:style="${chats != null and !chats.isEmpty()} ? '' : 'display: none;'">
+                                <!-- Chat Header -->
+                                <div class="card-header bg-primary text-white">
+                                    <div class="d-flex align-items-center">
+                                        <div class="position-relative">
+                                            <div id="chat-avatar" class="avatar-circle bg-light text-primary me-3">
+                                                <span class="fw-bold">MÜ</span>
+                                            </div>
+                                            <span id="chat-status-dot" class="position-absolute top-0 start-100 translate-middle p-1 border border-light rounded-circle status-dot status-offline">
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 id="chat-user-name" class="mb-0">Müştəri</h6>
+                                            <small id="chat-order-info" class="opacity-75">Sifariş: #ORD-001</small>
+                                            <div id="chat-status-text" class="small opacity-75">
+                                                <span class="status-text">Offline</span>
+                                            </div>
+                                            <div id="yazir-statusu" class="small opacity-75" style="display: none;">
+                                                <i class="bi bi-three-dots text-warning"></i> yazır...
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <button id="view-order-btn" class="btn btn-light btn-sm me-2">
+                                                <i class="bi bi-bag me-1"></i>Sifariş Detalları
+                                            </button>
+                                            <span id="baglanti-statusu" class="badge bg-success">
+                                                <i class="bi bi-wifi"></i> Bağlı
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Chat Messages -->
+                                <div class="card-body p-0">
+                                    <div id="chat-mesajlari" class="chat-messages" style="height: 400px; overflow-y: auto; padding: 1rem;">
+                                        <div class="text-center text-muted py-5">
+                                            <i class="bi bi-chat-dots display-4 mb-3"></i>
+                                            <p>Chat yüklənir...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Message Input -->
+                                <div class="card-footer">
+                                    <form id="mesajFormu" class="d-flex gap-2">
+                                        <div class="flex-grow-1">
+                                            <input type="text" id="mesajGiris" class="form-control" 
+                                                   placeholder="Mesajınızı yazın..." maxlength="1000" autocomplete="off">
+                                        </div>
+                                        <button type="button" class="btn btn-outline-secondary">
+                                            <i class="bi bi-paperclip"></i>
+                                        </button>
+                                        <button type="submit" class="btn btn-primary" id="gondərmeDuyməsi">
+                                            <i class="bi bi-send"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="row mt-4">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-chat-dots display-4 text-primary mb-2"></i>
+                                <h4 class="mb-1" th:text="${chats?.size() ?: 0}">0</h4>
+                                <small class="text-muted">Aktiv Söhbət</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-clock-history display-4 text-warning mb-2"></i>
+                                <h4 class="mb-1" id="response-time">-</h4>
+                                <small class="text-muted">Ortalama Cavab Müddəti</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-emoji-smile display-4 text-success mb-2"></i>
+                                <h4 class="mb-1">98%</h4>
+                                <small class="text-muted">Müştəri Məmnuniyyəti</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-check-circle display-4 text-info mb-2"></i>
+                                <h4 class="mb-1" id="resolved-issues">-</h4>
+                                <small class="text-muted">Həll Edilmiş Problem</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Scripts -->
+    <div th:replace="~{fragments/seller-layout :: scripts}"></div>
+    
+    <!-- SockJS və STOMP JavaScript kitabxanaları -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+    
+    <style>
+        .avatar-circle {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .chat-card {
+            min-height: 600px;
+        }
+        
+        .mesaj-balonu {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            margin-bottom: 0.5rem;
+        }
+        
+        .customer-message {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        
+        .seller-message {
+            background-color: #0d6efd;
+            color: white;
+            margin-left: auto;
+        }
+        
+        .chat-messages {
+            background-color: #fafafa;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border-radius: 18px;
+            width: fit-content;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #999;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes typing {
+            0%, 80%, 100% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .list-group-item.active {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        
+        .list-group-item.active:hover {
+            background-color: #0d6efd;
+        }
+
+        .chat-item {
+            transition: background-color 0.2s;
+        }
+
+        /* Online status styles */
+        .status-dot {
+            width: 12px;
+            height: 12px;
+        }
+
+        .status-dot.status-online {
+            background-color: #28a745;
+        }
+
+        .status-dot.status-recently {
+            background-color: #ffc107;
+        }
+
+        .status-dot.status-offline {
+            background-color: #6c757d;
+        }
+
+        .status-badge-online {
+            background-color: #28a745;
+            color: white;
+            font-size: 0.7rem;
+        }
+
+        .status-badge-recently {
+            background-color: #ffc107;
+            color: white;
+            font-size: 0.7rem;
+        }
+
+        .status-badge-offline {
+            background-color: #6c757d;
+            color: white;
+            font-size: 0.7rem;
+        }
+
+        .mesaj-balonu.yeni-animasiya {
+            animation: yeniMesajAnimasiya 0.3s ease-in-out;
+        }
+
+        @keyframes yeniMesajAnimasiya {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Global variables
+        var currentUserId = /*[[${seller.id}]]*/ 0;
+        var currentChatId = null;
+        var currentOtherUserId = null;
+        var stompClient = null;
+        var socket = null;
+        var yazir_zamanlayici = null;
+        var chatsData = /*[[${chats}]]*/ [];
+
+        console.log('Seller ID:', currentUserId, 'Chats count:', chatsData.length);
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeWebSocket();
+            updateOnlineCount();
+            
+            // Load first chat if available
+            if (chatsData && chatsData.length > 0) {
+                loadChat(chatsData[0].id);
+            }
+
+            // Setup message form
+            setupMessageForm();
+
+            // Setup typing indicator
+            setupTypingIndicator();
+
+            // Refresh online statuses every 30 seconds
+            setInterval(updateOnlineStatuses, 30000);
+        });
+
+        // Initialize WebSocket connection
+        function initializeWebSocket() {
+            try {
+                socket = new SockJS('/ws');
+                stompClient = new StompJs.Client({
+                    webSocketFactory: () => socket,
+                    debug: function (str) {
+                        console.log('STOMP: ' + str);
+                    },
+                    reconnectDelay: 5000,
+                    heartbeatIncoming: 4000,
+                    heartbeatOutgoing: 4000,
+                });
+
+                stompClient.onConnect = function (frame) {
+                    console.log('WebSocket bağlantısı quruldu: ' + frame);
+                    updateConnectionStatus(true);
+
+                    // Subscribe to user status updates for all chat participants
+                    chatsData.forEach(chat => {
+                        let otherUserId = chat.buyer.id === currentUserId ? chat.seller.id : chat.buyer.id;
+                        stompClient.subscribe('/topic/user-status/' + otherUserId, function (statusMessage) {
+                            let statusData = JSON.parse(statusMessage.body);
+                            updateUserStatus(otherUserId, statusData.status);
+                        });
+                    });
+                };
+
+                stompClient.onStompError = function (frame) {
+                    console.error('WebSocket xətası: ' + frame.headers['message']);
+                    updateConnectionStatus(false);
+                };
+
+                stompClient.onWebSocketClose = function (event) {
+                    console.log('WebSocket bağlantısı bağlandı');
+                    updateConnectionStatus(false);
+                };
+
+                stompClient.activate();
+                
+            } catch (error) {
+                console.error('WebSocket bağlantı xətası:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        // Load specific chat
+        function loadChat(chatId) {
+            currentChatId = chatId;
+
+            // Update active chat in sidebar
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-chat-id="${chatId}"]`).classList.add('active');
+
+            // Find chat data
+            let chat = chatsData.find(c => c.id === chatId);
+            if (!chat) {
+                console.error('Chat not found:', chatId);
+                return;
+            }
+
+            let otherUser = chat.buyer.id === currentUserId ? chat.seller : chat.buyer;
+            currentOtherUserId = otherUser.id;
+
+            // Update chat header
+            updateChatHeader(otherUser, chat);
+
+            // Show chat interface
+            document.getElementById('no-chat-selected').style.display = 'none';
+            document.getElementById('chat-interface').style.display = 'block';
+
+            // Load chat messages
+            loadChatMessages(chatId);
+
+            // Subscribe to this specific chat if WebSocket is connected
+            if (stompClient && stompClient.connected) {
+                stompClient.subscribe('/user/topic/chat/' + chatId, function (message) {
+                    let messageData = JSON.parse(message.body);
+                    handleNewMessage(messageData);
+                });
+
+                // Mark messages as read
+                markMessagesAsRead(chatId);
+            }
+
+            // Clear unread badge for this chat
+            let unreadBadge = document.querySelector(`[data-chat-id="${chatId}"] .unread-badge`);
+            if (unreadBadge) {
+                unreadBadge.style.display = 'none';
+            }
+        }
+
+        // Update chat header information
+        function updateChatHeader(otherUser, chat) {
+            document.getElementById('chat-avatar').innerHTML = 
+                `<span class="fw-bold">${otherUser.username.substring(0, 2).toUpperCase()}</span>`;
+            document.getElementById('chat-user-name').textContent = otherUser.username;
+            document.getElementById('chat-order-info').innerHTML = 
+                `Sifariş: <a href="/order/${chat.order.id}" class="text-white">#${chat.order.orderNumber}</a>`;
+            document.getElementById('view-order-btn').onclick = () => window.open(`/order/${chat.order.id}`, '_blank');
+            
+            // Update online status
+            updateUserStatusInChat(otherUser.id);
+        }
+
+        // Load chat messages
+        function loadChatMessages(chatId) {
+            let chatContainer = document.getElementById('chat-mesajlari');
+            chatContainer.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-hourglass-split"></i> Mesajlar yüklənir...</div>';
+
+            fetch(`/api/chat/${chatId}/messages`)
+                .then(response => response.json())
+                .then(messages => {
+                    displayMessages(messages);
+                    scrollToBottom();
+                })
+                .catch(error => {
+                    console.error('Mesajlar yüklənərkən xəta:', error);
+                    chatContainer.innerHTML = '<div class="text-center text-danger py-5"><i class="bi bi-exclamation-triangle"></i> Mesajlar yüklənə bilmədi</div>';
+                });
+        }
+
+        // Display messages in chat
+        function displayMessages(messages) {
+            let chatContainer = document.getElementById('chat-mesajlari');
+            
+            if (messages.length === 0) {
+                chatContainer.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-chat-dots display-4 mb-3"></i><p>Hələ mesaj yoxdur. İlk mesajı göndərin!</p></div>';
+                return;
+            }
+
+            chatContainer.innerHTML = '';
+            messages.forEach(message => {
+                appendMessage(message);
+            });
+        }
+
+        // Append single message to chat
+        function appendMessage(message) {
+            let chatContainer = document.getElementById('chat-mesajlari');
+            let messageDiv = document.createElement('div');
+            messageDiv.className = 'mb-3';
+            messageDiv.setAttribute('data-message-id', message.id);
+
+            if (message.type === 'SYSTEM') {
+                messageDiv.innerHTML = `
+                    <div class="text-center">
+                        <div class="alert alert-info py-2 mx-auto" style="max-width: 80%;">
+                            <small><i class="bi bi-info-circle me-1"></i>${message.content}</small>
+                        </div>
+                    </div>
+                `;
+            } else {
+                let isMyMessage = message.senderId === currentUserId;
+                let justifyClass = isMyMessage ? 'justify-content-end' : 'justify-content-start';
+                let messageClass = isMyMessage ? 'mesaj-balonu seller-message' : 'mesaj-balonu customer-message';
+                let time = new Date(message.sentAt).toLocaleString('az-AZ');
+                let readIcon = '';
+
+                if (isMyMessage) {
+                    readIcon = message.isRead ? 
+                        '<i class="bi bi-check2-all text-primary ms-1" title="Oxundu"></i>' : 
+                        '<i class="bi bi-check2 text-muted ms-1" title="Göndərildi"></i>';
+                }
+
+                messageDiv.innerHTML = `
+                    <div class="d-flex ${justifyClass}">
+                        <div class="${messageClass}" style="max-width: 70%;">
+                            <div class="mesaj-mezmunu">
+                                <p class="mb-1">${message.content}</p>
+                                <small class="text-muted">
+                                    ${time}
+                                    ${readIcon}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            chatContainer.appendChild(messageDiv);
+        }
+
+        // Handle new WebSocket message
+        function handleNewMessage(messageData) {
+            if (messageData.operation === 'NEW_MESSAGE') {
+                appendMessage(messageData);
+                messageData.messageDiv = document.querySelector(`[data-message-id="${messageData.messageId}"]`);
+                if (messageData.messageDiv) {
+                    messageData.messageDiv.classList.add('yeni-animasiya');
+                }
+                scrollToBottom();
+
+                // Update unread count if not current chat
+                if (messageData.chatId !== currentChatId && messageData.senderId !== currentUserId) {
+                    updateUnreadCount(messageData.chatId);
+                }
+                
+            } else if (messageData.operation === 'TYPING') {
+                if (messageData.senderId !== currentUserId && messageData.chatId === currentChatId) {
+                    showTypingIndicator(true);
+                }
+                
+            } else if (messageData.operation === 'READ') {
+                if (messageData.senderId !== currentUserId && messageData.chatId === currentChatId) {
+                    markAllMessagesAsRead();
+                }
+            }
+        }
+
+        // Setup message form
+        function setupMessageForm() {
+            document.getElementById('mesajFormu').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                let input = document.getElementById('mesajGiris');
+                let button = document.getElementById('gondərmeDuyməsi');
+                let content = input.value.trim();
+                
+                if (!content || !currentChatId) return;
+                
+                // Disable form
+                input.disabled = true;
+                button.disabled = true;
+                button.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+                
+                if (sendMessage(content)) {
+                    input.value = '';
+                }
+                
+                // Re-enable form
+                setTimeout(() => {
+                    input.disabled = false;
+                    button.disabled = false;
+                    button.innerHTML = '<i class="bi bi-send"></i>';
+                    input.focus();
+                }, 500);
+            });
+        }
+
+        // Setup typing indicator
+        function setupTypingIndicator() {
+            let input = document.getElementById('mesajGiris');
+            input.addEventListener('input', function() {
+                if (yazir_zamanlayici) {
+                    clearTimeout(yazir_zamanlayici);
+                }
+                
+                sendTypingIndicator();
+                
+                yazir_zamanlayici = setTimeout(() => {
+                    // Typing stopped
+                }, 1000);
+            });
+        }
+
+        // Send message via WebSocket
+        function sendMessage(content) {
+            if (!stompClient || !stompClient.connected || !currentChatId) {
+                alert('Bağlantı problemi. Yenidən cəhd edin.');
+                return false;
+            }
+
+            let messageObj = {
+                chatId: currentChatId,
+                content: content,
+                operation: 'NEW_MESSAGE'
+            };
+
+            try {
+                stompClient.publish({
+                    destination: '/app/chat/' + currentChatId + '/message',
+                    body: JSON.stringify(messageObj)
+                });
+                return true;
+            } catch (error) {
+                console.error('Mesaj göndərmə xətası:', error);
+                alert('Mesaj göndərilərkən xəta baş verdi');
+                return false;
+            }
+        }
+
+        // Send typing indicator
+        function sendTypingIndicator() {
+            if (!stompClient || !stompClient.connected || !currentChatId) return;
+
+            let typingObj = {
+                chatId: currentChatId,
+                operation: 'TYPING'
+            };
+
+            stompClient.publish({
+                destination: '/app/chat/' + currentChatId + '/message',
+                body: JSON.stringify(typingObj)
+            });
+        }
+
+        // Mark messages as read
+        function markMessagesAsRead(chatId) {
+            if (!stompClient || !stompClient.connected) return;
+
+            let readObj = {
+                chatId: chatId,
+                operation: 'READ'
+            };
+
+            stompClient.publish({
+                destination: '/app/chat/' + chatId + '/message',
+                body: JSON.stringify(readObj)
+            });
+        }
+
+        // Show/hide typing indicator
+        function showTypingIndicator(show) {
+            let indicator = document.getElementById('yazir-statusu');
+            indicator.style.display = show ? 'block' : 'none';
+            
+            if (show) {
+                setTimeout(() => showTypingIndicator(false), 3000);
+            }
+        }
+
+        // Update connection status
+        function updateConnectionStatus(connected) {
+            let statusElement = document.getElementById('baglanti-statusu');
+            if (connected) {
+                statusElement.className = 'badge bg-success';
+                statusElement.innerHTML = '<i class="bi bi-wifi"></i> Bağlı';
+            } else {
+                statusElement.className = 'badge bg-danger';
+                statusElement.innerHTML = '<i class="bi bi-wifi-off"></i> Bağlantı yoxdur';
+            }
+        }
+
+        // Update user online status
+        function updateUserStatus(userId, status) {
+            // Update in chat list
+            let chatItems = document.querySelectorAll('.chat-item');
+            chatItems.forEach(item => {
+                // This would need chat participant data to match properly
+                let statusDot = item.querySelector('.status-dot');
+                let statusBadge = item.querySelector('[class*="status-badge-"]');
+                
+                if (statusDot) {
+                    statusDot.className = statusDot.className.replace(/status-\w+/, 'status-' + status);
+                }
+                if (statusBadge) {
+                    statusBadge.className = statusBadge.className.replace(/status-badge-\w+/, 'status-badge-' + status);
+                    statusBadge.textContent = status === 'online' ? 'Online' : (status === 'recently' ? 'Az əvvəl' : 'Offline');
+                }
+            });
+
+            // Update in current chat header if it's the same user
+            if (userId === currentOtherUserId) {
+                updateUserStatusInChat(userId);
+            }
+        }
+
+        // Update user status in chat header
+        function updateUserStatusInChat(userId) {
+            fetch(`/api/user/${userId}/status`)
+                .then(response => response.json())
+                .then(data => {
+                    let statusDot = document.getElementById('chat-status-dot');
+                    let statusText = document.querySelector('#chat-status-text .status-text');
+                    
+                    if (statusDot) {
+                        statusDot.className = statusDot.className.replace(/status-\w+/, 'status-' + data.status);
+                    }
+                    if (statusText) {
+                        statusText.textContent = data.status === 'online' ? 'Online' : 
+                                                (data.status === 'recently' ? 'Az əvvəl online idi' : 'Offline');
+                    }
+                })
+                .catch(error => console.log('Status yoxlama xətası:', error));
+        }
+
+        // Update online count
+        function updateOnlineCount() {
+            fetch('/api/online/count')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('online-count').innerHTML = 
+                        `<i class="bi bi-circle-fill"></i> ${data.onlineCount} Online`;
+                })
+                .catch(error => console.log('Online count xətası:', error));
+        }
+
+        // Update online statuses for all chat participants
+        function updateOnlineStatuses() {
+            // Implementation would fetch status for all chat participants
+            updateOnlineCount();
+        }
+
+        // Refresh chats
+        function refreshChats() {
+            window.location.reload();
+        }
+
+        // Utility functions
+        function scrollToBottom() {
+            let chatContainer = document.getElementById('chat-mesajlari');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function updateUnreadCount(chatId) {
+            // Update unread count badge for specific chat
+            let chatItem = document.querySelector(`[data-chat-id="${chatId}"]`);
+            if (chatItem) {
+                let badge = chatItem.querySelector('.unread-badge');
+                if (badge) {
+                    let currentCount = parseInt(badge.textContent) || 0;
+                    badge.textContent = currentCount + 1;
+                    badge.style.display = 'inline';
+                }
+            }
+        }
+
+        function markAllMessagesAsRead() {
+            let readIcons = document.querySelectorAll('[data-message-id] .bi-check2');
+            readIcons.forEach(icon => {
+                icon.className = 'bi bi-check2-all text-primary ms-1';
+                icon.title = 'Oxundu';
+            });
+        }
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            if (stompClient) {
+                stompClient.deactivate();
+            }
+        });
+        /*]]>*/
+    </script>
+</body>
+</html> 

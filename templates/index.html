@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('DiGex - Azərbaycanın Rəqəmsal Məhsul Bazarı')}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-bg"></div>
+        <div class="container">
+            <div class="row align-items-center min-vh-100">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <div class="hero-badge">
+                            <i class="bi bi-lightning-charge-fill"></i>
+                            Azərbaycanın #1 Rəqəmsal Bazarı
+                        </div>
+                        <h1 class="hero-title">
+                            Rəqəmsal Məhsulların
+                            <span class="text-gradient">Ən Böyük Bazarı</span>
+                        </h1>
+                        <p class="hero-description">
+                            İstənilən rəqəmsal məhsulu DiGex-də tapın! Oyunlardan proqram təminatına qədər hər şey burada.
+                        </p>
+                        <div class="hero-buttons">
+                            <a href="#products" class="btn btn-primary btn-lg">
+                                <i class="bi bi-search"></i>
+                                Məhsulları Kəşf Et
+                            </a>
+                            <a href="/sellers" class="btn btn-outline-light btn-lg">
+                                <i class="bi bi-people"></i>
+                                Satıcılar
+                            </a>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="stat-item">
+                                <div class="stat-number" th:text="${totalProducts ?: '1000+'}">1000+</div>
+                                <div class="stat-label">Məhsul</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" th:text="${totalSellers ?: '50+'}">50+</div>
+                                <div class="stat-label">Satıcı</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">24/7</div>
+                                <div class="stat-label">Dəstək</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-visual">
+                        <div class="floating-cards">
+                            <div class="floating-card card-1">
+                                <i class="bi bi-controller"></i>
+                                <span>Oyunlar</span>
+                            </div>
+                            <div class="floating-card card-2">
+                                <i class="bi bi-film"></i>
+                                <span>Media</span>
+                            </div>
+                            <div class="floating-card card-3">
+                                <i class="bi bi-code-slash"></i>
+                                <span>Proqramlar</span>
+                            </div>
+                        </div>
+                        <div class="hero-center-icon">
+                            <i class="bi bi-cart-check-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Premium Products -->
+    <section class="premium-section" th:if="${premiumProducts != null and !premiumProducts.isEmpty()}">
+        <div class="container">
+            <div class="section-header text-center">
+                <div class="section-badge premium-badge">
+                    <i class="bi bi-crown-fill"></i>
+                    Premium Kolleksiya
+                </div>
+                <h2>Ən Seçilən Premium Məhsullar</h2>
+                <p>Yüksək keyfiyyət və etibarlılıq zəmanəti ilə</p>
+            </div>
+            
+            <div class="premium-grid">
+                <div class="premium-card" th:each="product, iterStat : ${premiumProducts}" th:if="${iterStat.index < 6}">
+                    <div class="premium-badge-corner">
+                        <i class="bi bi-crown-fill"></i>
+                    </div>
+                    <div class="product-image">
+                        <img th:if="${product.imageUrl != null and !product.imageUrl.isEmpty()}" 
+                             th:src="${product.imageUrl}" 
+                             th:alt="${product.title}">
+                        <div th:unless="${product.imageUrl != null and !product.imageUrl.isEmpty()}" 
+                             class="no-image">
+                            <i class="bi bi-image"></i>
+                        </div>
+                        <div class="product-overlay">
+                            <a th:href="@{/products/{id}(id=${product.id})}" class="btn btn-sm btn-light">
+                                <i class="bi bi-eye"></i>
+                                Bax
+                            </a>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-category" th:text="${product.category?.name ?: 'Digər'}">Kateqoriya</div>
+                        <h5 class="product-title" th:text="${product.title}">Məhsul Adı</h5>
+                        <p class="product-description" th:text="${#strings.abbreviate(product.description, 80)}">Təsvir...</p>
+                        <div class="product-meta">
+                            <div class="price" th:text="${product.price + ' AZN'}">0 AZN</div>
+                            <div class="stock-status">
+                                <span class="badge bg-success" th:if="${product.stock > 0}">Stokda</span>
+                                <span class="badge bg-danger" th:if="${product.stock <= 0}">Bitib</span>
+                            </div>
+                        </div>
+                        <!-- Stock Available - Show Add to Cart -->
+                        <div th:if="${product.stock > 0}">
+                            <button sec:authorize="isAuthenticated()" 
+                                    class="btn btn-primary w-100 add-to-cart-btn"
+                                    th:data-product-id="${product.id}">
+                                <i class="bi bi-cart-plus"></i>
+                                Səbətə əlavə et
+                            </button>
+                            <a sec:authorize="!isAuthenticated()" 
+                               href="/login" 
+                               class="btn btn-primary w-100">
+                                <i class="bi bi-cart-plus"></i>
+                                Səbətə əlavə et
+                            </a>
+                        </div>
+                        <!-- Stock Finished - Show View Product -->
+                        <div th:if="${product.stock <= 0}">
+                            <a th:href="@{/products/{id}(id=${product.id})}" 
+                               class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-eye"></i>
+                                Məhsula bax
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="/products?premium=true" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-arrow-right"></i>
+                    Bütün Premium Məhsullar
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- All Products - YENİ DİZAYN -->
+    <section class="all-products-section" id="products" th:if="${allProducts != null and !allProducts.isEmpty()}">
+        <div class="container">
+            <div class="section-header text-center">
+                <div class="section-badge">
+                    <i class="bi bi-grid-3x3-gap-fill"></i>
+                    Bütün Məhsullar
+                </div>
+                <h2>Geniş Məhsul Çeşidi</h2>
+                <p><span th:text="${allProducts.size()}">0</span> məhsul sizinlə</p>
+            </div>
+            
+            <!-- Category Filters -->
+            <div class="filter-section text-center mb-5">
+                <div class="btn-group filter-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active filter-btn" data-category="all">
+                        <i class="bi bi-grid"></i>
+                        Hamısı
+                    </button>
+                    <button th:each="category : ${categories}" 
+                            type="button" 
+                            class="btn btn-outline-primary filter-btn" 
+                            th:data-category="${category.id}"
+                            th:text="${category.name}">
+                        Kateqoriya
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Products Grid -->
+            <div class="new-products-grid">
+                <div class="new-product-card" 
+                     th:each="product : ${allProducts}" 
+                     th:data-category="${product.category?.id ?: 'none'}">
+                    
+                    <!-- Product Image Area -->
+                    <div class="new-product-image">
+                        <img th:if="${product.imageUrl != null and !product.imageUrl.isEmpty()}" 
+                             th:src="${product.imageUrl}" 
+                             th:alt="${product.title}">
+                        <div th:unless="${product.imageUrl != null and !product.imageUrl.isEmpty()}" 
+                             class="no-image">
+                            <i class="bi bi-image"></i>
+                        </div>
+                        
+                        <!-- Badge -->
+                        <div class="new-product-badges">
+                            <span class="badge bg-warning" th:if="${product.isPremium}">
+                                <i class="bi bi-crown-fill"></i>
+                                Premium
+                            </span>
+                        </div>
+                        
+                        <!-- View Overlay - sadece desktop'ta hover'da görünür -->
+                        <div class="new-view-overlay d-none d-md-flex">
+                            <a th:href="@{/products/{id}(id=${product.id})}" 
+                               class="btn btn-light btn-sm view-btn">
+                                <i class="bi bi-eye"></i> Bax
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Info -->
+                    <div class="new-product-info">
+                        <div class="new-product-category" th:text="${product.category?.name ?: 'Digər'}">Kateqoriya</div>
+                        <h6 class="new-product-title" th:text="${#strings.abbreviate(product.title, 40)}">Məhsul</h6>
+                        <p class="new-product-description" th:text="${#strings.abbreviate(product.description, 60)}">Təsvir</p>
+                        
+                        <div class="new-product-bottom">
+                            <div class="new-price-stock">
+                                <div class="new-price" th:text="${product.price + ' AZN'}">0 AZN</div>
+                                <div class="new-stock">
+                                    <span class="badge bg-success-subtle text-success" th:if="${product.stock > 0}">
+                                        <i class="bi bi-check-circle-fill"></i> Stokda
+                                    </span>
+                                    <span class="badge bg-danger-subtle text-danger" th:if="${product.stock <= 0}">
+                                        <i class="bi bi-x-circle-fill"></i> Bitib
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- Cart Button Area - Touch friendly -->
+                            <div class="new-cart-area" th:if="${product.stock > 0}">
+                                <button sec:authorize="isAuthenticated()" 
+                                        class="btn btn-primary w-100 new-add-to-cart-btn touch-friendly"
+                                        th:data-product-id="${product.id}"
+                                        type="button">
+                                    <i class="bi bi-cart-plus"></i>
+                                    Səbətə əlavə et
+                                </button>
+                                <a sec:authorize="!isAuthenticated()" 
+                                   href="/login" 
+                                   class="btn btn-primary w-100 touch-friendly">
+                                    <i class="bi bi-cart-plus"></i>
+                                    Səbətə əlavə et
+                                </a>
+                            </div>
+                            
+                            <!-- Out of Stock -->
+                            <div class="new-cart-area" th:if="${product.stock <= 0}">
+                                <a th:href="@{/products/{id}(id=${product.id})}" 
+                                   class="btn btn-outline-secondary w-100 touch-friendly">
+                                    <i class="bi bi-eye"></i>
+                                    Məhsula bax
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sellers Section -->
+    <section class="sellers-section" th:if="${approvedSellers != null and !approvedSellers.isEmpty()}">
+        <div class="container">
+            <div class="section-header text-center text-white">
+                <div class="section-badge sellers-badge">
+                    <i class="bi bi-people-fill"></i>
+                    Etibarlı Satıcılar
+                </div>
+                <h2>Təcrübəli Satıcılarımız</h2>
+                <p>Keyfiyyətli xidmət və sürətli çatdırılma</p>
+            </div>
+            
+            <div class="sellers-grid">
+                <div class="seller-card" th:each="seller, iterStat : ${approvedSellers}" th:if="${iterStat.index < 8}">
+                    <div class="seller-header">
+                        <div class="seller-avatar">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <div class="verified-badge">
+                            <i class="bi bi-patch-check-fill"></i>
+                        </div>
+                    </div>
+                    <div class="seller-info">
+                        <h6 class="seller-name" th:text="${seller.username}">Satıcı</h6>
+                        <p class="seller-store" th:if="${seller.storeName}" th:text="${seller.storeName}">Mağaza</p>
+                        <p class="seller-description" th:if="${seller.storeDescription}" 
+                           th:text="${#strings.abbreviate(seller.storeDescription, 60)}">Təsvir</p>
+                    </div>
+                    <div class="seller-stats">
+                        <div class="d-flex justify-content-between">
+                            <small><i class="bi bi-star-fill text-warning"></i> 4.8</small>
+                            <small><i class="bi bi-box-seam"></i> 24 məhsul</small>
+                        </div>
+                    </div>
+                    <div class="seller-actions">
+                        <a th:href="@{/seller/{id}(id=${seller.id})}" class="btn btn-sm btn-primary">
+                            Profil
+                        </a>
+                        <a th:href="@{/products?seller={id}(id=${seller.id})}" class="btn btn-sm btn-outline-primary">
+                            Məhsullar
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="/sellers" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-arrow-right"></i>
+                    Bütün Satıcılar
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header text-center">
+                <h2>Niyə DiGex?</h2>
+                <p>Bizim üstünlüklərimiz</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                    </div>
+                    <h5>Ani Çatdırılma</h5>
+                    <p>Ödənişdən dərhal sonra məhsulunuz hazırdır</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5>100% Təhlükəsiz</h5>
+                    <p>SSL şifrələməsi ilə qorunan ödənişlər</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <h5>24/7 Dəstək</h5>
+                    <p>Həmişə yanınızda olan müştəri xidmətləri</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-award-fill"></i>
+                    </div>
+                    <h5>Keyfiyyət Zəmanəti</h5>
+                    <p>Yalnız yoxlanmış və etibarlı məhsullar</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <div sec:authorize="!isAuthenticated()">
+                        <h2>Rəqəmsal Alış-verişə Başlayın!</h2>
+                        <p class="lead">İndi qeydiyyatdan keçin və xüsusi endirimlər əldə edin!</p>
+                        <a href="/register" class="btn btn-warning btn-lg">
+                            <i class="bi bi-person-plus"></i>
+                            Pulsuz Qeydiyyat
+                        </a>
+                    </div>
+                    
+                    <div sec:authorize="isAuthenticated() and hasRole('USER')">
+                        <h2>Satıcı Olmaq İstəyirsiniz?</h2>
+                        <p class="lead">Öz məhsullarınızı sataraq əlavə gəlir əldə edin!</p>
+                        <a href="/user/seller-request" class="btn btn-warning btn-lg">
+                            <i class="bi bi-shop"></i>
+                            Satıcı Ol
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --dark-color: #1a202c;
+            --light-color: #f7fafc;
+        }
+
+        html {
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif;
+            overflow-y: auto;
+        }
+
+                 /* Hero Section */
+         .hero-section {
+             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+             color: white;
+             overflow: hidden;
+             position: relative;
+             min-height: 80vh;
+             display: flex;
+             align-items: center;
+         }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3e%3cg fill='%23ffffff' fill-opacity='0.05'%3e%3cpath d='m40 40c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm-40 0c0-11.046 8.954-20 20-20s20 8.954 20 20-8.954 20-20 20-20-8.954-20-20z'/%3e%3c/g%3e%3c/svg%3e");
+        }
+
+        .hero-badge {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .text-gradient {
+            background: linear-gradient(45deg, #ffd89b, #19547b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            margin-bottom: 3rem;
+        }
+
+        .hero-buttons .btn {
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffd89b;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Hero Visual */
+        .hero-visual {
+            position: relative;
+            height: 400px;
+        }
+
+        .hero-center-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        .hero-center-icon i {
+            font-size: 3rem;
+            color: white;
+        }
+
+        .floating-card {
+            position: absolute;
+            background: white;
+            color: var(--dark-color);
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .floating-card i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .card-1 { top: 10%; left: 10%; animation-delay: 0s; }
+        .card-2 { top: 20%; right: 10%; animation-delay: 1s; }
+        .card-3 { bottom: 20%; left: 20%; animation-delay: 2s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        /* Sections */
+        .section-header {
+            margin-bottom: 4rem;
+        }
+
+        .section-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .premium-badge {
+            background: linear-gradient(45deg, #ffd89b, #19547b);
+        }
+
+        .sellers-badge {
+            background: linear-gradient(45deg, var(--accent-color), #f5576c);
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        /* Premium Section */
+        .premium-section {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        }
+
+        .premium-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .premium-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .premium-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+        }
+
+        .premium-badge-corner {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: linear-gradient(45deg, #ffd89b, #19547b);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .product-image {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .premium-card:hover .product-image img {
+            transform: scale(1.05);
+        }
+
+        .no-image {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #718096;
+            font-size: 3rem;
+        }
+
+        .product-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .premium-card:hover .product-overlay {
+            opacity: 1;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-category {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .product-title {
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .product-description {
+            color: #718096;
+            margin-bottom: 1rem;
+        }
+
+        .product-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+
+        /* Products Section */
+        .products-section {
+            padding: 5rem 0;
+        }
+
+        .filter-group .btn {
+            border-radius: 2rem;
+            margin: 0.25rem;
+            padding: 10px 24px;
+            font-weight: 600;
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .filter-group .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .filter-group .btn.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 1.5rem;
+        }
+
+        .product-card:hover::before {
+            opacity: 1;
+        }
+
+        .product-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 25px 80px rgba(0,0,0,0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .product-badges {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            z-index: 2;
+        }
+
+        .product-category-tag {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 5;
+        }
+        
+        .product-footer .btn {
+            position: relative;
+            z-index: 10;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+        /* Product image overlay */
+        .product-image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 1rem 1rem 0 0;
+        }
+        
+        .product-image:hover .product-image-overlay {
+            opacity: 1;
+        }
+        
+        .product-image-overlay .btn {
+            transform: translateY(10px);
+            transition: transform 0.3s ease;
+        }
+        
+        .product-image:hover .product-image-overlay .btn {
+            transform: translateY(0);
+        }
+        
+        /* Premium product overlay */
+        .product-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 1rem 1rem 0 0;
+        }
+        
+        .product-image:hover .product-overlay {
+            opacity: 1;
+        }
+        
+        .product-overlay .btn {
+            transform: translateY(10px);
+            transition: transform 0.3s ease;
+        }
+        
+        .product-image:hover .product-overlay .btn {
+            transform: translateY(0);
+        }
+
+        /* YENİ TÜM ÜRÜNLER SECTION CSS */
+        .all-products-section {
+            padding: 5rem 0;
+            background: #f8fafc;
+        }
+
+        .new-products-grid {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 1.5rem !important;
+            margin-top: 2rem !important;
+            align-items: stretch !important;
+        }
+
+        .new-product-card {
+            background: white !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+            transition: all 0.3s ease !important;
+            position: relative !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 400px !important;
+        }
+
+        .new-product-card:hover {
+            transform: translateY(-5px) !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .new-product-image {
+            position: relative !important;
+            height: 200px !important;
+            overflow: hidden !important;
+            background: #f8f9fa !important;
+            flex-shrink: 0 !important;
+        }
+
+        .new-product-image img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            transition: transform 0.3s ease !important;
+        }
+
+        .new-product-info {
+            padding: 1.25rem !important;
+            flex-grow: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 200px !important;
+        }
+
+        .new-product-title {
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            color: #212529 !important;
+            margin-bottom: 0.5rem !important;
+            line-height: 1.3 !important;
+            height: 2.6rem !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+        }
+
+        .new-product-description {
+            font-size: 0.875rem !important;
+            color: #6c757d !important;
+            margin-bottom: 1rem !important;
+            line-height: 1.4 !important;
+            flex-grow: 1 !important;
+            height: 2.8rem !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+        }
+
+        .new-product-bottom {
+            margin-top: auto !important;
+            padding-top: 1rem !important;
+        }
+
+        .new-cart-area .btn {
+            width: 100% !important;
+            height: 3rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .new-product-category {
+            color: var(--primary-color);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .new-product-badges {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2;
+        }
+
+        .new-view-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .new-product-image:hover .new-view-overlay {
+            opacity: 1;
+        }
+
+        .new-view-overlay .view-btn {
+            transform: translateY(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .new-product-image:hover .new-view-overlay .view-btn {
+            transform: translateY(0);
+        }
+
+        .new-price-stock {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .new-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .new-stock .badge {
+            font-size: 0.7rem;
+        }
+
+        .price-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stock-indicator .badge {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            pointer-events: auto;
+        }
+
+        .action-buttons .btn {
+            border-radius: 8px;
+            position: relative;
+            z-index: 11;
+            pointer-events: auto;
+            min-width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Sellers Section */
+        .sellers-section {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .sellers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .seller-card {
+            background: white;
+            color: var(--dark-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .seller-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+        }
+
+        .seller-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .seller-avatar {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .verified-badge {
+            background: var(--success-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+        }
+
+        .seller-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .seller-actions .btn {
+            flex: 1;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 5rem 0;
+            background: var(--light-color);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+        }
+
+        /* Buttons */
+        .btn {
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 12px 24px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #5a67d8, #6b46c1);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .add-to-cart-btn {
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .add-to-cart-btn:active {
+            transform: translateY(0);
+            transition: transform 0.1s;
+        }
+
+        .add-to-cart-btn:disabled {
+            opacity: 0.8;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 5rem 0;
+            background: var(--dark-color);
+            color: white;
+        }
+
+        /* Loading and Animations */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .bi-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide-in-left {
+            animation: slideInLeft 0.6s ease-out;
+        }
+
+        /* Smooth hover transitions */
+        .product-card .product-info {
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover .product-info {
+            transform: translateY(-5px);
+        }
+
+        .floating-card:hover {
+            animation-play-state: paused;
+            transform: translateY(-25px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8, #6b46c1);
+        }
+
+        /* Toast styles */
+        .toast {
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .hero-stats { 
+                flex-direction: column; 
+                gap: 1rem; 
+                align-items: center;
+            }
+            .section-header h2 { font-size: 2rem; }
+            .premium-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            .new-products-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            .sellers-grid, .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-buttons .btn {
+                margin-right: 0.5rem;
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+                padding: 10px 20px;
+            }
+            .floating-card {
+                position: static;
+                margin-bottom: 1rem;
+                animation: none;
+            }
+            .hero-visual {
+                height: auto;
+                margin-top: 2rem;
+            }
+            .filter-group .btn {
+                font-size: 0.8rem;
+                padding: 8px 16px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .premium-grid, .new-products-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .premium-grid, .new-products-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Category filtering - yeni card'lar için
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const newProductCards = document.querySelectorAll('.new-product-card');
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active button
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const category = this.getAttribute('data-category');
+
+                    // Filter new products
+                    newProductCards.forEach(card => {
+                        const productCategory = card.getAttribute('data-category');
+                        if (category === 'all' || productCategory === category) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                    
+                    // Trigger grid re-layout after filter
+                    requestAnimationFrame(() => {
+                        const grid = document.querySelector('.new-products-grid');
+                        if (grid) {
+                            // Force grid re-calculation
+                            const originalDisplay = grid.style.display;
+                            grid.style.display = 'none';
+                            grid.offsetHeight; // Trigger reflow
+                            grid.style.display = originalDisplay || 'grid';
+                        }
+                    });
+                });
+            });
+
+            // Add to Cart functionality for new cards - Touch friendly
+            document.querySelectorAll('.new-add-to-cart-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addToCart(this);
+                });
+                
+                // Prevent touch issues
+                btn.addEventListener('touchstart', function(e) {
+                    e.stopPropagation();
+                });
+            });
+
+                         // Smooth scrolling - sadece geçerli id'ler için
+             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                 anchor.addEventListener('click', function (e) {
+                     const href = this.getAttribute('href');
+                     // Sadece geçerli id format varsa smooth scroll yap
+                     if (href && href !== '#' && href.length > 1 && href.match(/^#[a-zA-Z][a-zA-Z0-9\-_]*$/)) {
+                         try {
+                             const target = document.querySelector(href);
+                             if (target) {
+                                 e.preventDefault();
+                                 target.scrollIntoView({ behavior: 'smooth' });
+                             }
+                         } catch (error) {
+                             console.warn('Invalid selector:', href);
+                         }
+                     }
+                 });
+             });
+
+             // Intersection Observer for animations
+             const observerOptions = {
+                 threshold: 0.1,
+                 rootMargin: '0px 0px -50px 0px'
+             };
+
+             const observer = new IntersectionObserver((entries) => {
+                 entries.forEach(entry => {
+                     if (entry.isIntersecting) {
+                         entry.target.classList.add('fade-in-up');
+                         observer.unobserve(entry.target);
+                     }
+                 });
+             }, observerOptions);
+
+             // Observe all product cards and feature cards
+             document.querySelectorAll('.new-product-card, .premium-card, .feature-card, .seller-card').forEach(card => {
+                 observer.observe(card);
+             });
+
+             // Add loading shimmer effect
+             document.querySelectorAll('.product-card').forEach(card => {
+                 const img = card.querySelector('img');
+                 if (img && !img.complete) {
+                     img.style.opacity = '0';
+                     img.addEventListener('load', function() {
+                         this.style.transition = 'opacity 0.3s ease';
+                         this.style.opacity = '1';
+                     });
+                 }
+             });
+         });
+
+         // Toast notification function
+         function showToast(message, type = 'info') {
+             // Create toast container if it doesn't exist
+             let toastContainer = document.querySelector('.toast-container');
+             if (!toastContainer) {
+                 toastContainer = document.createElement('div');
+                 toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                 toastContainer.style.zIndex = '1055';
+                 document.body.appendChild(toastContainer);
+             }
+
+             // Determine icon based on type
+             let icon = 'bi-info-circle';
+             if (type === 'success') icon = 'bi-check-circle';
+             else if (type === 'error') icon = 'bi-exclamation-triangle';
+             
+             // Map type to Bootstrap color
+             let bgColor = type;
+             if (type === 'error') bgColor = 'danger';
+
+             // Create toast element
+             const toast = document.createElement('div');
+             toast.className = `toast align-items-center text-white bg-${bgColor} border-0`;
+             toast.setAttribute('role', 'alert');
+             toast.innerHTML = `
+                 <div class="d-flex">
+                     <div class="toast-body">
+                         <i class="bi ${icon} me-2"></i>
+                         ${message}
+                     </div>
+                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                 </div>
+             `;
+
+             toastContainer.appendChild(toast);
+
+             // Show toast using Bootstrap
+             if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+                 const bsToast = new bootstrap.Toast(toast);
+                 bsToast.show();
+
+                 // Remove toast after it's hidden
+                 toast.addEventListener('hidden.bs.toast', function() {
+                     toast.remove();
+                 });
+             } else {
+                 // Fallback if Bootstrap is not available
+                 toast.classList.add('show');
+                 setTimeout(() => {
+                     toast.classList.remove('show');
+                     setTimeout(() => toast.remove(), 300);
+                 }, 3000);
+             }
+         }
+    </script>
+
+    <!-- Modern Footer -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <!-- Scripts -->
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+    <div th:replace="~{fragments/layout :: custom-css}"></div>
+    <div th:replace="~{fragments/layout :: custom-js}"></div>
+</body>
+</html> 

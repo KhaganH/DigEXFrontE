@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Satıcı Şərtləri')}"></head>
+
+<body>
+    <header th:replace="~{fragments/layout :: header}"></header>
+
+    <section class="hero-section bg-gradient-info text-white py-4">
+        <div class="container">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/" class="text-white-50 text-decoration-none">Ana Səhifə</a></li>
+                    <li class="breadcrumb-item active text-white">Satıcı Şərtləri</li>
+                </ol>
+            </nav>
+            <h1 class="h2 fw-bold"><i class="bi bi-shop me-2"></i>Satıcı Şərtləri</h1>
+        </div>
+    </section>
+
+    <main class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-5">
+                            <h3 class="fw-bold mb-4">Satıcı Olmaq</h3>
+                            <p class="mb-4">
+                                DiGex platformasında satıcı olmaq üçün qeydiyyatdan keçməli və 
+                                aşağıdakı şərtləri yerinə yetirməlisiniz.
+                            </p>
+
+                            <h3 class="fw-bold mb-4">Əsas Tələblər</h3>
+                            <ul class="mb-4">
+                                <li>18 yaşından böyük olmaq</li>
+                                <li>Azərbaycan vətandaşı olmaq</li>
+                                <li>Yoxlanılmış şəxsiyyət sənədləri</li>
+                                <li>Bank hesabı məlumatları</li>
+                            </ul>
+
+                            <h3 class="fw-bold mb-4">Komissiya Haqqları</h3>
+                            <ul class="mb-4">
+                                <li>Rəqəmsal məhsullar: 10%</li>
+                                <li>Hədiyyə kartları: 5%</li>
+                                <li>Proqram lisenziyaları: 15%</li>
+                            </ul>
+
+                            <div class="text-center mt-5">
+                                <a href="/user/seller-request" class="btn btn-info btn-lg" sec:authorize="hasRole('USER')">
+                                    <i class="bi bi-plus-lg me-2"></i>Satıcı Müraciəti
+                                </a>
+                                <a href="/register" class="btn btn-outline-info btn-lg" sec:authorize="!isAuthenticated()">
+                                    <i class="bi bi-person-plus me-2"></i>Əvvəl Qeydiyyat
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <style>
+        .hero-section { background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%); }
+    </style>
+</body>
+</html> 

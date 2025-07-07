@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Kateqoriyalar')}"></head>
+
+<body class="bg-light">
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+
+    <!-- Hero Section -->
+    <section class="hero-categories-section bg-gradient text-white py-5 mb-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-12">
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/" class="text-white-50 text-decoration-none">Ana səhifə</a></li>
+                            <li class="breadcrumb-item active text-white">Kateqoriyalar</li>
+                        </ol>
+                    </nav>
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="hero-icon me-4">
+                            <i class="bi bi-grid-3x3-gap display-4"></i>
+                        </div>
+                        <div>
+                            <h1 class="h2 fw-bold mb-2">Məhsul Kateqoriyaları</h1>
+                            <p class="mb-0 opacity-75">Axtardığınız məhsulları kateqoriyalar üzrə tapın</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="container my-5">
+        <!-- Categories Stats -->
+        <div class="row mb-5">
+            <div class="col-md-3 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-grid-3x3-gap text-primary"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="fw-bold mb-1" th:text="${totalCategories ?: 0}">0</h3>
+                        <p class="text-muted mb-0">Kateqoriya</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-box-seam text-success"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="fw-bold mb-1" th:text="${totalProducts ?: 0}">0</h3>
+                        <p class="text-muted mb-0">Məhsul</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-lightning-charge text-warning"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="fw-bold mb-1">24/7</h3>
+                        <p class="text-muted mb-0">Çatdırılma</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-shield-check text-info"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="fw-bold mb-1">100%</h3>
+                        <p class="text-muted mb-0">Təhlükəsiz</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Grid -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="h3 fw-bold mb-0">Bütün Kateqoriyalar</h2>
+                    <div class="filter-actions">
+                        <button class="btn btn-outline-primary btn-sm me-2" onclick="filterCategories('all')">
+                            <i class="bi bi-grid-3x3-gap me-1"></i>Hamısı
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="sortCategories()">
+                            <i class="bi bi-sort-alpha-down me-1"></i>Sırala
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${categories == null or categories.empty}" class="empty-categories-container">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <div class="empty-icon mb-4">
+                                <i class="bi bi-grid-3x3-gap display-1 text-muted"></i>
+                            </div>
+                            <h3 class="fw-bold mb-3">Hələ kateqoriya yoxdur</h3>
+                            <p class="text-muted mb-4">Məhsulları axtarmaq üçün başqa yolları cəhd edin</p>
+                            <div class="d-flex justify-content-center gap-3">
+                                <a href="/products" class="btn btn-primary">
+                                    <i class="bi bi-search me-2"></i>Məhsullara bax
+                                </a>
+                                <a href="/" class="btn btn-outline-primary">
+                                    <i class="bi bi-house me-2"></i>Ana səhifə
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Categories List -->
+                <div th:if="${categories != null and !categories.empty}" class="categories-grid">
+                    <div class="row g-4" id="categoriesContainer">
+                        <div th:each="category : ${categories}" class="col-lg-4 col-md-6 category-item" th:data-category="${category.name}">
+                            <div class="category-card">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center p-4">
+                                        <!-- Category Icon -->
+                                        <div class="category-icon-container mb-3">
+                                            <div class="category-icon">
+                                                <img th:if="${category.imageUrl != null and !category.imageUrl.isEmpty()}" 
+                                                     th:src="${category.imageUrl}" 
+                                                     th:alt="${category.name}"
+                                                     class="category-image">
+                                                <i th:unless="${category.imageUrl != null and !category.imageUrl.isEmpty()}" 
+                                                   th:class="${'bi bi-' + (category.name.toLowerCase().contains('gaming') ? 'controller' : 
+                                                             category.name.toLowerCase().contains('software') ? 'laptop' : 
+                                                             category.name.toLowerCase().contains('gift') ? 'gift' : 
+                                                             category.name.toLowerCase().contains('entertainment') ? 'play-circle' : 
+                                                             category.name.toLowerCase().contains('vpn') ? 'shield-lock' : 
+                                                             category.name.toLowerCase().contains('education') ? 'book' : 
+                                                             'box-seam')}" 
+                                                   class="default-icon"></i>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Category Info -->
+                                        <h4 class="category-title fw-bold mb-2" th:text="${category.name}">Kateqoriya Adı</h4>
+                                        <p class="category-description text-muted mb-3" th:text="${category.description ?: 'Bu kateqoriyada müxtəlif məhsullar var'}">Kateqoriya təsviri</p>
+                                        
+                                        <!-- Category Stats -->
+                                        <div class="category-stats mb-3">
+                                            <span class="badge bg-primary-soft text-primary me-2">
+                                                <i class="bi bi-box-seam me-1"></i>
+                                                <span th:text="${category.productCount ?: 0}">0</span> Məhsul
+                                            </span>
+                                            <span th:if="${category.active}" class="badge bg-success-soft text-success">
+                                                <i class="bi bi-check-circle me-1"></i>Aktiv
+                                            </span>
+                                            <span th:unless="${category.active}" class="badge bg-secondary-soft text-secondary">
+                                                <i class="bi bi-pause-circle me-1"></i>Passiv
+                                            </span>
+                                        </div>
+                                        
+                                        <!-- Action Button -->
+                                        <a th:href="@{/products(category=${category.id})}" 
+                                           class="btn btn-primary btn-category">
+                                            <i class="bi bi-arrow-right me-2"></i>Kəşf Et
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Load More Button (if needed for pagination) -->
+                <div th:if="${categories != null and categories.size() > 6}" class="text-center mt-5">
+                    <button class="btn btn-outline-primary btn-lg" onclick="loadMoreCategories()">
+                        <i class="bi bi-plus-circle me-2"></i>Daha çox yüklə
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Products by Category -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="h3 fw-bold mb-4">Populyar Məhsullar</h2>
+                <div class="popular-categories">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="popular-category-card">
+                                <div class="popular-category-content">
+                                    <h5 class="fw-bold mb-2">Oyun Məhsulları</h5>
+                                    <p class="text-muted mb-3 small">Steam, Epic Games, PlayStation kodları</p>
+                                    <a href="/products?category=gaming" class="btn btn-sm btn-outline-primary">
+                                        Bax <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                                <div class="popular-category-icon">
+                                    <i class="bi bi-controller"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="popular-category-card">
+                                <div class="popular-category-content">
+                                    <h5 class="fw-bold mb-2">Proqram Təminatı</h5>
+                                    <p class="text-muted mb-3 small">Office, Adobe, Antivirus proqramları</p>
+                                    <a href="/products?category=software" class="btn btn-sm btn-outline-info">
+                                        Bax <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                                <div class="popular-category-icon">
+                                    <i class="bi bi-laptop"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="popular-category-card">
+                                <div class="popular-category-content">
+                                    <h5 class="fw-bold mb-2">Hədiyyə Kartları</h5>
+                                    <p class="text-muted mb-3 small">Google Play, App Store kartları</p>
+                                    <a href="/products?category=gift-cards" class="btn btn-sm btn-outline-success">
+                                        Bax <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                                <div class="popular-category-icon">
+                                    <i class="bi bi-gift"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <!-- Custom Styles -->
+    <style>
+        .hero-categories-section {
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-categories-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><radialGradient id="a" cx="50%" cy="40%"><stop offset="0%" stop-opacity=".1"/><stop offset="100%" stop-opacity="0"/></radialGradient></defs><rect width="100" height="20" fill="url(%23a)"/></svg>') repeat;
+            opacity: 0.1;
+        }
+        
+        .hero-icon {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Stats Cards */
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stats-icon {
+            font-size: 2.5rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .stats-content h3 {
+            font-size: 2rem;
+            color: #495057;
+        }
+
+        /* Category Cards */
+        .category-card {
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .category-card .card {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .category-card:hover .card {
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Category Icons */
+        .category-icon-container {
+            position: relative;
+        }
+        
+        .category-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .category-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        }
+        
+        .category-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: inherit;
+        }
+        
+        .default-icon {
+            font-size: 2rem;
+            z-index: 1;
+            position: relative;
+        }
+
+        /* Category Content */
+        .category-title {
+            color: #495057;
+            font-size: 1.25rem;
+            line-height: 1.4;
+        }
+        
+        .category-description {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .category-stats .badge {
+            font-size: 0.75rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        /* Action Buttons */
+        .btn-category {
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-category:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+        }
+
+        /* Filter Actions */
+        .filter-actions .btn {
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+        }
+
+        /* Empty State */
+        .empty-categories-container .card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 20px;
+        }
+        
+        .empty-icon {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            border-radius: 50%;
+            padding: 30px;
+            display: inline-block;
+        }
+
+        /* Popular Categories */
+        .popular-category-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .popular-category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .popular-category-content {
+            flex-grow: 1;
+        }
+        
+        .popular-category-icon {
+            font-size: 2rem;
+            color: #6c757d;
+            margin-left: 1rem;
+        }
+
+        /* Soft color badges */
+        .bg-primary-soft {
+            background-color: rgba(13, 110, 253, 0.1) !important;
+        }
+        
+        .bg-success-soft {
+            background-color: rgba(25, 135, 84, 0.1) !important;
+        }
+        
+        .bg-secondary-soft {
+            background-color: rgba(108, 117, 125, 0.1) !important;
+        }
+
+        /* Animations */
+        .category-item {
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .category-item:nth-child(1) { animation-delay: 0.1s; }
+        .category-item:nth-child(2) { animation-delay: 0.2s; }
+        .category-item:nth-child(3) { animation-delay: 0.3s; }
+        .category-item:nth-child(4) { animation-delay: 0.4s; }
+        .category-item:nth-child(5) { animation-delay: 0.5s; }
+        .category-item:nth-child(6) { animation-delay: 0.6s; }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-categories-section {
+                padding: 2rem 0;
+            }
+            
+            .hero-icon {
+                padding: 15px;
+                margin-bottom: 1rem;
+            }
+            
+            .stats-card {
+                padding: 1.5rem;
+                text-align: center;
+                flex-direction: column;
+            }
+            
+            .stats-icon {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+            
+            .popular-category-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .popular-category-icon {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+        }
+
+        /* Loading states */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+    </style>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Categories page loaded successfully');
+            initializeCategories();
+        });
+        
+        function initializeCategories() {
+            // Add smooth hover effects
+            const categoryCards = document.querySelectorAll('.category-card');
+            categoryCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        }
+        
+        function filterCategories(filter) {
+            const categories = document.querySelectorAll('.category-item');
+            
+            categories.forEach(category => {
+                if (filter === 'all') {
+                    category.style.display = 'block';
+                    category.style.animation = 'fadeInUp 0.6s ease forwards';
+                } else {
+                    const categoryName = category.getAttribute('data-category').toLowerCase();
+                    if (categoryName.includes(filter.toLowerCase())) {
+                        category.style.display = 'block';
+                        category.style.animation = 'fadeInUp 0.6s ease forwards';
+                    } else {
+                        category.style.display = 'none';
+                    }
+                }
+            });
+            
+            // Update filter buttons
+            document.querySelectorAll('.filter-actions .btn').forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline-primary');
+            });
+            
+            event.target.classList.remove('btn-outline-primary');
+            event.target.classList.add('btn-primary');
+        }
+        
+        function sortCategories() {
+            const container = document.getElementById('categoriesContainer');
+            const categories = Array.from(container.children);
+            
+            categories.sort((a, b) => {
+                const nameA = a.getAttribute('data-category').toLowerCase();
+                const nameB = b.getAttribute('data-category').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+            
+            // Clear container and re-append sorted categories
+            container.innerHTML = '';
+            categories.forEach(category => {
+                container.appendChild(category);
+            });
+            
+            // Re-trigger animations
+            categories.forEach((category, index) => {
+                category.style.animation = 'none';
+                setTimeout(() => {
+                    category.style.animation = `fadeInUp 0.6s ease forwards`;
+                    category.style.animationDelay = `${index * 0.1}s`;
+                }, 10);
+            });
+        }
+        
+        function loadMoreCategories() {
+            // This would be implemented with actual pagination
+            showToast('info', 'Bütün kateqoriyalar artıq yüklənib');
+        }
+        
+        function showToast(type, message) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 8px 25px rgba(0,0,0,0.15);';
+            toast.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'error' ? 'exclamation-triangle-fill' : 'info-circle-fill'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Satıcı Ol')}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <!-- Header -->
+                    <div class="text-center mb-5">
+                        <h1 class="display-5 fw-bold text-primary">Satıcı Ol</h1>
+                        <p class="lead text-muted">DiGex platformasında satıcı olaraq gəlir əldə etməyə başlayın</p>
+                    </div>
+
+                    <!-- Benefits Section -->
+                    <div class="row mb-5">
+                        <div class="col-md-4 mb-4">
+                            <div class="card text-center h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <i class="bi bi-graph-up-arrow text-primary" style="font-size: 3rem;"></i>
+                                    <h5 class="mt-3">Yüksək Gəlir</h5>
+                                    <p class="text-muted">Satışlarınızdan 90% gəlir əldə edin</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card text-center h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <i class="bi bi-people text-primary" style="font-size: 3rem;"></i>
+                                    <h5 class="mt-3">Geniş Auditoriya</h5>
+                                    <p class="text-muted">Minlərlə aktiv alıcıya çatın</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card text-center h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <i class="bi bi-shield-check text-primary" style="font-size: 3rem;"></i>
+                                    <h5 class="mt-3">Təhlükəsiz Platform</h5>
+                                    <p class="text-muted">Ödənişləriniz qorunur və vaxtında ödənilir</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Application Form -->
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0"><i class="bi bi-shop me-2"></i>Satıcı Müraciət Formu</h4>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Diqqət:</strong> Müraciətiniz administrasiya tərəfindən nəzərdən keçiriləcək. 
+                                Nəticə barədə 2-3 iş günü ərzində email vasitəsi ilə məlumat veriləcək.
+                            </div>
+
+                            <form th:action="@{/user/seller-request}" method="post">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="storeName" class="form-label">Mağaza Adı *</label>
+                                            <input type="text" class="form-control" id="storeName" name="storeName" 
+                                                   required placeholder="Mağazanızın adını daxil edin">
+                                            <div class="form-text">Bu ad alıcılar tərəfindən görüləcək</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="phone" class="form-label">Telefon Nömrəsi *</label>
+                                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                                   required placeholder="+994 50 123 45 67">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Əsas Kateqoriya</label>
+                                    <select class="form-select" id="category" name="category">
+                                        <option value="">Kateqoriya seçin</option>
+                                        <option value="software">Proqram Təminatı</option>
+                                        <option value="games">Oyunlar</option>
+                                        <option value="ebooks">E-kitablar</option>
+                                        <option value="music">Musiqi</option>
+                                        <option value="courses">Kurslar</option>
+                                        <option value="templates">Şablonlar</option>
+                                        <option value="graphics">Qrafika</option>
+                                        <option value="other">Digər</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="storeDescription" class="form-label">Mağaza Təsviri *</label>
+                                    <textarea class="form-control" id="storeDescription" name="storeDescription" 
+                                              rows="4" required placeholder="Mağazanız və təklif etdiyiniz məhsullar haqqında məlumat verin..."></textarea>
+                                    <div class="form-text">Minimum 50 simvol</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="experience" class="form-label">Təcrübə</label>
+                                    <select class="form-select" id="experience" name="experience">
+                                        <option value="">Təcrübə müddətinizi seçin</option>
+                                        <option value="beginner">Yeni başlayan</option>
+                                        <option value="1-2-years">1-2 il</option>
+                                        <option value="3-5-years">3-5 il</option>
+                                        <option value="5-plus-years">5+ il</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="website" class="form-label">Veb sayt/Portfolio</label>
+                                    <input type="url" class="form-control" id="website" name="website" 
+                                           placeholder="https://example.com">
+                                    <div class="form-text">İstəyə bağlı - iş nümunələrinizin linkini paylaşa bilərsiniz</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="socialMedia" class="form-label">Sosial Media</label>
+                                    <input type="text" class="form-control" id="socialMedia" name="socialMedia" 
+                                           placeholder="Instagram, Facebook və ya digər hesablar">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="motivation" class="form-label">Nə üçün satıcı olmaq istəyirsiniz?</label>
+                                    <textarea class="form-control" id="motivation" name="motivation" 
+                                              rows="3" placeholder="Motivasiyanızı qısaca izah edin..."></textarea>
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="terms" required>
+                                        <label class="form-check-label" for="terms">
+                                            <a href="/seller-terms" target="_blank" class="text-decoration-none">Satıcı şərtləri</a>ni 
+                                            oxudum və qəbul edirəm *
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="commission" required>
+                                        <label class="form-check-label" for="commission">
+                                            Satışlarımdan 10% komissiya tutulacağını anlayıram və qəbul edirəm *
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="/" class="btn btn-outline-secondary me-md-2">
+                                        <i class="bi bi-arrow-left me-1"></i>Geri Qayıt
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-send me-2"></i>Müraciət Göndər
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Section -->
+                    <div class="mt-5">
+                        <h4 class="mb-4">Tez-tez Verilən Suallar</h4>
+                        <div class="accordion" id="faqAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                        Satıcı müraciətim nə qədər vaxtda cavablanacaq?
+                                    </button>
+                                </h2>
+                                <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Müraciətiniz 2-3 iş günü ərzində administrasiya tərəfindən nəzərdən keçiriləcək və nəticə email vasitəsi ilə bildirilə.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                        Komissiya dərəcəsi nə qədərdir?
+                                    </button>
+                                </h2>
+                                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        DiGex platformasında satışlarınızdan 10% komissiya tutulur. Yəni satış qiymətinin 90%-i sizin gəliriniz olur.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                        Gəlirlərim nə vaxt ödənilir?
+                                    </button>
+                                </h2>
+                                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Satışlarınız dərhal hesabınıza köçürülür. İstənilən vaxt balansınızdan pul çıxara bilərsiniz.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+    <script th:replace="~{fragments/layout :: custom-js}"></script>
+</body>
+</html> 

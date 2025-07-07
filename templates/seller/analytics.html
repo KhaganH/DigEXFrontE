@@ -1,0 +1,334 @@
+    <!DOCTYPE html>
+    <html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head th:replace="~{fragments/seller-layout :: head('Analitika')}"></head>
+
+    <body>
+        <div class="seller-container">
+            <!-- Sidebar -->
+            <div th:replace="~{fragments/seller-layout :: sidebar('analytics')}"></div>
+
+            <!-- Main Content -->
+            <div class="seller-content">
+                <!-- Main Content Area -->
+                <div class="seller-main">
+                    <!-- Alerts -->
+                    <div th:replace="~{fragments/seller-layout :: alerts}"></div>
+
+                    <!-- Page Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="bi bi-graph-up me-2 text-info"></i>Analitika
+                            </h2>
+                            <p class="text-muted mb-0">Satış performansınızı və məhsul analitikalarını izləyin</p>
+                        </div>
+                        <div>
+                            <select class="form-select">
+                                <option>Son 7 gün</option>
+                                <option>Son 30 gün</option>
+                                <option>Son 3 ay</option>
+                                <option>Son 6 ay</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics -->
+                    <div class="row mb-4">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-start border-primary border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="text-muted mb-1">Məhsul Baxışları</h6>
+                                            <h3 class="mb-0 text-primary">1,234</h3>
+                                            <small class="text-success">
+                                                <i class="bi bi-arrow-up"></i> +15.2%
+                                            </small>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-eye fs-2 text-primary"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-start border-success border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="text-muted mb-1">Çevrilmə Oranı</h6>
+                                            <h3 class="mb-0 text-success">3.8%</h3>
+                                            <small class="text-success">
+                                                <i class="bi bi-arrow-up"></i> +0.5%
+                                            </small>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-graph-up-arrow fs-2 text-success"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-start border-warning border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="text-muted mb-1">Ortalama Səbət</h6>
+                                            <h3 class="mb-0 text-warning">₼45.20</h3>
+                                            <small class="text-danger">
+                                                <i class="bi bi-arrow-down"></i> -2.1%
+                                            </small>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-basket fs-2 text-warning"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-start border-info border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="text-muted mb-1">Müştəri Sayı</h6>
+                                            <h3 class="mb-0 text-info">89</h3>
+                                            <small class="text-success">
+                                                <i class="bi bi-arrow-up"></i> +12.3%
+                                            </small>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-people fs-2 text-info"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Sales Chart -->
+                        <div class="col-lg-8 col-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-bar-chart-line me-2"></i>Satış Tendensiyası
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center py-5">
+                                        <i class="bi bi-bar-chart-line display-1 text-muted"></i>
+                                        <p class="text-muted">Satış tendensiya qrafiki</p>
+                                        <small class="text-muted">Chart.js ilə tətbiq ediləcək</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top Performing Products -->
+                        <div class="col-lg-4 col-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-trophy me-2"></i>Ən Çox Satan Məhsullar
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="product-item d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px;">
+                                                <small class="fw-bold">1</small>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">Steam Gift Card</div>
+                                                <small class="text-muted">45 satış</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-bold text-success">₼1,350</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="product-item d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px;">
+                                                <small class="fw-bold">2</small>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">Minecraft Premium</div>
+                                                <small class="text-muted">28 satış</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-bold text-success">₼840</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="product-item d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px;">
+                                                <small class="fw-bold">3</small>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">Netflix Premium</div>
+                                                <small class="text-muted">15 satış</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-bold text-success">₼450</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Customer Analytics -->
+                        <div class="col-lg-6 col-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-pie-chart me-2"></i>Müştəri Demografikası
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center py-4">
+                                        <i class="bi bi-pie-chart display-1 text-muted"></i>
+                                        <p class="text-muted">Müştəri yaş qrupları və coğrafiya</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Traffic Sources -->
+                        <div class="col-lg-6 col-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-graph-down me-2"></i>Trafik Mənbələri
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="traffic-source mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span>Birbaşa Giriş</span>
+                                            <span class="fw-bold">45%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-primary" style="width: 45%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="traffic-source mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span>Axtarış Mühərrikləri</span>
+                                            <span class="fw-bold">30%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-success" style="width: 30%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="traffic-source mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span>Sosial Media</span>
+                                            <span class="fw-bold">15%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-warning" style="width: 15%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="traffic-source">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span>Referral</span>
+                                            <span class="fw-bold">10%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-info" style="width: 10%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Analytics Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-table me-2"></i>Məhsul Performans Cədvəli
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Məhsul</th>
+                                            <th>Baxış Sayı</th>
+                                            <th>Satış Sayı</th>
+                                            <th>Çevrilmə</th>
+                                            <th>Gəlir</th>
+                                            <th>Ortalama Rəy</th>
+                                            <th>Trend</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="/images/steam-card.jpg" alt="Steam" class="rounded me-2" style="width: 32px; height: 32px;">
+                                                    <div>
+                                                        <div class="fw-bold">Steam 50$ Gift Card</div>
+                                                        <small class="text-muted">ID: #12345</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>2,456</td>
+                                            <td><span class="badge bg-primary">45</span></td>
+                                            <td><span class="text-success fw-bold">1.8%</span></td>
+                                            <td>₼1,350.00</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="me-1">4.8</span>
+                                                    <div class="text-warning">
+                                                        <i class="bi bi-star-fill"></i>
+                                                        <i class="bi bi-star-fill"></i>
+                                                        <i class="bi bi-star-fill"></i>
+                                                        <i class="bi bi-star-fill"></i>
+                                                        <i class="bi bi-star-fill"></i>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-success">
+                                                    <i class="bi bi-trending-up"></i> +15%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted py-4">
+                                                <i class="bi bi-info-circle me-2"></i>
+                                                Həqiqi məlumatlar əlavə edildikdə daha çox məhsul göstəriləcək
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Include Scripts -->
+        <div th:replace="~{fragments/seller-layout :: scripts}"></div>
+    </body>
+    </html>

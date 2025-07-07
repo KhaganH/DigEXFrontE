@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Səbət')}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+
+    <!-- Hero Section -->
+    <section class="hero-section bg-gradient-warning text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-12">
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/" class="text-white-50 text-decoration-none">Ana Səhifə</a></li>
+                            <li class="breadcrumb-item active text-white">Səbət</li>
+                        </ol>
+                    </nav>
+                    
+                    <h1 class="h2 fw-bold mb-2">
+                        <i class="bi bi-cart3 me-2"></i>Alış-veriş Səbəti
+                    </h1>
+                    <p class="mb-0">Seçdiyiniz məhsulları nəzərdən keçirin və sifarişi tamamlayın</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="py-5">
+        <div class="container">
+            <!-- Empty Cart State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-cart-x text-muted" style="font-size: 5rem;"></i>
+                </div>
+                <h3 class="text-muted mb-3">Səbətiniz boşdur</h3>
+                <p class="text-muted mb-4">Alış-veriş etmək üçün məhsul əlavə edin</p>
+                <a href="/products" class="btn btn-primary btn-lg">
+                    <i class="bi bi-shop me-2"></i>Məhsullara bax
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/layout :: footer}"></div>
+
+    <!-- Scripts -->
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+    </style>
+</body>
+</html> 

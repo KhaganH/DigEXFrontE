@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/seller-layout :: head('Yeni Məhsul')}"></head>
+
+<body>
+    <div class="seller-container">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/seller-layout :: sidebar('products')}"></div>
+        
+        <!-- Main Content -->
+        <div class="seller-content">
+            <!-- Main Content Area -->
+            <div class="seller-main">
+                <!-- Alerts -->
+                <div th:replace="~{fragments/seller-layout :: alerts}"></div>
+                
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-1">
+                            <i class="bi bi-plus-circle me-2 text-primary"></i>Yeni Məhsul Əlavə Et
+                        </h2>
+                        <p class="text-muted mb-0">Rəqəmsal məhsulunuzu platformaya əlavə edin və satışa başlayın</p>
+                    </div>
+                    <a href="/seller/products" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Geri Qayıt
+                    </a>
+                </div>
+
+                <!-- Product Form -->
+                <div class="row">
+                    <div class="col-lg-8 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>Məhsul Məlumatları
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form action="/seller/products/create" method="post" enctype="multipart/form-data">
+                                    <!-- CSRF Token -->
+                                    <input type="hidden" name="_csrf" th:if="${_csrf}" th:value="${_csrf.token}" />
+                                    
+                                    <!-- Product Title -->
+                                    <div class="mb-4">
+                                        <label for="title" class="form-label fw-bold">
+                                            <i class="bi bi-tag me-1"></i>Məhsul Adı *
+                                        </label>
+                                        <input type="text" class="form-control form-control-lg" id="title" name="title" 
+                                               placeholder="Məsələn: Steam 50$ Gift Card" required maxlength="200">
+                                        <small class="form-text text-muted">Məhsulunuzun aydın və cəlbedici adını daxil edin (maksimum 200 karakter)</small>
+                                    </div>
+
+                                    <!-- Product Description -->
+                                    <div class="mb-4">
+                                        <label for="description" class="form-label fw-bold">
+                                            <i class="bi bi-card-text me-1"></i>Məhsul Təsviri *
+                                        </label>
+                                        <textarea class="form-control" id="description" name="description" rows="5" 
+                                                  placeholder="Məhsulunuzun ətraflı təsvirini yazın..." required maxlength="2000"></textarea>
+                                        <small class="form-text text-muted">Alıcıların məhsulunuzu daha yaxşı başa düşməsi üçün ətraflı məlumat verin (maksimum 2000 karakter)</small>
+                                    </div>
+
+                                    <!-- Price and Stock Section -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-12">
+                                            <label for="price" class="form-label fw-bold">
+                                                <i class="bi bi-currency-exchange me-1"></i>Qiymət (AZN) *
+                                            </label>
+                                            <div class="input-group input-group-lg">
+                                                <span class="input-group-text">₼</span>
+                                                <input type="number" class="form-control" id="price" name="price" 
+                                                       step="0.01" min="0.01" max="9999.99" placeholder="0.00" required>
+                                            </div>
+                                            <small class="form-text text-muted">Minimum qiymət: 0.01 AZN</small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Delivery Type Selection -->    
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold">
+                                            <i class="bi bi-truck me-1"></i>Teslimat Türü *
+                                        </label>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
+                                                <select class="form-select" id="deliveryType" name="deliveryType">
+                                                    <option value="manual">Manuel Teslimat (Satıcı teslim edir)</option>
+                                                    <option value="stock">Stok Teslimat (Avtomatik teslim)</option>
+                                                </select>
+                                                <small class="text-muted">Manuel teslimatda stok miktarı belirlersiniz, stok teslimatda kodları yazarsınız</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Manual Delivery Area -->
+                                        <div id="manualDeliveryArea" style="display: block;">
+                                            <div class="alert alert-info">
+                                                <i class="bi bi-info-circle me-2"></i>
+                                                <strong>Manuel Teslimat:</strong> Sipariş gəldikdə sizə bildiriş gələcək. Satıcı panelindən siparişi teslim etməlisiniz.
+                                            </div>
+                                        
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="manualStock" class="form-label fw-bold">Stok Miqdarı *</label>
+                                                    <input type="number" class="form-control" id="manualStock" name="manualStock" 
+                                                           min="0" max="9999" value="1" placeholder="20" required>
+                                                    <small class="text-muted">Neçə dənə satmaq istəyirsiniz?</small>
+                                                </div>
+                                            </div>
+                                            
+                                        <div class="mb-3">
+                                                <label for="manualInstructions" class="form-label fw-bold">Alıcıya Təlimat (İsteğe bağlı)</label>
+                                                <textarea class="form-control" id="manualInstructions" name="manualInstructions" rows="3" 
+                                                          placeholder="Alıcıya təlimat yazın - necə əlaqə saxlamalı, hansı məlumatları göndərməli və s."></textarea>
+                                                <small class="form-text text-muted">
+                                                    Bu təlimatlar sipariş zamanı alıcıya göstəriləcək
+                                                </small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Stock Delivery Area -->
+                                        <div id="stockDeliveryArea" style="display: none;">
+                                            <div class="alert alert-info">
+                                                <i class="bi bi-info-circle me-2"></i>
+                                                <strong>Stok Teslimat:</strong> Hər sətirdə bir stok kodu yazın. Alıcı məhsulu aldıqda avtomatik teslim ediləcək.
+                                            </div>
+                                            
+                                            <!-- Stock Type Selection -->
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label fw-bold">Stok Növü</label>
+                                                    <select class="form-select" id="stockType" name="stockType">
+                                                        <option value="single">Tək İstifadəlik (Steam key, lisenziya)</option>
+                                                        <option value="reusable">Paylaşımlı (Family Sharing hesab)</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6" id="maxUsageDiv" style="display: none;">
+                                                    <label for="maxUsageCount" class="form-label fw-bold">Maksimum İstifadə Sayı</label>
+                                                    <input type="number" class="form-control" id="maxUsageCount" name="maxUsageCount" 
+                                                           min="2" max="50" value="5" placeholder="5">
+                                                    <small class="text-muted">Neçə nəfər bu hesabı istifadə edə bilər?</small>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Manual Input Method -->
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h6 class="mb-0">Stok Kodları</h6>
+                                                    <small class="text-muted">Əlavə edilən: <span id="stockCount">0</span> kod</small>
+                                            </div>
+                                            
+                                            <textarea class="form-control" id="stockCodes" name="stockCodes" rows="8" 
+                                                          placeholder="Hər sətirdə bir stok kodu daxil edin:&#10;GAME-KEY-001&#10;GAME-KEY-002&#10;GAME-KEY-003&#10;...&#10;&#10;Və ya paylaşımlı hesablar üçün:&#10;username1:password1&#10;username2:password2"></textarea>
+                                                <div id="stockAlert" style="display: none;"></div>
+                                            <small class="form-text text-muted">
+                                                Hər sətirdə bir kod yazın. Steam açarları, hesab məlumatları (username:password) və ya digər məhsul kodları
+                                            </small>
+                                        </div>
+
+                                        <!-- File Upload Method -->
+                                        <div class="mb-3">
+                                            <h6 class="mb-2">TXT Faylı Yüklə (Alternativ)</h6>
+                                            <input type="file" class="form-control" id="stockFile" name="stockFile" 
+                                                   accept=".txt" onchange="loadStockFile(this)">
+                                            <small class="form-text text-muted">
+                                                TXT faylında hər sətirdə bir stok kodu olmalıdır. Maximum 1000 kod.
+                                            </small>
+                                        </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Product Code -->
+                                    <div class="mb-4">
+                                        <label for="code" class="form-label fw-bold">
+                                            <i class="bi bi-qr-code me-1"></i>Məhsul Təsviri/Açar (İsteğe bağlı)
+                                        </label>
+                                        <textarea class="form-control" id="code" name="code" rows="3" 
+                                                  placeholder="Məhsul haqqında əlavə məlumat, xüsusiyyətlər və ya ümumi təsvir..." maxlength="1000"></textarea>
+                                        <div class="alert alert-info mt-2">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            <strong>Qeyd:</strong> Bu sahə məhsul haqqında ümumi məlumat üçündür. Stok kodları yuxarıdakı xüsusi sahədə əlavə edilir.
+                                        </div>
+                                    </div>
+
+                                    <!-- File Upload -->
+                                    <div class="mb-4">
+                                        <label for="fileUrl" class="form-label fw-bold">
+                                            <i class="bi bi-file-earmark me-1"></i>Məhsul Faylı (İsteğe bağlı)
+                                        </label>
+                                        <input type="url" class="form-control" id="fileUrl" name="fileUrl" 
+                                               placeholder="https://example.com/file.zip" maxlength="500">
+                                        <small class="form-text text-muted">
+                                            Yükləmə linki, ZIP fayl və ya digər rəqəmsal məhsul linkini daxil edin (maksimum 500 karakter)
+                                        </small>
+                                    </div>
+
+                                    <!-- Image Upload -->
+                                    <div class="mb-4">
+                                        <label for="imageFile" class="form-label fw-bold">
+                                            <i class="bi bi-image me-1"></i>Məhsul Şəkli (İsteğe bağlı)
+                                        </label>
+                                        <input type="file" class="form-control" id="imageFile" name="imageFile" 
+                                               accept="image/*" onchange="previewImage(this)">
+                                        <small class="form-text text-muted">
+                                            JPG, PNG, GIF formatlarında şəkil yükləyin (maksimum 5MB)
+                                        </small>
+                                        <!-- Image Preview -->
+                                        <div id="imagePreview" class="mt-3" style="display: none;">
+                                            <img id="previewImg" src="" alt="Şəkil önizləmə" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage()">
+                                                    <i class="bi bi-trash me-1"></i>Şəkli Sil
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Category Selection -->
+                                    <div class="mb-4">
+                                        <label for="categoryId" class="form-label fw-bold">
+                                            <i class="bi bi-grid me-1"></i>Kateqoriya *
+                                        </label>
+                                        <select class="form-select form-select-lg" id="categoryId" name="categoryId" required>
+                                            <option value="">Kateqoriya seçin...</option>
+                                            <option th:each="category : ${categories}" 
+                                                    th:value="${category.id}" 
+                                                    th:text="${category.name}">Kateqoriya</option>
+                                        </select>
+                                        <small class="form-text text-muted">Məhsulunuzun uyğun kateqoriyasını seçin</small>
+                                    </div>
+
+                                    <!-- Terms and Submit -->
+                                    <div class="mb-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="terms" required>
+                                            <label class="form-check-label" for="terms">
+                                                <a href="/terms" target="_blank">Satış şərtləri</a> və 
+                                                <a href="/privacy" target="_blank">məxfilik siyasətini</a> qəbul edirəm *
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Form Actions -->
+                                    <div class="d-flex gap-3">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="bi bi-check-circle me-2"></i>Məhsulu Əlavə Et
+                                        </button>
+                                        <a href="/seller/products" class="btn btn-outline-secondary btn-lg">
+                                            <i class="bi bi-x-circle me-2"></i>Ləğv Et
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Help Sidebar -->
+                    <div class="col-lg-4 col-12">
+                        <div class="card bg-light">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-lightbulb me-2"></i>Yardım və Məsləhətlər
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-primary">
+                                        <i class="bi bi-list-ol me-1"></i>Stok Kodu Sistemi
+                                    </h6>
+                                    <p class="small text-muted mb-2">
+                                        İki növ stok sistemi mövcuddur:
+                                    </p>
+                                    <ul class="small text-muted">
+                                        <li><strong>Tək İstifadəlik:</strong> Steam açarları, lisenziya kodları</li>
+                                        <li><strong>Paylaşımlı:</strong> Family Sharing hesabları (1 hesab → çoxlu alıcı)</li>
+                                        <li>Paylaşımlı hesablar maksimum 50 nəfərə satıla bilər</li>
+                                        <li>Hər sətirdə yalnız bir kod/hesab</li>
+                                    </ul>
+                                </div>
+
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-info">
+                                        <i class="bi bi-share me-1"></i>Paylaşımlı Hesab Nümunəsi
+                                    </h6>
+                                    <div class="bg-light p-2 rounded small">
+                                        <code>
+                                        steamuser1:password123<br>
+                                        steamuser2:password456<br>
+                                        epicgamer:mypass789
+                                        </code>
+                                    </div>
+                                    <p class="small text-muted mt-2">
+                                        ↑ Bu 3 hesab, hər biri 5 nəfərə satılırsa = 15 satış
+                                    </p>
+                                </div>
+
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-success">
+                                        <i class="bi bi-shield-check me-1"></i>Təhlükəsizlik
+                                    </h6>
+                                    <ul class="small text-muted">
+                                        <li>Stok kodları şifrələnərək saxlanılır</li>
+                                        <li>Yalnız satış zamanı alıcıya göstərilir</li>
+                                        <li>Hər kod yalnız bir dəfə istifadə edilir</li>
+                                        <li>İstifadə olunmuş kodlar silinmir, qeyd edilir</li>
+                                    </ul>
+                                </div>
+
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-warning">
+                                        <i class="bi bi-star me-1"></i>Keyfiyyət Məsləhətləri
+                                    </h6>
+                                    <ul class="small text-muted">
+                                        <li>Aydın və cəlbedici başlıq yazın</li>
+                                        <li>Ətraflı məhsul təsviri əlavə edin</li>
+                                        <li>Yüksək keyfiyyətli şəkil yükləyin</li>
+                                        <li>Doğru kateqoriya seçin</li>
+                                        <li>Rəqabətcil qiymət təyin edin</li>
+                                    </ul>
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <small>
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        <strong>Qeyd:</strong> Məhsulunuz əlavə edildikdən sonra admin tərəfindən təsdiqlənməlidir.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Scripts -->
+    <div th:replace="~{fragments/seller-layout :: scripts}"></div>
+    
+    <!-- Custom Form Scripts -->
+    <script>
+        // Form validation and enhancements
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const priceInput = document.getElementById('price');
+            const stockCodesInput = document.getElementById('stockCodes');
+            const stockTypeSelect = document.getElementById('stockType');
+            const maxUsageDiv = document.getElementById('maxUsageDiv');
+            const maxUsageInput = document.getElementById('maxUsageCount');
+            const titleInput = document.getElementById('title');
+            const descriptionInput = document.getElementById('description');
+            const codeInput = document.getElementById('code');
+            const fileUrlInput = document.getElementById('fileUrl');
+            const imageFileInput = document.getElementById('imageFile');
+            
+            // Stock codes counting and validation
+            function updateStockCount() {
+                // Check if stock delivery area is visible
+                const stockDeliveryArea = document.getElementById('stockDeliveryArea');
+                if (!stockDeliveryArea || stockDeliveryArea.style.display === 'none') {
+                    return; // Don't update if stock area is hidden
+                }
+                
+                const codes = stockCodesInput.value.trim();
+                const stockType = stockTypeSelect.value;
+                const maxUsage = parseInt(maxUsageInput.value) || 1;
+                
+                const stockCountElement = document.getElementById('stockCount');
+                const stockPreviewElement = document.getElementById('stockPreview');
+                
+                if (!codes) {
+                    if (stockCountElement) stockCountElement.textContent = '0';
+                    if (stockPreviewElement) stockPreviewElement.style.display = 'none';
+                    return;
+                }
+                
+                const lines = codes.split('\n').filter(line => line.trim() !== '');
+                const validCodes = lines.filter(line => line.trim().length > 0);
+                
+                // Check for duplicate codes
+                const uniqueCodes = new Set(validCodes);
+                const hasDuplicates = validCodes.length !== uniqueCodes.size;
+                
+                // Calculate total sales capacity
+                let totalSales = validCodes.length;
+                if (stockType === 'reusable') {
+                    totalSales = validCodes.length * maxUsage;
+                }
+                
+                if (stockCountElement) {
+                    stockCountElement.textContent = validCodes.length + 
+                    (stockType === 'reusable' ? ` kod (${totalSales} satış)` : ' kod');
+                }
+                
+                // Show preview if there are codes
+                if (validCodes.length > 0) {
+                    const preview = document.getElementById('stockPreviewContent');
+                    if (preview) {
+                    const limitedCodes = validCodes.slice(0, 5); // Show first 5 codes
+                    preview.innerHTML = limitedCodes.map(code => `<div class="mb-1">${escapeHtml(code)}</div>`).join('');
+                    
+                    if (validCodes.length > 5) {
+                        preview.innerHTML += `<div class="text-muted">... və daha ${validCodes.length - 5} kod</div>`;
+                    }
+                    
+                    // Add stock type info
+                    if (stockType === 'reusable') {
+                        preview.innerHTML += `<div class="text-info mt-2"><strong>Paylaşımlı:</strong> Hər kod ${maxUsage} dəfə satıla bilər</div>`;
+                        }
+                    }
+                    
+                    if (stockPreviewElement) stockPreviewElement.style.display = 'block';
+                } else {
+                    if (stockPreviewElement) stockPreviewElement.style.display = 'none';
+                }
+                
+                // Validation
+                if (validCodes.length === 0) {
+                    stockCodesInput.setCustomValidity('Ən azı bir stok kodu daxil etməlisiniz');
+                    const stockAlertElement = document.getElementById('stockAlert');
+                    if (stockAlertElement) {
+                        stockAlertElement.className = 'alert alert-danger mt-3';
+                        stockAlertElement.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i><strong>Xəta:</strong> Ən azı bir stok kodu daxil etməlisiniz.';
+                    }
+                } else if (hasDuplicates) {
+                    // Find duplicate codes
+                    const duplicates = validCodes.filter((code, index) => validCodes.indexOf(code) !== index);
+                    const uniqueDuplicates = [...new Set(duplicates)];
+                    
+                    stockCodesInput.setCustomValidity('Təkrarlanan stok kodları mövcuddur');
+                    const stockAlertElement = document.getElementById('stockAlert');
+                    if (stockAlertElement) {
+                        stockAlertElement.className = 'alert alert-danger mt-3';
+                        stockAlertElement.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i><strong>Təkrarlanan kodlar:</strong> ${uniqueDuplicates.slice(0, 3).join(', ')}${uniqueDuplicates.length > 3 ? '...' : ''}.<br><small>Hər kod yalnız bir dəfə yazıla bilər!</small>`;
+                    }
+                } else if (validCodes.length > 1000) {
+                    stockCodesInput.setCustomValidity('Maksimum 1000 stok kodu əlavə edə bilərsiniz');
+                    const stockAlertElement2 = document.getElementById('stockAlert');
+                    if (stockAlertElement2) {
+                        stockAlertElement2.className = 'alert alert-danger mt-3';
+                        stockAlertElement2.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i><strong>Xəta:</strong> Maksimum 1000 stok kodu əlavə edə bilərsiniz.';
+                    }
+                } else {
+                    stockCodesInput.setCustomValidity('');
+                    const stockAlertElement3 = document.getElementById('stockAlert');
+                    if (stockAlertElement3) {
+                        stockAlertElement3.className = 'alert alert-success mt-3';
+                    if (stockType === 'reusable') {
+                            stockAlertElement3.innerHTML = `<i class="bi bi-check-circle me-2"></i><strong>Hazır:</strong> ${validCodes.length} paylaşımlı kod (${totalSales} satış kapasitesi).`;
+                    } else {
+                            stockAlertElement3.innerHTML = `<i class="bi bi-check-circle me-2"></i><strong>Hazır:</strong> ${validCodes.length} tək istifadəlik kod.`;
+                        }
+                    }
+                }
+            }
+            
+            // Listen for stock codes changes
+            stockCodesInput.addEventListener('input', updateStockCount);
+            updateStockCount(); // Initial count
+            
+            // Character count and validation for text inputs
+            function addCharacterCounter(input, maxLength, displayId) {
+                const display = document.createElement('small');
+                display.className = 'form-text text-muted';
+                display.id = displayId;
+                input.parentNode.appendChild(display);
+                
+                function updateCounter() {
+                    const remaining = maxLength - input.value.length;
+                    display.textContent = `${input.value.length}/${maxLength} karakter`;
+                    
+                    if (remaining < 20) {
+                        display.className = 'form-text text-warning';
+                    } else if (remaining < 0) {
+                        display.className = 'form-text text-danger';
+                        input.style.borderColor = '#dc3545';
+                    } else {
+                        display.className = 'form-text text-muted';
+                        input.style.borderColor = '';
+                    }
+                }
+                
+                input.addEventListener('input', updateCounter);
+                updateCounter();
+            }
+            
+            // Add character counters
+            addCharacterCounter(titleInput, 200, 'titleCounter');
+            addCharacterCounter(descriptionInput, 2000, 'descriptionCounter');
+            addCharacterCounter(codeInput, 1000, 'codeCounter');
+            addCharacterCounter(fileUrlInput, 500, 'fileUrlCounter');
+            
+            // Price formatting
+            priceInput.addEventListener('input', function() {
+                if (this.value < 0) this.value = 0;
+                if (this.value > 9999.99) this.value = 9999.99;
+            });
+            
+            // File validation
+            imageFileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    // Check file size (5MB limit)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Şəkil ölçüsü çox böyükdür! Maksimum 5MB olmalıdır.');
+                        this.value = '';
+                        return;
+                    }
+                    
+                    // Check file type
+                    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                    if (!allowedTypes.includes(file.type)) {
+                        alert('Yalnız JPG, PNG və GIF formatları dəstəklənir!');
+                        this.value = '';
+                        return;
+                    }
+                }
+            });
+            
+            // Form submission validation
+            form.addEventListener('submit', function(e) {
+                const title = titleInput.value.trim();
+                const description = descriptionInput.value.trim();
+                const price = parseFloat(priceInput.value);
+                const deliveryType = deliveryTypeSelect.value;
+                const manualStock = document.getElementById('manualStock').value;
+                const stockCodes = stockCodesInput.value.trim();
+                
+                // Check required fields
+                if (!title || !description || !price) {
+                    e.preventDefault();
+                    alert('Bütün vacib sahələri doldurun!');
+                    return;
+                }
+                
+                if (price < 0.01) {
+                    e.preventDefault();
+                    alert('Qiymət minimum 0.01 AZN olmalıdır!');
+                    return;
+                }
+                
+                // Validate based on delivery type
+                if (deliveryType === 'manual') {
+                    if (!manualStock || parseInt(manualStock) < 0) {
+                        e.preventDefault();
+                        alert('Manuel teslimat üçün stok miqdarını daxil etməlisiniz (minimum 0)!');
+                        return;
+                    }
+                    
+                    if (parseInt(manualStock) > 9999) {
+                        e.preventDefault();
+                        alert('Maksimum stok miqdarı 9999 olmalıdır!');
+                        return;
+                    }
+                } else if (deliveryType === 'stock') {
+                    if (!stockCodes) {
+                        e.preventDefault();
+                        alert('Stok teslimat üçün ən azı bir stok kodu daxil etməlisiniz!');
+                    return;
+                }
+                
+                // Validate stock codes
+                const codes = stockCodes.split('\n').filter(line => line.trim() !== '');
+                if (codes.length === 0) {
+                    e.preventDefault();
+                    alert('Ən azı bir stok kodu daxil etməlisiniz!');
+                    return;
+                }
+                
+                if (codes.length > 1000) {
+                    e.preventDefault();
+                    alert('Maksimum 1000 stok kodu əlavə edə bilərsiniz!');
+                    return;
+                    }
+                }
+                
+                // Show loading state
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>Məhsul əlavə edilir...';
+                submitBtn.disabled = true;
+                
+                // Re-enable button after timeout (in case of error)
+                setTimeout(function() {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }, 10000);
+            });
+
+            // Handle delivery type change
+            const deliveryTypeSelect = document.getElementById('deliveryType');
+            const manualDeliveryArea = document.getElementById('manualDeliveryArea');
+            const stockDeliveryArea = document.getElementById('stockDeliveryArea');
+            const manualStockInput = document.getElementById('manualStock');
+            
+            if (deliveryTypeSelect && manualDeliveryArea && stockDeliveryArea && manualStockInput) {
+                deliveryTypeSelect.addEventListener('change', function() {
+                    if (this.value === 'manual') {
+                        // Show manual delivery, hide stock delivery
+                        manualDeliveryArea.style.display = 'block';
+                        stockDeliveryArea.style.display = 'none';
+                        manualStockInput.required = true;
+                        if (stockCodesInput) stockCodesInput.required = false;
+                    } else if (this.value === 'stock') {
+                        // Hide manual delivery, show stock delivery
+                        manualDeliveryArea.style.display = 'none';
+                        stockDeliveryArea.style.display = 'block';
+                        manualStockInput.required = false;
+                        if (stockCodesInput) stockCodesInput.required = true;
+                    }
+                });
+            }
+
+            // Handle stock type change
+            if (stockTypeSelect && maxUsageDiv && maxUsageInput) {
+                stockTypeSelect.addEventListener('change', function() {
+                    if (this.value === 'reusable') {
+                        maxUsageDiv.style.display = 'block';
+                        maxUsageInput.required = true;
+                    } else {
+                        maxUsageDiv.style.display = 'none';
+                        maxUsageInput.required = false;
+                    }
+                    updateStockCount(); // Re-calculate stock count
+                });
+            }
+            
+            // Initialize default state
+            if (deliveryTypeSelect) {
+                deliveryTypeSelect.dispatchEvent(new Event('change'));
+            }
+        });
+        
+        // Image preview functions
+        function previewImage(input) {
+            const file = input.files[0];
+            const preview = document.getElementById('imagePreview');
+            const img = document.getElementById('previewImg');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+        
+        function removeImage() {
+            const input = document.getElementById('imageFile');
+            const preview = document.getElementById('imagePreview');
+            
+            input.value = '';
+            preview.style.display = 'none';
+        }
+
+        // Stock file upload function
+        function loadStockFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            if (file.size > 1024 * 1024) { // 1MB limit for text files
+                alert('Fayl ölçüsü çox böyükdür! Maksimum 1MB olmalıdır.');
+                input.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const stockCodesInput = document.getElementById('stockCodes');
+                
+                // Replace current content with file content
+                stockCodesInput.value = content;
+                
+                // Trigger update
+                const event = new Event('input');
+                stockCodesInput.dispatchEvent(event);
+                
+                alert('Stok kodları fayldan yükləndi!');
+            };
+            
+            reader.onerror = function() {
+                alert('Fayl oxunarkən xəta baş verdi!');
+                input.value = '';
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // Utility function for HTML escaping
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+    
+    <style>
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</body>
+</html> 

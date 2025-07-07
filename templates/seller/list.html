@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Satıcılar')}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+
+    <!-- Hero Section -->
+    <section class="hero-section bg-gradient-success text-white py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/" class="text-white-50 text-decoration-none">Ana Səhifə</a></li>
+                            <li class="breadcrumb-item active text-white">Satıcılar</li>
+                        </ol>
+                    </nav>
+                    
+                    <h1 class="display-4 fw-bold mb-3">Təcrübəli Satıcılar</h1>
+                    <p class="lead mb-4">Keyfiyyətli məhsullar təqdim edən etibarlı satıcılarımızla tanış olun</p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="hero-stats">
+                        <div class="stat-item d-inline-block mx-3">
+                            <div class="stat-number h2 fw-bold text-warning" th:text="${sellers ? #lists.size(sellers) : '0'}">0</div>
+                            <div class="stat-label">Aktiv Satıcı</div>
+                        </div>
+                        <div class="stat-item d-inline-block mx-3">
+                            <div class="stat-number h2 fw-bold text-warning">99%</div>
+                            <div class="stat-label">Məmnuniyyət</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="py-5">
+        <div class="container">
+            <!-- Search and Filters -->
+            <div class="row mb-4">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-semibold">Satıcı axtarışı</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="sellerSearch" placeholder="Satıcı və ya mağaza adı axtarın...">
+                                        <button class="btn btn-outline-primary" type="button">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Sıralama</label>
+                                    <select class="form-select" id="sortSelect">
+                                        <option value="newest">Ən Yeni</option>
+                                        <option value="popular">Ən Məşhur</option>
+                                        <option value="rating">Yüksək Reytinq</option>
+                                        <option value="products">Çox Məhsul</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="d-flex gap-2 h-100 align-items-end">
+                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Təmizlə
+                        </button>
+                        <a href="/user/seller-request" class="btn btn-success flex-fill" sec:authorize="hasRole('USER')">
+                            <i class="bi bi-plus-lg me-2"></i>Satıcı Ol
+                        </a>
+                        <a href="/register" class="btn btn-primary flex-fill" sec:authorize="!isAuthenticated()">
+                            <i class="bi bi-person-plus me-2"></i>Qeydiyyat
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Filters -->
+            <div class="mb-4">
+                <div class="btn-group flex-wrap" role="group">
+                    <button class="btn btn-outline-primary filter-chip active" data-filter="all">
+                        <i class="bi bi-grid me-1"></i>Hamısı
+                    </button>
+                    <button class="btn btn-outline-primary filter-chip" data-filter="top">
+                        <i class="bi bi-star me-1"></i>Top Satıcılar
+                    </button>
+                    <button class="btn btn-outline-primary filter-chip" data-filter="verified">
+                        <i class="bi bi-patch-check me-1"></i>Təsdiqlənmiş
+                    </button>
+                    <button class="btn btn-outline-primary filter-chip" data-filter="premium">
+                        <i class="bi bi-crown me-1"></i>Premium
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Info -->
+            <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded">
+                <div class="results-info">
+                    <span class="text-muted">
+                        <span id="resultsCount" th:text="${sellers ? #lists.size(sellers) : '0'}">0</span> satıcı tapıldı
+                    </span>
+                </div>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary btn-sm view-toggle active" data-view="grid">
+                        <i class="bi bi-grid"></i>
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm view-toggle" data-view="list">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sellers Grid -->
+            <div id="sellersContainer">
+                <div class="row g-4" th:if="${sellers and !sellers.isEmpty()}">
+                    <div class="col-lg-4 col-md-6 seller-item" th:each="seller : ${sellers}" 
+                         th:data-name="${seller.username}" th:data-store="${seller.storeName}">
+                        
+                        <div class="card h-100 shadow-sm border-0 seller-card">
+                            <div class="card-header bg-light border-0 text-center">
+                                <div class="seller-avatar position-relative d-inline-block">
+                                    <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                         style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem;">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                    <div class="position-absolute bottom-0 end-0">
+                                        <span class="badge bg-success rounded-pill">
+                                            <i class="bi bi-patch-check-fill"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body text-center">
+                                <h5 class="card-title fw-bold mb-2" th:text="${seller.username}">Satıcı Adı</h5>
+                                <p class="text-primary fw-semibold mb-2" th:if="${seller.storeName}" th:text="${seller.storeName}">Mağaza Adı</p>
+                                <p class="card-text text-muted small" th:if="${seller.storeDescription}" 
+                                   th:text="${#strings.abbreviate(seller.storeDescription, 80)}">
+                                    Satıcı haqqında məlumat...
+                                </p>
+                                
+                                <!-- Stats -->
+                                <div class="row g-3 my-3">
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <div class="fw-bold text-primary h5 mb-0">24</div>
+                                            <small class="text-muted">Məhsul</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <div class="fw-bold text-warning h5 mb-0">4.8</div>
+                                            <small class="text-muted">Reytinq</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-center">
+                                            <div class="fw-bold text-success h5 mb-0">156</div>
+                                            <small class="text-muted">Satış</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Badges -->
+                                <div class="mb-3">
+                                    <span class="badge bg-primary me-1">
+                                        <i class="bi bi-star me-1"></i>Top Satıcı
+                                    </span>
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-patch-check me-1"></i>Təsdiqlənmiş
+                                    </span>
+                                </div>
+                                
+                                <!-- Actions -->
+                                <div class="d-flex gap-2">
+                                    <a th:href="@{/sellers/{id}(id=${seller.id})}" class="btn btn-primary flex-grow-1">
+                                        <i class="bi bi-eye me-1"></i>Profil
+                                    </a>
+                                    <a th:href="@{/sellers/{id}/products(id=${seller.id})}" class="btn btn-outline-primary">
+                                        <i class="bi bi-box-seam"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="text-center py-5" th:if="${sellers == null or sellers.isEmpty()}">
+                    <i class="bi bi-people text-muted" style="font-size: 4rem;"></i>
+                    <h4 class="text-muted mt-3">Satıcı tapılmadı</h4>
+                    <p class="text-muted">Axtarış kriteriyalarınızı dəyişdirin və yenidən cəhd edin</p>
+                    <a href="/user/seller-request" class="btn btn-primary" sec:authorize="hasRole('USER')">
+                        <i class="bi bi-plus-lg me-2"></i>İlk Satıcı Ol
+                    </a>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Satıcı səhifələri" class="mt-5" th:if="${sellers != null and !sellers.isEmpty()}">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Əvvəlki">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Sonrakı">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/layout :: footer}"></div>
+
+    <!-- Scripts -->
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <!-- Custom JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter Chips
+            document.querySelectorAll('.filter-chip').forEach(filter => {
+                filter.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-chip').forEach(f => f.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const filterType = this.dataset.filter;
+                    filterSellers(filterType);
+                });
+            });
+
+            // View Toggle
+            document.querySelectorAll('.view-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    document.querySelectorAll('.view-toggle').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const view = this.dataset.view;
+                    const container = document.querySelector('#sellersContainer .row');
+                    
+                    if (view === 'list') {
+                        container.classList.remove('g-4');
+                        container.classList.add('g-2');
+                        document.querySelectorAll('.seller-item').forEach(item => {
+                            item.className = 'col-12 seller-item';
+                        });
+                    } else {
+                        container.classList.remove('g-2');
+                        container.classList.add('g-4');
+                        document.querySelectorAll('.seller-item').forEach(item => {
+                            item.className = 'col-lg-4 col-md-6 seller-item';
+                        });
+                    }
+                });
+            });
+
+            // Search Filter
+            const searchInput = document.getElementById('sellerSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    filterSellersBySearch(searchTerm);
+                });
+            }
+
+            // Sort
+            const sortSelect = document.getElementById('sortSelect');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function() {
+                    sortSellers(this.value);
+                });
+            }
+        });
+
+        function filterSellers(filterType) {
+            const sellers = document.querySelectorAll('.seller-item');
+            let visibleCount = 0;
+            
+            sellers.forEach(seller => {
+                // For now, show all sellers since we don't have filter data
+                // In real implementation, you would filter based on seller properties
+                seller.style.display = '';
+                visibleCount++;
+            });
+            
+            updateResultsCount(visibleCount);
+        }
+
+        function filterSellersBySearch(searchTerm) {
+            const sellers = document.querySelectorAll('.seller-item');
+            let visibleCount = 0;
+            
+            sellers.forEach(seller => {
+                const sellerName = seller.dataset.name?.toLowerCase() || '';
+                const storeName = seller.dataset.store?.toLowerCase() || '';
+                
+                if (sellerName.includes(searchTerm) || storeName.includes(searchTerm)) {
+                    seller.style.display = '';
+                    visibleCount++;
+                } else {
+                    seller.style.display = 'none';
+                }
+            });
+            
+            updateResultsCount(visibleCount);
+        }
+
+        function sortSellers(sortBy) {
+            const container = document.querySelector('#sellersContainer .row');
+            const sellers = Array.from(container.children);
+            
+            sellers.sort((a, b) => {
+                switch(sortBy) {
+                    case 'name':
+                        return a.dataset.name.localeCompare(b.dataset.name);
+                    default:
+                        return 0;
+                }
+            });
+            
+            sellers.forEach(seller => container.appendChild(seller));
+        }
+
+        function clearFilters() {
+            // Reset filter chips
+            document.querySelectorAll('.filter-chip').forEach(f => f.classList.remove('active'));
+            document.querySelector('.filter-chip[data-filter="all"]').classList.add('active');
+            
+            // Reset search
+            document.getElementById('sellerSearch').value = '';
+            
+            // Show all sellers
+            document.querySelectorAll('.seller-item').forEach(seller => {
+                seller.style.display = '';
+            });
+            
+            const totalSellers = document.querySelectorAll('.seller-item').length;
+            updateResultsCount(totalSellers);
+        }
+
+        function updateResultsCount(count) {
+            const resultsCount = document.getElementById('resultsCount');
+            if (resultsCount) {
+                resultsCount.textContent = count;
+            }
+        }
+    </script>
+
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .seller-card {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+        }
+        
+        .seller-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+        }
+        
+        .filter-chip.active {
+            background-color: #4e73df !important;
+            border-color: #4e73df !important;
+            color: white !important;
+        }
+        
+        .view-toggle.active {
+            background-color: #4e73df !important;
+            border-color: #4e73df !important;
+            color: white !important;
+        }
+        
+        .avatar-circle {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+    </style>
+</body>
+</html> 

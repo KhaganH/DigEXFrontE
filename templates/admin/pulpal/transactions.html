@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/admin-layout :: head('PulPal Əməliyyatları')}"></head>
+
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/admin-layout :: sidebar('pulpal-transactions')}"></div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="admin-header">
+                <div>
+                    <h2 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-list-check me-2 text-primary"></i>PulPal Əməliyyatları
+                    </h2>
+                    <p class="text-muted mb-0">PulPal ödəmə əməliyyatlarının idarə edilməsi</p>
+                </div>
+                
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Yenilə
+                    </button>
+                    <div th:replace="~{fragments/admin-layout :: user-menu}"></div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="admin-main">
+                <!-- Statistics Cards -->
+                <div class="row mb-4" th:if="${stats}">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Ümumi Əməliyyat</h6>
+                                        <h3 class="mb-0" th:text="${stats.totalTransactions ?: 0}">0</h3>
+                                    </div>
+                                    <i class="bi bi-credit-card fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Ümumi Məbləğ</h6>
+                                        <h3 class="mb-0" th:text="${#numbers.formatDecimal(stats.totalAmount ?: 0, 1, 2)} + ' AZN'">0.00 AZN</h3>
+                                    </div>
+                                    <i class="bi bi-cash-stack fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Bu Gün</h6>
+                                        <h3 class="mb-0" th:text="${stats.todayTransactions ?: 0}">0</h3>
+                                        <small th:text="${#numbers.formatDecimal(stats.todayAmount ?: 0, 1, 2)} + ' AZN'">0.00 AZN</small>
+                                    </div>
+                                    <i class="bi bi-calendar-day fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card stats-card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Uğur Nisbəti</h6>
+                                        <h3 class="mb-0" th:text="${stats.successRate ?: 0} + '%'">100%</h3>
+                                    </div>
+                                    <i class="bi bi-check-circle fs-1 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions Table -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-table me-2"></i>PulPal Əməliyyatları
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <select class="form-select form-select-sm" style="width: auto;">
+                                <option value="">Bütün statuslar</option>
+                                <option value="SUCCESS">Uğurlu</option>
+                                <option value="PENDING">Gözləyir</option>
+                                <option value="FAILED">Uğursuz</option>
+                            </select>
+                            <a href="/admin/pulpal/test" class="btn btn-sm btn-primary">
+                                <i class="bi bi-bug me-1"></i>Test Et
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div th:if="${transactions.hasContent()}" class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>İstifadəçi</th>
+                                        <th>Məbləğ</th>
+                                        <th>Status</th>
+                                        <th>Tarix</th>
+                                        <th>External ID</th>
+                                        <th>Balans (Sonra)</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="transaction : ${transactions.content}">
+                                        <td>
+                                            <code th:text="${transaction.id}">12345</code>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <strong th:text="${transaction.user.username}">user123</strong>
+                                                <br>
+                                                <small class="text-muted" th:text="${transaction.user.email}">user@email.com</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-success" th:text="${#numbers.formatDecimal(transaction.amount, 1, 2)} + ' AZN'">25.00 AZN</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge" 
+                                                  th:class="${transaction.description?.contains('uğur') ? 'bg-success' : (transaction.description?.contains('gözlə') ? 'bg-warning' : 'bg-danger')}"
+                                                  th:text="${transaction.description?.contains('uğur') ? 'Uğurlu' : (transaction.description?.contains('gözlə') ? 'Gözləyir' : 'Test')}">
+                                                Test
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="text-nowrap">
+                                                <div th:text="${#temporals.format(transaction.createdAt, 'dd.MM.yyyy')}">01.01.2024</div>
+                                                <small class="text-muted" th:text="${#temporals.format(transaction.createdAt, 'HH:mm:ss')}">12:30:45</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <code class="small" th:text="${transaction.externalId ?: 'N/A'}">USER_1_1705123456</code>
+                                        </td>
+                                        <td>
+                                            <span class="text-primary fw-bold" th:text="${#numbers.formatDecimal(transaction.balanceAfter ?: 0, 1, 2)} + ' AZN'">125.00 AZN</span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" type="button" 
+                                                        data-bs-toggle="collapse" 
+                                                        th:data-bs-target="'#details' + ${transaction.id}">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-info" type="button" 
+                                                        onclick="copyToClipboard(this)"
+                                                        th:data-copy="${transaction.externalId}">
+                                                    <i class="bi bi-clipboard"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Transaction Details (Collapsible) -->
+                                    <tr th:each="transaction : ${transactions.content}">
+                                        <td colspan="8" class="p-0">
+                                            <div class="collapse" th:id="'details' + ${transaction.id}">
+                                                <div class="card card-body m-3 bg-light">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <h6>Əməliyyat Detalları:</h6>
+                                                            <ul class="list-unstyled small">
+                                                                <li><strong>Type:</strong> <span th:text="${transaction.type}">DEPOSIT</span></li>
+                                                                <li><strong>Payment Method:</strong> <span th:text="${transaction.paymentMethod}">PulPal</span></li>
+                                                                <li><strong>Description:</strong> <span th:text="${transaction.description}">Test</span></li>
+                                                                <li><strong>Balance Before:</strong> <span th:text="${#numbers.formatDecimal(transaction.balanceBefore ?: 0, 1, 2)} + ' AZN'">100.00 AZN</span></li>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h6>PulPal Məlumatları:</h6>
+                                                            <ul class="list-unstyled small">
+                                                                <li><strong>External ID:</strong> <code th:text="${transaction.externalId}">USER_1_123</code></li>
+                                                                <li><strong>Created:</strong> <span th:text="${#temporals.format(transaction.createdAt, 'dd.MM.yyyy HH:mm:ss')}">01.01.2024 12:30:45</span></li>
+                                                                <li><strong>Updated:</strong> <span th:text="${#temporals.format(transaction.updatedAt, 'dd.MM.yyyy HH:mm:ss')}">01.01.2024 12:30:50</span></li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- No data message -->
+                        <div th:if="${!transactions.hasContent()}" class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <h5 class="mt-3 text-muted">Heç bir PulPal əməliyyatı tapılmadı</h5>
+                            <p class="text-muted">Hələ ki PulPal vasitəsilə balans yükləməsi edilməyib.</p>
+                            <a href="/admin/pulpal/test" class="btn btn-primary">
+                                <i class="bi bi-bug me-1"></i>Test Əməliyyatı Et
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div th:if="${transactions.hasContent() and transactions.totalPages > 1}" class="card-footer">
+                        <nav>
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item" th:class="${transactions.first} ? 'disabled' : ''">
+                                    <a class="page-link" th:href="@{/admin/pulpal/transactions(page=${currentPage - 1})}">Əvvəlki</a>
+                                </li>
+                                
+                                <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, transactions.totalPages - 1)}"
+                                    th:class="${pageNum == currentPage} ? 'active' : ''">
+                                    <a class="page-link" th:href="@{/admin/pulpal/transactions(page=${pageNum})}" th:text="${pageNum + 1}">1</a>
+                                </li>
+                                
+                                <li class="page-item" th:class="${transactions.last} ? 'disabled' : ''">
+                                    <a class="page-link" th:href="@{/admin/pulpal/transactions(page=${currentPage + 1})}">Sonrakı</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/admin-layout :: scripts}"></div>
+    
+    <script>
+        function copyToClipboard(button) {
+            const textToCopy = button.getAttribute('data-copy');
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                // Update button icon temporarily
+                const icon = button.querySelector('i');
+                const originalClass = icon.className;
+                icon.className = 'bi bi-check';
+                
+                setTimeout(() => {
+                    icon.className = originalClass;
+                }, 1000);
+            });
+        }
+        
+        // Auto refresh every 30 seconds
+        setInterval(() => {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html> 

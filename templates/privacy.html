@@ -1,0 +1,77 @@
+    <!DOCTYPE html>
+    <html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head th:replace="~{fragments/layout :: head('Məxfilik Siyasəti')}"></head>
+
+    <body>
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <section class="hero-section bg-gradient-primary text-white py-4">
+            <div class="container">
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/" class="text-white-50 text-decoration-none">Ana Səhifə</a></li>
+                        <li class="breadcrumb-item active text-white">Məxfilik Siyasəti</li>
+                    </ol>
+                </nav>
+                <h1 class="h2 fw-bold"><i class="bi bi-shield-lock me-2"></i>Məxfilik Siyasəti</h1>
+            </div>
+        </section>
+
+        <main class="py-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-5">
+                                <div class="text-muted small mb-4">Son yenilənmə: 06 Yanvar 2025</div>
+
+                                <h3 class="fw-bold mb-4">1. Məlumat Toplama</h3>
+                                <p class="mb-4">
+                                    DiGex platforması yalnız zəruri məlumatları toplar: ad, e-poçt, ödəniş məlumatları.
+                                    Bu məlumatlar platformanın düzgün işləməsi üçün lazımdır.
+                                </p>
+
+                                <h3 class="fw-bold mb-4">2. Məlumat İstifadəsi</h3>
+                                <ul class="mb-4">
+                                    <li>Hesab idarəsi və xidmət göstərilməsi</li>
+                                    <li>Ödənişlərin təhlükəsiz emalı</li>
+                                    <li>Müştəri dəstəyi və əlaqə</li>
+                                    <li>Platformanın təkmilləşdirilməsi</li>
+                                </ul>
+
+                                <h3 class="fw-bold mb-4">3. Məlumat Qorunması</h3>
+                                <p class="mb-4">
+                                    Bütün şəxsi məlumatlar şifrələnir və təhlükəsiz serverlərdə saxlanılır.
+                                    Ödəniş məlumatları heç vaxt bizim serverlərə ötürülmür.
+                                </p>
+
+                                <h3 class="fw-bold mb-4">4. Üçüncü Tərəflər</h3>
+                                <p class="mb-4">
+                                    Məlumatlarınız üçüncü tərəflərlə paylaşılmır, satılmır və ya icarəyə verilmir.
+                                    Yalnız qanuni tələblər əsasında məlumat ötürülə bilər.
+                                </p>
+
+                                <div class="border-top pt-4 mt-5">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">© 2025 DiGex. Bütün hüquqlar qorunur.</small>
+                                        <div>
+                                            <a href="/terms" class="btn btn-outline-secondary btn-sm me-2">İstifadə Şərtləri</a>
+                                            <a href="/cookie-policy" class="btn btn-outline-secondary btn-sm">Cookie Siyasəti</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div th:replace="~{fragments/layout :: footer}"></div>
+        <div th:replace="~{fragments/layout :: scripts}"></div>
+
+        <style>
+            .hero-section { background: linear-gradient(135deg, #007bff 0%, #6610f2 100%); }
+        </style>
+    </body>
+    </html>

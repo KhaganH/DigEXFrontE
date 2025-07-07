@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Kateqoriyalar')}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="py-4">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="h2 mb-3">Kateqoriyalar</h1>
+                    <p class="text-muted">Məhsul kateqoriyalarına göz atın və maraqlandığınız sahəni tapın</p>
+                </div>
+            </div>
+
+            <!-- Categories Grid -->
+            <div class="row">
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4" th:each="category : ${categories}">
+                    <div class="card category-card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="category-icon mb-3">
+                                <i class="bi bi-folder2-open text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="card-title mb-2" th:text="${category.name}">Kateqoriya Adı</h5>
+                            <p class="card-text text-muted small mb-3" th:text="${category.description ?: 'Bu kateqoriyada müxtəlif məhsullar var'}">
+                                Kateqoriya təsviri
+                            </p>
+                            <div class="mb-3">
+                                <span class="badge bg-light text-dark">
+                                    <span th:text="${category.productCount ?: 0}">0</span> məhsul
+                                </span>
+                            </div>
+                            <a th:href="@{/products(categories=${category.id})}" 
+                               class="btn btn-primary btn-sm w-100">
+                                <i class="bi bi-arrow-right me-1"></i>Məhsulları Gör
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="col-12" th:if="${#lists.isEmpty(categories)}">
+                    <div class="text-center py-5">
+                        <i class="bi bi-folder-x text-muted" style="font-size: 4rem;"></i>
+                        <h4 class="mt-3 text-muted">Hələ heç bir kateqoriya yoxdur</h4>
+                        <p class="text-muted">Yaxın zamanda yeni kateqoriyalar əlavə ediləcək</p>
+                        <a href="/products" class="btn btn-primary">
+                            <i class="bi bi-box-seam me-2"></i>Bütün Məhsullara Bax
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular Categories Section -->
+            <div class="row mt-5" th:if="${!#lists.isEmpty(categories)}">
+                <div class="col-12">
+                    <h3 class="mb-4">Populyar Kateqoriyalar</h3>
+                    <div class="row">
+                        <div class="col-md-6 mb-3" th:each="category : ${categories}" th:if="${categoryStat.index < 4}">
+                            <a th:href="@{/products(categories=${category.id})}" 
+                               class="text-decoration-none">
+                                <div class="card border-start border-primary border-4 bg-light">
+                                    <div class="card-body py-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1" th:text="${category.name}">Kateqoriya</h6>
+                                                <small class="text-muted">
+                                                    <span th:text="${category.productCount ?: 0}">0</span> məhsul mövcuddur
+                                                </small>
+                                            </div>
+                                            <i class="bi bi-arrow-right text-primary"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: modals}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <style>
+        .category-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        .category-icon {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</body>
+</html> 

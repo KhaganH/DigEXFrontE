@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Giriş Qadağandır')}"></head>
+
+<body>
+    <!-- Modern Header -->
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="text-center">
+                        <div class="mb-4">
+                            <i class="bi bi-shield-x text-danger" style="font-size: 5rem;"></i>
+                        </div>
+                        <h1 class="h2 mb-3 text-danger">Giriş Qadağandır</h1>
+                        <p class="text-muted mb-4">
+                            Bu səhifəyə daxil olmaq üçün kifayət səviyyədə icazəniz yoxdur.
+                        </p>
+                        <div class="d-grid gap-2 d-md-block">
+                            <a href="/" class="btn btn-primary">
+                                <i class="bi bi-house me-2"></i>Ana Səhifə
+                            </a>
+                            <a href="/profile" class="btn btn-outline-secondary" sec:authorize="isAuthenticated()">
+                                <i class="bi bi-person me-2"></i>Profil
+                            </a>
+                            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#loginModal" sec:authorize="!isAuthenticated()">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Daxil Ol
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Əgər admin istifadəçisiyinizsə, zəhmət olmasa daxil olun.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: modals}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html> 
