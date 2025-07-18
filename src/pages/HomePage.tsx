@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Search, ShoppingCart, Crown, Grid3X3, Eye, Plus as CartPlus, CloudLightning as Lightning, Shield, Headphones, Award, Star, Package, TowerControl as Controller, Film, Code, CheckCircle, XCircle, ArrowRight, UserPlus, Shovel as Shop, Loader2 } from 'lucide-react';
+import { Search, ShoppingCart, Crown, Grid3X3, Eye, Plus as CartPlus, CloudLightning as Lightning, Shield, Headphones, Award, Star, Package, TowerControl as Controller, Film, Code, CheckCircle, XCircle, ArrowRight, UserPlus, Shovel as Shop, Loader2, Tag } from 'lucide-react';
 import { productService, Product, Category, Seller } from '../services/productService';
 import { categoryService } from '../services/categoryService';
 import { sellerService } from '../services/sellerService';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import { AlertContext } from '../App';
+import CloudinaryImage from '../components/CloudinaryImage';
 
 const HomePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -14,6 +15,8 @@ const HomePage: React.FC = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [sellers, setSellers] = useState<Seller[]>([]);
+  const [experiencedSellers, setExperiencedSellers] = useState<any[]>([]);
+  const [totalSellersCount, setTotalSellersCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState<number | null>(null);
 
@@ -46,22 +49,31 @@ const HomePage: React.FC = () => {
         premiumResponse,
         allProductsResponse,
         categoriesResponse,
-        sellersResponse
+        sellersResponse,
+        experiencedSellersResponse,
+        sellerCountResponse
       ] = await Promise.all([
         productService.getPremiumProducts(),
         productService.getProducts({ size: 20 }),
         categoryService.getCategories(),
-        sellerService.getSellers()
+        sellerService.getSellers(),
+        sellerService.getExperiencedSellers(5), // Gerçek API'den tecrübeli satıcılar (5 satıcı)
+        sellerService.getSellerCount() // Satıcı sayısını gerçek API'den al
       ]);
 
       setPremiumProducts(premiumResponse);
       setAllProducts(allProductsResponse.content);
       setFilteredProducts(allProductsResponse.content);
-      setCategories(categoriesResponse.filter(cat => cat.isActive));
-      setSellers(sellersResponse.filter(seller => seller.isVerified).slice(0, 4));
+      setCategories(categoriesResponse);
+      setSellers(sellersResponse.filter((seller: any) => seller.isVerified).slice(0, 4));
+      setExperiencedSellers(Array.isArray(experiencedSellersResponse) ? experiencedSellersResponse : []);
+      setTotalSellersCount(typeof sellerCountResponse === 'number' ? sellerCountResponse : 0);
       
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Data yüklenirken hata:', error);
+      // Handle error silently but set fallback values
+      setTotalSellersCount(0);
+      setExperiencedSellers([]);
     } finally {
       setIsLoading(false);
     }
@@ -81,24 +93,23 @@ const HomePage: React.FC = () => {
     try {
       setAddingToCart(productId);
       
-      // Debug: Check auth state before making the request
-      console.log('🛒 Adding to cart - Auth state:', {
-        user: user ? { id: user.id, username: user.username } : null,
-        isAuthenticated
-      });
+      // Get product name for notification
+      const product = allProducts.find(p => p.id === productId);
+      const productName = product?.title || 'Məhsul';
       
       await addToCart(productId, 1);
-      showAlert('success', 'Məhsul səbətə əlavə edildi!');
+      showAlert('success', `"${productName}" səbətə əlavə edildi! 🛒`);
     } catch (error: any) {
-      console.error('🛒 Add to cart error:', error);
       
       // Handle specific error messages
       let errorMessage = error.message || 'Məhsul səbətə əlavə edilərkən xəta baş verdi!';
       
-      if (errorMessage.includes('Öz məhsulunuzu ala bilməzsiniz')) {
-        errorMessage = 'Öz məhsulunuzu satın ala bilməzsiniz!';
-      } else if (errorMessage.includes('Yetkilendirme')) {
-        errorMessage = 'Yetkilendirme səhvi - yenidən daxil olun!';
+      if (errorMessage.includes('Öz məhsulunu')) {
+        errorMessage = 'Öz məhsullarınızı səbətə əlavə edə bilməzsiniz!';
+      } else if (errorMessage.includes('kifayət qədər stok yoxdur')) {
+        errorMessage = 'Bu məhsul üçün kifayət qədər stok yoxdur!';
+      } else if (errorMessage.includes('already exists in cart')) {
+        errorMessage = 'Bu məhsul artıq səbətinizdə mövcuddur!';
       }
       
       showAlert('error', errorMessage);
@@ -106,6 +117,8 @@ const HomePage: React.FC = () => {
       setAddingToCart(null);
     }
   };
+
+
 
   const scrollToProducts = () => {
     const productsSection = document.getElementById('products');
@@ -174,11 +187,11 @@ const HomePage: React.FC = () => {
               
               <div className="grid grid-cols-3 gap-8">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-yellow-300 mb-2">{allProducts.length}+</div>
+                  <div className="text-3xl font-bold text-yellow-300 mb-2">{(allProducts || []).length}+</div>
                   <div className="text-sm opacity-80">Məhsul</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-yellow-300 mb-2">{sellers.length}+</div>
+                  <div className="text-3xl font-bold text-yellow-300 mb-2">{totalSellersCount}+</div>
                   <div className="text-sm opacity-80">Satıcı</div>
                 </div>
                 <div className="text-center">
@@ -217,7 +230,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Premium Products */}
-      {premiumProducts.length > 0 && (
+      {(premiumProducts || []).length > 0 && (
         <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
@@ -229,87 +242,113 @@ const HomePage: React.FC = () => {
               <p className="text-xl text-gray-600">Yüksək keyfiyyət və etibarlılıq zəmanəti ilə</p>
             </div>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {premiumProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group">
-                  <div className="relative">
-                    <div className="absolute top-4 right-4 w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center z-10">
-                      <Crown className="w-5 h-5 text-white" />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+              {(premiumProducts || []).map((product) => (
+                <div key={product.id} className="group relative bg-gradient-to-br from-white via-yellow-50 to-orange-50 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-yellow-200/50 hover:border-yellow-300/70 transform hover:-translate-y-2">
+                  {/* Premium Glow Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-transparent to-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  {/* Premium Crown Badge */}
+                  <div className="absolute -top-1 -right-1 z-20">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 rounded-full shadow-lg"></div>
+                      <Crown className="w-4 h-4 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 drop-shadow-sm" />
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/30 to-transparent"></div>
                     </div>
-                    <div className="h-48 overflow-hidden">
-                      {product.imageUrl ? (
-                        <img 
-                          src={product.imageUrl} 
-                          alt={product.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                          <Package className="w-16 h-16 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  </div>
+                  
+                  {/* Product Image */}
+                  <div className="relative h-40 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-2xl">
+                    <CloudinaryImage
+                      src={product.imageUrl || ''}
+                      alt={product.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      size="medium"
+                      fallbackIcon={<Package className="w-12 h-12 text-gray-400" />}
+                    />
+                    
+                    {/* Premium Overlay Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-yellow-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    
+                    {/* View Button - Center of Photo */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-500 flex items-center justify-center">
                       <a 
                         href={`/products/${product.id}`}
-                        className="bg-white text-gray-800 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2"
+                        className="bg-white/95 backdrop-blur-sm text-gray-800 px-4 py-2.5 rounded-xl font-semibold hover:bg-white transition-all duration-300 transform scale-0 group-hover:scale-100 flex items-center gap-2 shadow-xl border border-yellow-200"
                       >
                         <Eye className="w-4 h-4" />
-                        Bax
+                        <span className="text-sm">Bax</span>
                       </a>
                     </div>
                   </div>
                   
-                  <div className="p-6">
-                    <div className="text-blue-600 text-sm font-semibold mb-2">{product.category.name}</div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">{product.title}</h3>
-                    <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
-                    
-                    <div className="flex justify-between items-center mb-4">
-                      <div className="text-2xl font-bold text-blue-600">{product.price} AZN</div>
-                      <div>
-                        {product.stock > 0 ? (
-                          <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
-                            <CheckCircle className="w-4 h-4 inline mr-1" />
-                            Stokda
-                          </span>
-                        ) : (
-                          <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
-                            <XCircle className="w-4 h-4 inline mr-1" />
-                            Bitib
-                          </span>
-                        )}
+                  {/* Product Info */}
+                  <div className="p-2.5 relative z-10">
+                    {/* Category & Price */}
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-orange-600 text-xs font-bold uppercase tracking-wide bg-orange-100 px-1.5 py-0.5 rounded">
+                        {product.category.name}
+                      </span>
+                      <div className="text-right">
+                        <span className="text-lg font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                          {product.price}
+                        </span>
+                        <span className="text-sm font-semibold text-gray-600 ml-1">₼</span>
                       </div>
                     </div>
                     
+                    {/* Title */}
+                    <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 text-sm leading-tight min-h-[2.5rem]">
+                      {product.title}
+                    </h3>
+                    
+                    {/* Stock Status */}
+                    <div className="flex items-center justify-center mb-2.5">
+                      {product.stock > 0 ? (
+                        <div className="flex items-center gap-1.5 bg-green-100 px-2.5 py-1 rounded-full">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          <span className="text-green-700 text-xs font-semibold">Stokda</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 bg-red-100 px-2.5 py-1 rounded-full">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span className="text-red-700 text-xs font-semibold">Bitib</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Add to Cart Button - Premium Style */}
                     {product.stock > 0 ? (
                       <button 
                         onClick={() => handleAddToCart(product.id)}
                         disabled={addingToCart === product.id}
-                        className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                        className="w-full bg-gradient-to-r from-yellow-500 via-yellow-600 to-orange-500 hover:from-yellow-600 hover:via-yellow-700 hover:to-orange-600 text-white py-2.5 rounded-lg text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 border border-yellow-400/50"
                       >
                         {addingToCart === product.id ? (
                           <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Əlavə edilir...
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Əlavə edilir...</span>
                           </>
                         ) : (
                           <>
-                            <CartPlus className="w-5 h-5" />
-                            Səbətə əlavə et
+                            <CartPlus className="w-4 h-4" />
+                            <span>Səbətə At</span>
                           </>
                         )}
                       </button>
                     ) : (
-                      <a 
-                        href={`/products/${product.id}`}
-                        className="w-full bg-gray-200 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
+                      <button 
+                        disabled
+                        className="w-full bg-gray-300 text-gray-600 py-2.5 rounded-lg text-xs font-semibold cursor-not-allowed"
                       >
-                        <Eye className="w-5 h-5" />
-                        Məhsula bax
-                      </a>
+                        <XCircle className="w-4 h-4 inline mr-2" />
+                        Stokda Yoxdur
+                      </button>
                     )}
                   </div>
+                  
+                  {/* Bottom Shine Effect */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 opacity-60"></div>
                 </div>
               ))}
             </div>
@@ -327,8 +366,60 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
+      {/* Categories Section */}
+      {(categories || []).length > 0 && (
+        <section className="py-20 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-full font-semibold mb-4">
+                <Tag className="w-4 h-4" />
+                Kateqoriyalar
+              </div>
+              <h2 className="text-4xl font-bold text-gray-800 mb-4">Məhsul Kateqoriyaları</h2>
+              <p className="text-xl text-gray-600">İstədiyiniz kateqoriyada axtarış edin</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+              {(categories || []).slice(0, 5).map((category) => (
+                <a
+                  key={category.id}
+                  href={`/products?category=${category.id}`}
+                  className="group bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-200 hover:border-purple-300"
+                >
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-600 transition-colors duration-300">
+                      <Tag className="w-8 h-8 text-purple-600 group-hover:text-white transition-colors duration-300" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors">
+                      {category.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4">
+                      {category.description || 'Bu kateqoriyada çoxlu məhsul var'}
+                    </p>
+                    <div className="inline-flex items-center gap-1 text-purple-600 font-semibold group-hover:gap-2 transition-all">
+                      <span>Kəşf Et</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+            
+            <div className="text-center mt-12">
+              <a 
+                href="/categories"
+                className="inline-flex items-center gap-2 bg-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-purple-700 transition-colors"
+              >
+                <ArrowRight className="w-5 h-5" />
+                Bütün Kateqoriyalar
+              </a>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* All Products */}
-      {allProducts.length > 0 && (
+      {(allProducts || []).length > 0 && (
         <section id="products" className="py-20 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
@@ -337,7 +428,7 @@ const HomePage: React.FC = () => {
                 Bütün Məhsullar
               </div>
               <h2 className="text-4xl font-bold text-gray-800 mb-4">Geniş Məhsul Çeşidi</h2>
-              <p className="text-xl text-gray-600">{allProducts.length} məhsul sizinlə</p>
+              <p className="text-xl text-gray-600">{(allProducts || []).length} məhsul sizinlə</p>
             </div>
             
             {/* Category Filters */}
@@ -353,7 +444,7 @@ const HomePage: React.FC = () => {
                 <Grid3X3 className="w-4 h-4 inline mr-2" />
                 Hamısı
               </button>
-              {categories.map((category) => (
+              {(categories || []).map((category) => (
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id.toString())}
@@ -369,88 +460,104 @@ const HomePage: React.FC = () => {
             </div>
             
             {/* Products Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
-                  <div className="relative">
-                    {product.isPremium && (
-                      <div className="absolute top-3 right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-semibold z-10">
+            <div className="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {(filteredProducts || []).map((product) => (
+                <div key={product.id} className="group relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-300 transform hover:-translate-y-1">
+                  
+                  {/* Premium Badge for regular products that are premium */}
+                  {product.isPremium && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2.5 py-1 rounded-full text-xs font-bold shadow-lg">
                         <Crown className="w-3 h-3 inline mr-1" />
                         Premium
                       </div>
-                    )}
-                    <div className="h-40 overflow-hidden">
-                      {product.imageUrl ? (
-                        <img 
-                          src={product.imageUrl} 
-                          alt={product.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                          <Package className="w-12 h-12 text-gray-400" />
-                        </div>
-                      )}
                     </div>
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center md:flex hidden">
+                  )}
+                  
+                  {/* Product Image */}
+                  <div className="relative h-36 overflow-hidden bg-gray-50 rounded-t-xl">
+                    <CloudinaryImage
+                      src={product.imageUrl || ''}
+                      alt={product.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      size="medium"
+                      fallbackIcon={<Package className="w-10 h-10 text-gray-400" />}
+                    />
+                    
+                    {/* View Button - Center of Photo */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
                       <a 
                         href={`/products/${product.id}`}
-                        className="bg-white text-gray-800 px-3 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2 text-sm"
+                        className="bg-white/95 backdrop-blur-sm text-gray-800 px-4 py-2 rounded-lg font-semibold hover:bg-white transition-all duration-300 transform scale-0 group-hover:scale-100 flex items-center gap-2 shadow-lg"
                       >
                         <Eye className="w-4 h-4" />
-                        Bax
+                        <span className="text-sm">Bax</span>
                       </a>
                     </div>
                   </div>
                   
-                  <div className="p-4">
-                    <div className="text-blue-600 text-xs font-semibold mb-1">{product.category?.name || 'Digər'}</div>
-                    <h3 className="font-bold text-gray-800 mb-2 line-clamp-2 text-sm">{product.title}</h3>
-                    <p className="text-gray-600 mb-3 line-clamp-2 text-xs">{product.description}</p>
-                    
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="text-lg font-bold text-blue-600">{product.price} AZN</div>
-                      <div>
-                        {product.stock > 0 ? (
-                          <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">
-                            <CheckCircle className="w-3 h-3 inline mr-1" />
-                            Stokda
-                          </span>
-                        ) : (
-                          <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">
-                            <XCircle className="w-3 h-3 inline mr-1" />
-                            Bitib
-                          </span>
-                        )}
+                  {/* Product Info */}
+                  <div className="p-2.5">
+                    {/* Category & Price */}
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-blue-600 text-xs font-semibold bg-blue-50 px-1.5 py-0.5 rounded">
+                        {product.category?.name || 'Digər'}
+                      </span>
+                      <div className="text-right">
+                        <span className="text-lg font-bold text-gray-900">
+                          {product.price}
+                        </span>
+                        <span className="text-sm text-gray-600 ml-1">₼</span>
                       </div>
                     </div>
                     
+                    {/* Title */}
+                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 text-sm leading-tight min-h-[2.5rem]">
+                      {product.title}
+                    </h3>
+                    
+                    {/* Stock Status */}
+                    <div className="flex items-center justify-center mb-2.5">
+                      {product.stock > 0 ? (
+                        <div className="flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded-full">
+                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                          <span className="text-green-700 text-xs font-medium">Stokda</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded-full">
+                          <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                          <span className="text-red-700 text-xs font-medium">Bitib</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Add to Cart Button */}
                     {product.stock > 0 ? (
                       <button 
                         onClick={() => handleAddToCart(product.id)}
                         disabled={addingToCart === product.id}
-                        className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 text-sm"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
                       >
                         {addingToCart === product.id ? (
                           <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Əlavə edilir...
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span>Əlavə...</span>
                           </>
                         ) : (
                           <>
-                            <CartPlus className="w-4 h-4" />
-                            Səbətə əlavə et
+                            <CartPlus className="w-3 h-3" />
+                            <span>Səbətə at</span>
                           </>
                         )}
                       </button>
                     ) : (
-                      <a 
-                        href={`/products/${product.id}`}
-                        className="w-full bg-gray-200 text-gray-600 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2 text-sm"
+                      <button 
+                        disabled
+                        className="w-full bg-gray-300 text-gray-600 py-2.5 rounded-lg text-xs font-semibold cursor-not-allowed"
                       >
-                        <Eye className="w-4 h-4" />
-                        Məhsula bax
-                      </a>
+                        <XCircle className="w-3 h-3 inline mr-1" />
+                        Stokda yoxdur
+                      </button>
                     )}
                   </div>
                 </div>
@@ -460,8 +567,8 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
-      {/* Sellers Section */}
-      {sellers.length > 0 && (
+      {/* Experienced Sellers Section */}
+      {(experiencedSellers || []).length > 0 && (
         <section className="py-20 bg-gradient-to-br from-blue-600 to-purple-700 text-white">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
@@ -473,33 +580,35 @@ const HomePage: React.FC = () => {
               <p className="text-xl opacity-90">Keyfiyyətli xidmət və sürətli çatdırılma</p>
             </div>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {sellers.map((seller) => (
-                <div key={seller.id} className="bg-white text-gray-800 rounded-xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+            <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+              {(experiencedSellers || []).map((seller, index) => (
+                <div key={seller.id || index} className="bg-white text-gray-800 rounded-xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
                   <div className="flex justify-between items-start mb-4">
                     <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                      {seller.username.charAt(0).toUpperCase()}
+                      {typeof seller.username === 'string' ? seller.username.charAt(0).toUpperCase() : 'S'}
                     </div>
                     <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">
                       <CheckCircle className="w-3 h-3 inline mr-1" />
-                      Təsdiqlənmiş
+                      Təcrübəli
                     </div>
                   </div>
                   
-                  <h3 className="font-bold text-lg mb-1">{seller.username}</h3>
-                  {seller.storeName && (
-                    <p className="text-blue-600 font-semibold mb-2">{seller.storeName}</p>
-                  )}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{seller.storeDescription}</p>
+                  <h3 className="font-bold text-lg mb-1">{typeof seller.username === 'string' ? seller.username : 'Satıcı'}</h3>
+                  <p className="text-blue-600 font-semibold mb-2">
+                    {seller.totalSales || 0} satış
+                  </p>
+                  <p className="text-gray-600 text-sm mb-4">
+                    Toplam gəlir: {seller.revenue || 0} AZN
+                  </p>
                   
                   <div className="flex justify-between items-center mb-4 text-sm">
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                      <span className="font-semibold">{seller.rating}</span>
+                      <span className="font-semibold">4.8</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Package className="w-4 h-4 text-gray-500" />
-                      <span>{seller.productCount} məhsul</span>
+                      <span>{seller.totalSales || 0} satış</span>
                     </div>
                   </div>
                   
@@ -599,7 +708,7 @@ const HomePage: React.FC = () => {
                 <h2 className="text-4xl font-bold mb-6">Satıcı Olmaq İstəyirsiniz?</h2>
                 <p className="text-xl mb-8 opacity-90">Öz məhsullarınızı sataraq əlavə gəlir əldə edin!</p>
                 <a 
-                  href="/user/seller-request"
+                  href="/seller-request"
                   className="inline-flex items-center gap-2 bg-yellow-500 text-gray-900 px-8 py-4 rounded-xl font-bold hover:bg-yellow-400 transition-colors text-lg"
                 >
                   <Shop className="w-6 h-6" />

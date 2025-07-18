@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Package, ShoppingCart, Eye, CheckCircle, Clock, Truck, XCircle, AlertTriangle, 
-  User, Calendar, DollarSign, Hash
+  Clock, CheckCircle, XCircle, Eye, Package, Hash, Truck, AlertTriangle, 
+  ShoppingCart, User, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Order, orderService } from '../services/orderService';
 import Alert from '../components/Alert';
+import CloudinaryImage from '../components/CloudinaryImage';
 
-const OrdersPage: React.FC = () => {
+interface OrdersPageProps {
+  onOrderSelect?: (orderId: number) => void;
+}
+
+const OrdersPage: React.FC<OrdersPageProps> = ({ onOrderSelect }) => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [ordersPerPage] = useState(10);
   const [alert, setAlert] = useState<{
     type: 'success' | 'error' | 'warning' | 'info';
     message: string;
@@ -111,6 +118,17 @@ const OrdersPage: React.FC = () => {
     };
   };
 
+  // Pagination calculations
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(orders.length / ordersPerPage);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -198,10 +216,15 @@ const OrdersPage: React.FC = () => {
         {orders.length > 0 && (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div className="bg-white border-b border-gray-200 p-6">
+              <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold flex items-center">
                 <Package className="w-6 h-6 text-blue-600 mr-3" />
                 Sifarişlərim ({orders.length})
               </h2>
+                <div className="text-sm text-gray-600">
+                  Səhifə {currentPage} / {totalPages} (Göstərilir: {indexOfFirstOrder + 1}-{Math.min(indexOfLastOrder, orders.length)})
+                </div>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -218,7 +241,7 @@ const OrdersPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {orders.map((order) => {
+                  {currentOrders.map((order) => {
                     const createdDate = formatDate(order.createdAt);
                     
                     return (
@@ -238,9 +261,13 @@ const OrdersPage: React.FC = () => {
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Package className="w-6 h-6 text-gray-400" />
-                                </div>
+                              <CloudinaryImage
+                                src={order.productImageUrl || ''}
+                                alt={order.productTitle}
+                                className="w-full h-full object-cover"
+                                size="small"
+                                fallbackIcon={<Package className="w-6 h-6 text-gray-400" />}
+                              />
                             </div>
                             <div>
                               <h3 className="font-semibold text-gray-900 text-sm">{order.productTitle}</h3>
@@ -278,13 +305,13 @@ const OrdersPage: React.FC = () => {
                         
                         <td className="px-6 py-4">
                           <div className="flex space-x-2">
-                            <a
-                              href={`/order/${order.id}`}
+                            <button
+                              onClick={() => window.location.href = `/order/${order.id}`}
                               className="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition-colors"
                               title="Detaylar"
                             >
                               <Eye className="w-4 h-4" />
-                            </a>
+                            </button>
                             
                             {order.status === 'DELIVERED' && (
                               <button
@@ -303,6 +330,75 @@ const OrdersPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="bg-white border-t border-gray-200 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-700">
+                    <span>Göstərilir </span>
+                    <span className="font-medium">{indexOfFirstOrder + 1}</span>
+                    <span> - </span>
+                    <span className="font-medium">{Math.min(indexOfLastOrder, orders.length)}</span>
+                    <span> arası, toplam </span>
+                    <span className="font-medium">{orders.length}</span>
+                    <span> nəticə</span>
+                  </div>
+
+                  <nav className="flex items-center space-x-2">
+                    {/* Previous Button */}
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      Əvvəlki
+                    </button>
+
+                    {/* Page Numbers */}
+                    <div className="flex space-x-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+
+                        return (
+                          <button
+                            key={pageNumber}
+                            onClick={() => handlePageChange(pageNumber)}
+                            className={`px-3 py-2 text-sm font-medium rounded-md ${
+                              currentPage === pageNumber
+                                ? 'bg-blue-600 text-white border border-blue-600'
+                                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            {pageNumber}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Next Button */}
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    >
+                      Sonrakı
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

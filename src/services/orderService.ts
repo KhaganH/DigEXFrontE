@@ -11,6 +11,7 @@ export interface Order {
   sellerStoreName?: string;
   productId: number;
   productTitle: string;
+  productImageUrl?: string; // Ürün fotoğrafı URL'i
   quantity: number;
   unitPrice: number;
   totalAmount: number;
@@ -64,13 +65,19 @@ class OrderService {
 
   async getOrderById(orderId: number): Promise<Order> {
     try {
-      const result = await apiClient.get<Order>(`/api/orders/${orderId}`);
+      const result = await apiClient.get<any>(`/api/orders/${orderId}`);
       
       // Check if result is HTML (error response)
       if (typeof result === 'string' && (result as string).includes('<!DOCTYPE')) {
         throw new Error('Backend authorization failed - please restart backend');
       }
       
+      // Backend returns {order: Order, isBuyer: boolean, isSeller: boolean} format
+      if (result && typeof result === 'object' && 'order' in result) {
+        return result.order;
+      }
+      
+      // Fallback for direct order response
       return result;
     } catch (error: any) {
       console.error('❌ OrderService.getOrderById error:', error);
@@ -83,7 +90,7 @@ class OrderService {
       const params = new URLSearchParams();
       params.append('deliveryInfo', deliveryInfo);
 
-      const result = await apiClient.post<string>(`/seller/orders/${orderId}/deliver`, params.toString(), {
+      const result = await apiClient.post<string>(`/api/seller/orders/${orderId}/deliver`, params.toString(), {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -103,7 +110,7 @@ class OrderService {
 
   async confirmDelivery(orderId: number): Promise<string> {
     try {
-      const result = await apiClient.post<string>(`/orders/${orderId}/confirm`, '', {
+      const result = await apiClient.post<string>(`/api/orders/${orderId}/confirm-delivery`, '', {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -120,6 +127,8 @@ class OrderService {
       throw new Error(error.message || 'Sipariş təsdiqlənərkən xəta baş verdi');
     }
   }
+
+
 }
 
 export const orderService = new OrderService(); 

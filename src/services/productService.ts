@@ -6,137 +6,237 @@ export interface Product {
   description: string;
   price: number;
   stock: number;
-  fileUrl?: string;
-  imageUrl?: string;
-  code?: string;
+  imageUrl: string;
+  fileUrl: string;
+  category: {
+    id: number;
+    name: string;
+  };
+  user: {
+    id: number;
+    username: string;
+    storeName: string;
+    avatar?: string;
+  };
   isActive: boolean;
   createdAt: string;
-  updatedAt: string;
-  userId: number;
-  sellerUsername: string;
-  isApproved: boolean;
-  isPremium: boolean;
+  viewCount: number;
   salesCount: number;
-  category: CategoryInfo;
-  availableStockCount?: number;
-  usedStockCount?: number;
-  totalStockCount?: number;
-  premiumStartDate?: string;
-  premiumExpiryDate?: string;
-}
-
-export interface CategoryInfo {
-  id: number;
-  name: string;
+  rating?: number;
+  reviewCount?: number;
+  isPremium?: boolean;
 }
 
 export interface Category {
   id: number;
   name: string;
-  description?: string;
-  isActive: boolean;
+  description: string;
+}
+
+export interface Review {
+  id: number;
+  rating: number;
+  comment: string;
+  user: {
+    id: number;
+    username: string;
+    avatar?: string;
+  };
+  createdAt: string;
+  helpful: number;
+  reported: boolean;
+}
+
+export interface ReviewStats {
+  averageRating: number;
+  totalReviews: number;
+  ratingCounts: number[];
 }
 
 export interface Seller {
   id: number;
   username: string;
-  storeName?: string;
+  storeName: string;
   storeDescription?: string;
   rating: number;
   productCount: number;
   isVerified: boolean;
+  totalSales?: number;
+  orderCount?: number;
+  totalSold?: number;
 }
 
-export interface ProductSearchParams {
-  search?: string;
-  categoryId?: number;
-  sellerId?: number;
-  premium?: boolean;
-  minPrice?: number;
-  maxPrice?: number;
-  page?: number;
-  size?: number;
-  sort?: string;
-}
-
-export interface ProductResponse {
-  content: Product[];
-  totalElements: number;
+export interface PaginatedResponse<T> {
+  content: T[];
   totalPages: number;
+  totalElements: number;
   size: number;
   number: number;
 }
 
-class ProductService {
-  async getProducts(params: ProductSearchParams = {}): Promise<ProductResponse> {
-    // Backend paginated response döndermediği için manual pagination yapacağız
-    const products = await apiClient.get<Product[]>('/api/public/products');
-    
-    const page = params.page || 0;
-    const size = params.size || 10;
-    const startIndex = page * size;
-    const endIndex = startIndex + size;
-    
-    // Filtering
-    let filteredProducts = products;
-    
-    if (params.search) {
-      filteredProducts = filteredProducts.filter(p => 
-        p.title.toLowerCase().includes(params.search!.toLowerCase()) ||
-        p.description.toLowerCase().includes(params.search!.toLowerCase())
-      );
+export const productService = {
+  // Get all products
+  async getAllProducts(): Promise<Product[]> {
+    try {
+      const response = await apiClient.get('/api/public/products') as Product[];
+      return response;
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return [];
     }
-    
-    if (params.categoryId) {
-      filteredProducts = filteredProducts.filter(p => p.category.id === params.categoryId);
-    }
-    
-    if (params.premium !== undefined) {
-      filteredProducts = filteredProducts.filter(p => p.isPremium === params.premium);
-    }
-    
-    if (params.minPrice !== undefined) {
-      filteredProducts = filteredProducts.filter(p => p.price >= params.minPrice!);
-    }
-    
-    if (params.maxPrice !== undefined) {
-      filteredProducts = filteredProducts.filter(p => p.price <= params.maxPrice!);
-    }
-    
-    // Paging
-    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-    
-    return {
-      content: paginatedProducts,
-      totalElements: filteredProducts.length,
-      totalPages: Math.ceil(filteredProducts.length / size),
-      size: size,
-      number: page
-    };
-  }
+  },
 
-  async getProduct(id: number): Promise<Product> {
-    return apiClient.get<Product>(`/api/public/products/${id}`);
-  }
+  // Get products with pagination
+  async getProducts(params: { page?: number; size?: number; sort?: string } = {}): Promise<PaginatedResponse<Product>> {
+    try {
+      // Backend'de pagination desteği yok, sadece tüm ürünleri alıp frontend'de paginate yapacağız
+      const allProducts = await this.getAllProducts();
+      const { page = 0, size = 20 } = params;
+      
+      const startIndex = page * size;
+      const endIndex = startIndex + size;
+      const content = allProducts.slice(startIndex, endIndex);
+      
+      return {
+        content,
+        totalPages: Math.ceil(allProducts.length / size),
+        totalElements: allProducts.length,
+        size,
+        number: page
+      };
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return {
+        content: [],
+        totalPages: 0,
+        totalElements: 0,
+        size: 0,
+        number: 0
+      };
+    }
+  },
 
+  // Get product by ID
+  async getProductById(id: number): Promise<Product | null> {
+    try {
+      const response = await apiClient.get(`/api/public/products/${id}`) as Product;
+      return response;
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      return null;
+    }
+  },
+
+  // Get premium products
   async getPremiumProducts(): Promise<Product[]> {
-    return apiClient.get<Product[]>('/api/public/products/premium');
-  }
+    try {
+      const response = await apiClient.get('/api/public/products/premium') as Product[];
+      return response;
+    } catch (error) {
+      console.error('Error fetching premium products:', error);
+      return [];
+    }
+  },
 
-  async searchProducts(query: string): Promise<Product[]> {
-    const response = await this.getProducts({ search: query });
-    return response.content;
-  }
+  // Get categories
+  async getCategories(): Promise<Category[]> {
+    try {
+      const response = await apiClient.get('/api/public/categories') as Category[];
+      return response;
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      return [];
+    }
+  },
 
-  async getProductsByCategory(categoryId: number): Promise<Product[]> {
-    const response = await this.getProducts({ categoryId });
-    return response.content;
-  }
-
+  // Get products by seller
   async getProductsBySeller(sellerId: number): Promise<Product[]> {
-    const response = await this.getProducts({ sellerId });
-    return response.content;
-  }
-}
+    try {
+      const response = await apiClient.get(`/api/public/products/user/${sellerId}`) as Product[];
+      return response;
+    } catch (error) {
+      console.error('Error fetching seller products:', error);
+      return [];
+    }
+  },
 
-export const productService = new ProductService();
+  // Get product reviews
+  async getProductReviews(productId: number): Promise<Review[]> {
+    try {
+      const response = await apiClient.get(`/api/public/products/${productId}/reviews`) as Review[];
+      return response;
+    } catch (error) {
+      console.error('Error fetching product reviews:', error);
+      return [];
+    }
+  },
+
+  // Get review statistics
+  async getReviewStats(productId: number): Promise<ReviewStats | null> {
+    try {
+      const response = await apiClient.get(`/api/public/products/${productId}/review-stats`) as ReviewStats;
+      return response;
+    } catch (error) {
+      console.error('Error fetching review stats:', error);
+      return null;
+    }
+  },
+
+  // Add review
+  async addReview(productId: number, rating: number, comment: string): Promise<boolean> {
+    try {
+      await apiClient.post(`/api/products/${productId}/reviews`, {
+        rating,
+        comment
+      });
+      return true;
+    } catch (error) {
+      console.error('Error adding review:', error);
+      return false;
+    }
+  },
+
+  // Mark review as helpful
+  async markReviewHelpful(reviewId: number): Promise<boolean> {
+    try {
+      await apiClient.post(`/api/reviews/${reviewId}/helpful`);
+      return true;
+    } catch (error) {
+      console.error('Error marking review as helpful:', error);
+      return false;
+    }
+  },
+
+  // Add to cart
+  async addToCart(productId: number, quantity: number = 1): Promise<boolean> {
+    try {
+      await apiClient.post('/api/cart/add', {
+        productId,
+        quantity
+      });
+      return true;
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      return false;
+    }
+  },
+
+
+
+  // Search products
+  async searchProducts(query: string, category?: string): Promise<Product[]> {
+    try {
+      const params = new URLSearchParams();
+      if (query) params.append('q', query);
+      if (category) params.append('category', category);
+      
+      const response = await apiClient.get(`/api/public/products/search?${params.toString()}`) as Product[];
+      return response;
+    } catch (error) {
+      console.error('Error searching products:', error);
+      return [];
+    }
+  },
+};
+
+export default productService;

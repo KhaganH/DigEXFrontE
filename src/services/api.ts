@@ -15,20 +15,44 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
-    // Get token from localStorage
+    // Get token from localStorage and validate it
     const token = localStorage.getItem('authToken');
+    const userStr = localStorage.getItem('user');
     
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string>),
     };
     
-    // Add Authorization header if token exists
+    // Add Authorization header if token exists and is valid
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      // Check if token is expired
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const decoded = JSON.parse(jsonPayload);
+        const currentTime = Date.now() / 1000;
+        
+        if (decoded.exp > currentTime) {
+          headers['Authorization'] = `Bearer ${token}`;
+        } else {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          throw new Error('Token expired - please login again');
+        }
+      } catch (error) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        throw new Error('Invalid token - please login again');
+      }
     }
     
-    // Add Content-Type only if not already specified
-    if (!headers['Content-Type']) {
+    // Add Content-Type only if not already specified and not FormData
+    const isFormData = options.body instanceof FormData;
+    if (!headers['Content-Type'] && !isFormData) {
       headers['Content-Type'] = 'application/json';
     }
     
@@ -38,26 +62,13 @@ class ApiClient {
     };
     
     // DEBUG: Log request details AFTER config is built
-    console.log('🔍 API Request URL:', url);
-    console.log('🔍 API Request Token:', token ? `${token.substring(0, 50)}...` : 'NO TOKEN');
-    console.log('🔍 API Request Method:', options.method || 'GET');
-    console.log('🔍 API Request Headers (Final):', JSON.stringify(config.headers, null, 2));
-    console.log('🔍 API Request Body:', options.body ? String(options.body).substring(0, 200) + '...' : 'NO BODY');
+
 
     try {
       const response = await fetch(url, config);
       
-      // DEBUG: Log response
-      console.log('📡 API Response:', {
-        url,
-        status: response.status,
-        ok: response.ok,
-        contentType: response.headers.get('content-type')
-      });
-      
       // Handle unauthorized
       if (response.status === 401) {
-        console.log('❌ 401 Unauthorized - Clearing tokens');
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
         // Check if we're not already on login page to prevent infinite redirects
@@ -69,12 +80,10 @@ class ApiClient {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ API Error Response:', errorText);
         
         // Check if it's HTML (login page or error page)
         if (errorText.includes('<!DOCTYPE') || errorText.includes('<html>')) {
           // This usually means we're getting a login page instead of API response
-          console.warn('⚠️ Received HTML instead of JSON - likely authentication issue');
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
           throw new Error('Yetkilendirme səhvi - yenidən daxil olun');
@@ -112,8 +121,6 @@ class ApiClient {
             
             return parsed;
           } catch (e) {
-            console.error('❌ JSON Parse Error:', e);
-            console.log('📄 Failed response text:', responseText.substring(0, 500));
             // If it's just a number or string, return as is
             if (!isNaN(Number(responseText))) {
               return Number(responseText) as T;
@@ -138,7 +145,6 @@ class ApiClient {
         return responseText as T;
       }
     } catch (error) {
-      console.error('💥 API Request failed:', error);
       throw error;
     }
   }

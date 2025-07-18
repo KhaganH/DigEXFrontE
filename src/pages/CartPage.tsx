@@ -7,7 +7,7 @@ import Alert from '../components/Alert';
 
 const CartPage: React.FC = () => {
   const { user } = useAuth();
-  const { cartItems, cartCount, updateCartCount } = useCart();
+  const { cartItems, cartCount, cartData, updateCartItem, removeFromCart, fetchFullCart, clearCart } = useCart();
   const [localCartItems, setLocalCartItems] = useState<CartItem[]>([]);
   const [cartTotal, setCartTotal] = useState(0);
   const [userBalance, setUserBalance] = useState(0);
@@ -28,32 +28,23 @@ const CartPage: React.FC = () => {
     }
   }, [user]);
 
+  // Update local state when hook data changes
+  useEffect(() => {
+    if (cartData) {
+      setLocalCartItems(cartData.cartItems || []);
+      setCartTotal(cartData.cartTotal || 0);
+      setUserBalance(cartData.userBalance || 0);
+      setCanCheckout(cartData.canCheckout || false);
+      setHasSufficientBalance(cartData.hasSufficientBalance || false);
+    }
+  }, [cartData]);
+
   const fetchCartData = async () => {
     try {
       setIsLoading(true);
       setError(null);
       console.log('🛒 CartPage: Fetching cart data...');
-      console.log('🛒 CartPage: Current user:', user ? { id: user.id, username: user.username } : null);
-      
-      const data = await cartService.getCartItems();
-      console.log('🛒 CartPage: Received data:', data);
-      
-      // Safety checks for API response
-      if (data && typeof data === 'object') {
-        setLocalCartItems(Array.isArray(data.cartItems) ? data.cartItems : []);
-        setCartTotal(typeof data.cartTotal === 'number' ? data.cartTotal : 0);
-        setUserBalance(typeof data.userBalance === 'number' ? data.userBalance : 0);
-        setCanCheckout(Boolean(data.canCheckout));
-        setHasSufficientBalance(Boolean(data.hasSufficientBalance));
-      } else {
-        console.error('❌ CartPage: Invalid API response:', data);
-        setError('Səbət məlumatları alınarkən xəta baş verdi');
-        setLocalCartItems([]);
-        setCartTotal(0);
-        setUserBalance(0);
-        setCanCheckout(false);
-        setHasSufficientBalance(false);
-      }
+      await fetchFullCart();
     } catch (error: any) {
       console.error('❌ CartPage: Error fetching cart:', error);
       setError(error.message || 'Səbət yüklənərkən xəta baş verdi');
@@ -72,10 +63,8 @@ const CartPage: React.FC = () => {
 
     try {
       setIsLoading(true);
-      await cartService.updateCartItem(cartItemId, newQuantity);
+      await updateCartItem(cartItemId, newQuantity);
       showAlert('success', 'Miqdar yeniləndi');
-      await fetchCartData();
-      updateCartCount();
     } catch (error: any) {
       showAlert('error', error.message || 'Miqdar yenilənərkən xəta baş verdi');
     } finally {
@@ -90,11 +79,9 @@ const CartPage: React.FC = () => {
 
     try {
       setIsLoading(true);
-      const result = await cartService.removeFromCart(cartItemId);
+      const result = await removeFromCart(cartItemId);
       if (result.success) {
         showAlert('success', result.message);
-        await fetchCartData();
-        updateCartCount();
       } else {
         showAlert('error', result.message);
       }
@@ -106,22 +93,16 @@ const CartPage: React.FC = () => {
   };
 
   const handleClearCart = async () => {
-    if (!window.confirm('Səbəti tamamilə təmizləmək istədiyinizə əminsiniz?')) {
+    if (!window.confirm('Səbəti boşaltmaq istədiyinizə əminsiniz?')) {
       return;
     }
 
     try {
       setIsLoading(true);
-      const result = await cartService.clearCart();
-      if (result.success) {
-        showAlert('success', result.message);
-        await fetchCartData();
-        updateCartCount();
-      } else {
-        showAlert('error', result.message);
-      }
+      await clearCart();
+      showAlert('success', 'Səbət boşaldıldı');
     } catch (error: any) {
-      showAlert('error', error.message || 'Səbət təmizlənərkən xəta baş verdi');
+      showAlert('error', error.message || 'Səbət boşaldılarkən xəta baş verdi');
     } finally {
       setIsLoading(false);
     }
@@ -295,7 +276,7 @@ const CartPage: React.FC = () => {
                         <div className="flex-1">
                           <h3 className="font-semibold text-gray-900 mb-1">{item.product.title}</h3>
                           <p className="text-sm text-gray-500 mb-2">
-                            Satıcı: {item.product.sellerUsername}
+                            Satıcı: {item.product.user?.username || 'Məlum deyil'}
                           </p>
                           <div className="flex items-center space-x-2">
                             {item.product.stock > 5 && (

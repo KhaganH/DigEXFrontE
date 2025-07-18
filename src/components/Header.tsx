@@ -1,34 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   User, Menu, X, Search, ShoppingCart, MessageCircle, Bell, 
   Wallet, Phone, Mail, Shield, Home, Grid3X3, Users, Info,
   ChevronDown, Settings, Package, BarChart3, LogOut
 } from 'lucide-react';
 import { userService } from '../services/userService';
+import { useAuth } from '../hooks/useAuth';
+import { useCart } from '../hooks/useCart';
 
-interface HeaderProps {
-  isMenuOpen: boolean;
-  setIsMenuOpen: (open: boolean) => void;
-  onNavigate?: (page: 'home' | 'login' | 'register' | 'cart' | 'checkout' | 'checkout-success' | 'orders') => void;
-  onLogout?: () => void;
-  user?: {
-    id: number;
-    username: string;
-    email: string;
-    balance: number;
-    role: 'USER' | 'SELLER' | 'ADMIN';
-    cartCount: number;
-    notificationCount: number;
-  } | null;
-}
-
-const Header: React.FC<HeaderProps> = ({ 
-  isMenuOpen, 
-  setIsMenuOpen, 
-  user, 
-  onNavigate, 
-  onLogout 
-}) => {
+const Header: React.FC = () => {
+  const { user, logout, balance } = useAuth();
+  const { cartCount } = useCart();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -63,19 +50,16 @@ const Header: React.FC<HeaderProps> = ({
     e.preventDefault();
     if (searchQuery.trim()) {
       // Navigate to search results page
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  const handleNavigation = (page: 'home' | 'login' | 'register' | 'cart' | 'checkout' | 'checkout-success' | 'orders') => {
-    if (onNavigate) {
-      onNavigate(page);
-    }
-  };
-
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
     }
   };
 
@@ -108,27 +92,44 @@ const Header: React.FC<HeaderProps> = ({
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center h-16">
             {/* Brand */}
-            <div className="flex items-center">
-              <button onClick={() => handleNavigation('home')} className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Package className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-3">
+              <button onClick={() => navigate('/')} className="flex items-center space-x-3 group">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-all duration-300">
+                    <div className="relative">
+                      <Package className="w-7 h-7 text-white" />
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-blue-600/20 to-cyan-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  DiGex
-                </span>
+                <div className="flex flex-col items-start">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-500 bg-clip-text text-transparent tracking-wide">
+                      DiGex
+                    </span>
+                    <span className="px-2 py-0.5 bg-gradient-to-r from-orange-400 to-red-500 text-white text-xs font-bold rounded-full shadow-sm">
+                      BETA
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500 font-medium -mt-0.5">
+                    Digital Exchange
+                  </span>
+                </div>
               </button>
             </div>
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
-              <button onClick={() => handleNavigation('home')} className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors font-medium">
+              <button onClick={() => navigate('/')} className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors font-medium">
                 <Home className="w-4 h-4" />
                 <span>Ana Səhifə</span>
               </button>
-              <a href="/products" className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors font-medium">
+              <button onClick={() => navigate('/products')} className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors font-medium">
                 <Grid3X3 className="w-4 h-4" />
                 <span>Məhsullar</span>
-              </a>
+              </button>
               <a href="/sellers" className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors font-medium">
                 <Users className="w-4 h-4" />
                 <span>Satıcılar</span>
@@ -164,13 +165,13 @@ const Header: React.FC<HeaderProps> = ({
                 // Guest Users
                 <div className="hidden md:flex items-center space-x-3">
                   <button
-                    onClick={() => handleNavigation('login')}
+                    onClick={() => navigate('/login')}
                     className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
                   >
                     Daxil Ol
                   </button>
                   <button
-                    onClick={() => handleNavigation('register')}
+                    onClick={() => navigate('/register')}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                   >
                     Qeydiyyat Ol
@@ -180,46 +181,41 @@ const Header: React.FC<HeaderProps> = ({
                 // Authenticated Users
                 <div className="flex items-center space-x-4">
                   {/* Balance */}
-                  <a
-                    href="/balance"
+                  <button
+                    onClick={() => navigate('/balance')}
                     className="hidden md:flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg hover:shadow-md transition-all"
                   >
                     <Wallet className="w-4 h-4 text-green-600" />
                     <div className="flex flex-col">
                       <span className="text-xs text-gray-500">Balans</span>
                       <span className="font-bold text-sm text-gray-800">
-                        {user.balance.toFixed(2)} AZN
+                        {balance.toFixed(2)} AZN
                       </span>
                     </div>
-                  </a>
+                  </button>
 
                   {/* Cart */}
                   <button 
-                    onClick={() => handleNavigation('cart')}
+                    onClick={() => navigate('/cart')}
                     className="relative p-2 text-gray-700 hover:text-blue-600 transition-colors"
                   >
                     <ShoppingCart className="w-6 h-6" />
-                    {user.cartCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {user.cartCount}
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {cartCount}
                       </span>
                     )}
                   </button>
-
-                  {/* Chat */}
-                  <a href="/chats" className="p-2 text-gray-700 hover:text-blue-600 transition-colors">
-                    <MessageCircle className="w-6 h-6" />
-                  </a>
 
                   {/* Notifications */}
                   <div className="relative">
                     <button
                       onClick={() => setShowNotifications(!showNotifications)}
-                      className="p-2 text-gray-700 hover:text-blue-600 transition-colors"
+                      className="relative p-2 text-gray-700 hover:text-blue-600 transition-colors"
                     >
                       <Bell className="w-6 h-6" />
                       {notificationCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-yellow-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                           {notificationCount}
                         </span>
                       )}
@@ -227,41 +223,25 @@ const Header: React.FC<HeaderProps> = ({
 
                     {/* Notifications Dropdown */}
                     {showNotifications && (
-                      <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
-                        <div className="p-4 border-b border-gray-200">
-                          <div className="flex justify-between items-center">
-                            <h3 className="font-bold text-gray-800">Bildirişlər</h3>
-                            <span className="text-sm text-gray-500">{notificationCount} yeni</span>
-                          </div>
-                        </div>
-                        <div className="max-h-64 overflow-y-auto">
+                      <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                        <div className="p-4">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-3">Bildirişlər</h3>
                           {notifications.length > 0 ? (
-                            notifications.map((notification) => (
-                              <div key={notification.id} className="p-4 hover:bg-gray-50 border-b border-gray-100">
-                                <div className="flex items-start space-x-3">
-                                  <div className={`w-2 h-2 rounded-full mt-2 ${
-                                    notification.isRead ? 'bg-gray-300' : 'bg-blue-500'
-                                  }`}></div>
-                                  <div>
-                                    <p className="font-medium text-gray-800">{notification.title}</p>
-                                    <p className="text-sm text-gray-600">{notification.message}</p>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                      {new Date(notification.createdAt).toLocaleDateString('az-AZ')}
-                                    </p>
+                            <div className="space-y-3">
+                              {notifications.map((notification, index) => (
+                                <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-900">{notification.title}</p>
+                                    <p className="text-xs text-gray-500">{notification.message}</p>
+                                    <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
                                   </div>
                                 </div>
+                              ))}
                               </div>
-                            ))
                           ) : (
-                            <div className="p-4 text-center text-gray-500">
-                              Bildiriş yoxdur
-                            </div>
+                            <p className="text-gray-500 text-center py-4">Bildiriş yoxdur</p>
                           )}
-                        </div>
-                        <div className="p-3 border-t border-gray-200">
-                          <a href="/notifications" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                            Hamısını gör →
-                          </a>
                         </div>
                       </div>
                     )}
@@ -273,93 +253,82 @@ const Header: React.FC<HeaderProps> = ({
                       onClick={() => setShowUserMenu(!showUserMenu)}
                       className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                     >
-                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                        <User className="w-5 h-5 text-white" />
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-semibold text-sm">
+                          {user.username.charAt(0).toUpperCase()}
+                        </span>
                       </div>
-                      <div className="hidden lg:block text-left">
-                        <p className="font-medium text-gray-800 text-sm">{user.username}</p>
-                        <p className="text-xs text-gray-500">Xoş gəlmisiniz</p>
-                      </div>
+                      <span className="hidden md:block text-sm font-medium text-gray-700">
+                        {user.username}
+                      </span>
                       <ChevronDown className="w-4 h-4 text-gray-500" />
                     </button>
 
                     {/* User Dropdown */}
                     {showUserMenu && (
-                      <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
-                        {/* User Info Header */}
-                        <div className="p-4 border-b border-gray-200">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                              <User className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-bold text-gray-800">{user.username}</p>
-                              <p className="text-sm text-gray-500">{user.email}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Basic Options */}
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                         <div className="py-2">
-                          <a href="/profile" className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors">
-                            <User className="w-4 h-4 text-blue-600" />
-                            <span>Profil</span>
-                          </a>
-                          <button onClick={() => handleNavigation('orders')} className="w-full flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors text-left">
-                            <Package className="w-4 h-4 text-green-600" />
-                            <span>Sifarişlərim</span>
+                          <button
+                            onClick={() => {
+                              navigate('/profile');
+                              setShowUserMenu(false);
+                            }}
+                            className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <User className="w-4 h-4 mr-3" />
+                            Profil
                           </button>
-                        </div>
-
-                        {/* Role-based sections */}
+                          <button
+                            onClick={() => {
+                              navigate('/orders');
+                              setShowUserMenu(false);
+                            }}
+                            className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <Package className="w-4 h-4 mr-3" />
+                            Sifarişlərim
+                          </button>
+                          <button
+                            onClick={() => {
+                              navigate('/chats');
+                              setShowUserMenu(false);
+                            }}
+                            className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <MessageCircle className="w-4 h-4 mr-3" />
+                            Söhbətlər
+                          </button>
                         {user.role === 'SELLER' && (
-                          <>
-                            <div className="border-t border-gray-200 py-2">
-                              <div className="px-4 py-2">
-                                <p className="text-xs font-bold text-gray-500 uppercase">Satıcı Paneli</p>
-                              </div>
-                              <a href="/seller/dashboard" className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors">
-                                <BarChart3 className="w-4 h-4 text-yellow-600" />
-                                <span>Satıcı Paneli</span>
-                              </a>
-                              <a href="/seller/products" className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors">
-                                <Package className="w-4 h-4 text-yellow-600" />
-                                <span>Məhsullarım</span>
-                              </a>
-                            </div>
-                          </>
+                            <button
+                              onClick={() => {
+                                navigate('/seller/dashboard');
+                                setShowUserMenu(false);
+                              }}
+                              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              <BarChart3 className="w-4 h-4 mr-3" />
+                              Satıcı Paneli
+                            </button>
                         )}
-
                         {user.role === 'ADMIN' && (
-                          <>
-                            <div className="border-t border-gray-200 py-2">
-                              <div className="px-4 py-2">
-                                <p className="text-xs font-bold text-gray-500 uppercase">Admin Paneli</p>
-                              </div>
-                              <a href="/admin" className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors">
-                                <Shield className="w-4 h-4 text-red-600" />
-                                <span>Admin Paneli</span>
-                              </a>
-                              <a href="/admin/users" className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors">
-                                <Users className="w-4 h-4 text-red-600" />
-                                <span>İstifadəçi İdarəsi</span>
-                              </a>
-                            </div>
-                          </>
-                        )}
-
-                        {/* Bottom Options */}
-                        <div className="border-t border-gray-200 py-2">
-                          <a href="/settings" className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors">
-                            <Settings className="w-4 h-4 text-gray-600" />
-                            <span>Tənzimləmələr</span>
-                          </a>
+                            <button
+                              onClick={() => {
+                                navigate('/admin/dashboard');
+                                setShowUserMenu(false);
+                              }}
+                              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              <Settings className="w-4 h-4 mr-3" />
+                              Admin Paneli
+                            </button>
+                          )}
+                          <hr className="my-2" />
                           <button
                             onClick={handleLogout}
-                            className="w-full flex items-center space-x-3 px-4 py-2 hover:bg-red-50 transition-colors text-red-600"
+                            className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                           >
-                            <LogOut className="w-4 h-4" />
-                            <span>Çıxış</span>
+                            <LogOut className="w-4 h-4 mr-3" />
+                            Çıxış
                           </button>
                         </div>
                       </div>
@@ -371,69 +340,111 @@ const Header: React.FC<HeaderProps> = ({
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="lg:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
+                className="lg:hidden p-2 text-gray-700 hover:text-blue-600 transition-colors"
               >
                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Menu */}
           {isMenuOpen && (
             <div className="lg:hidden border-t border-gray-200 py-4">
-              {/* Mobile Search */}
-              <form onSubmit={handleSearch} className="mb-4">
-                <div className="relative">
-                  <input
-                    type="search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Məhsul axtarın..."
-                    className="w-full pl-4 pr-12 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
+              <div className="space-y-4">
                   <button
-                    type="submit"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-500"
-                  >
-                    <Search className="w-5 h-5" />
-                  </button>
-                </div>
-              </form>
-
-              {/* Mobile Menu Items */}
-              <nav className="space-y-2">
-                <button onClick={() => handleNavigation('home')} className="flex items-center space-x-2 py-2 text-gray-700 hover:text-blue-600 w-full text-left">
+                  onClick={() => {
+                    navigate('/');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
+                >
                   <Home className="w-4 h-4" />
                   <span>Ana Səhifə</span>
                 </button>
-                <a href="/products" className="flex items-center space-x-2 py-2 text-gray-700 hover:text-blue-600">
+                <button
+                  onClick={() => {
+                    navigate('/products');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
+                >
                   <Grid3X3 className="w-4 h-4" />
                   <span>Məhsullar</span>
-                </a>
-                <a href="/sellers" className="flex items-center space-x-2 py-2 text-gray-700 hover:text-blue-600">
-                  <Users className="w-4 h-4" />
-                  <span>Satıcılar</span>
-                </a>
-                <a href="/about" className="flex items-center space-x-2 py-2 text-gray-700 hover:text-blue-600">
-                  <Info className="w-4 h-4" />
-                  <span>Haqqında</span>
-                </a>
-
-                {!user && (
-                  <div className="pt-4 space-y-2">
-                    <button onClick={() => handleNavigation('login')} className="block w-full text-center py-2 border border-blue-600 text-blue-600 rounded-lg">
-                      Daxil Ol
+                </button>
+                {user && (
+                  <>
+                    <button
+                      onClick={() => {
+                        navigate('/cart');
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      <span>Səbət ({cartCount})</span>
                     </button>
-                    <button onClick={() => handleNavigation('register')} className="block w-full text-center py-2 bg-blue-600 text-white rounded-lg">
-                      Qeydiyyat Ol
+                    <button
+                      onClick={() => {
+                        navigate('/orders');
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
+                    >
+                      <Package className="w-4 h-4" />
+                      <span>Sifarişlərim</span>
                     </button>
-                  </div>
+                    <button
+                      onClick={() => {
+                        navigate('/balance');
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
+                    >
+                      <Wallet className="w-4 h-4" />
+                      <span>Balans</span>
+                    </button>
+                    {user.role === 'SELLER' && (
+                      <button
+                        onClick={() => {
+                          navigate('/seller/dashboard');
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
+                      >
+                        <BarChart3 className="w-4 h-4" />
+                        <span>Satıcı Paneli</span>
+                      </button>
                 )}
-              </nav>
+                    {user.role === 'ADMIN' && (
+                      <button
+                        onClick={() => {
+                          navigate('/admin/dashboard');
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
+                      >
+                        <Settings className="w-4 h-4" />
+                        <span>Admin Paneli</span>
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>
       </nav>
+
+      {/* Click outside to close dropdowns */}
+      {(showNotifications || showUserMenu) && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => {
+            setShowNotifications(false);
+            setShowUserMenu(false);
+          }}
+        />
+      )}
     </>
   );
 };

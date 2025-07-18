@@ -5,7 +5,7 @@ import { CheckoutData, checkoutService } from '../services/checkoutService';
 import Alert from '../components/Alert';
 
 const CheckoutPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshBalance } = useAuth();
   const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -41,6 +41,9 @@ const CheckoutPage: React.FC = () => {
     try {
       setIsProcessing(true);
       const orders = await checkoutService.processCheckout();
+      
+      // Refresh balance after successful checkout
+      await refreshBalance();
       
       // Redirect to success page
       window.location.href = '/checkout/success';

@@ -52,7 +52,7 @@ class AuthService {
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
     } catch (error) {
-      console.error('Logout error:', error);
+      // Handle error silently
     }
   }
 
@@ -61,27 +61,54 @@ class AuthService {
     return userStr ? JSON.parse(userStr) : null;
   }
 
+  // JWT token'ın expire olup olmadığını kontrol et
+  private isTokenExpired(token: string): boolean {
+    try {
+      // JWT token'ın payload kısmını decode et
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      
+      const decoded = JSON.parse(jsonPayload);
+      const currentTime = Date.now() / 1000; // Unix timestamp in seconds
+      
+      return decoded.exp < currentTime;
+    } catch (error) {
+      return true; // Eğer decode edilemiyorsa expired say
+    }
+  }
+
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      return false;
+    }
+
+    // Token expire olmuş mu kontrol et
+    if (this.isTokenExpired(token)) {
+      this.logout(); // Expired token'ı temizle
+      return false;
+    }
+
+    return true;
   }
 
   getToken(): string | null {
-    return localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken');
+    
+    // Token var ama expire olmuşsa null döndür
+    if (token && this.isTokenExpired(token)) {
+      this.logout();
+      return null;
+    }
+    
+    return token;
   }
 
-  // Debug helper to check token validity
-  debugTokenInfo(): void {
-    const token = this.getToken();
-    const user = this.getCurrentUser();
-    
-    console.log('🔍 Auth Debug Info:', {
-      hasToken: !!token,
-      tokenLength: token ? token.length : 0,
-      tokenPreview: token ? token.substring(0, 20) + '...' : 'NO TOKEN',
-      isAuthenticated: this.isAuthenticated(),
-      user: user ? { id: user.id, username: user.username, role: user.role } : null
-    });
-  }
+
 }
 
 export const authService = new AuthService();

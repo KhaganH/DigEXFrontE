@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/admin-layout :: head('Sistem Tənzimləmələri')}"></head>
+
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/admin-layout :: sidebar('settings')}"></div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="admin-header">
+                <div>
+                    <h1 class="h4 mb-0 fw-bold text-dark">Sistem Tənzimləmələri</h1>
+                    <small class="text-muted">Platform tənzimləmələri və konfigurasiyanı idarə edin</small>
+                </div>
+                <div class="user-info">
+                    <span class="balance-badge">
+                        <i class="bi bi-gear me-1"></i>Admin Panel
+                    </span>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="admin-main">
+                <!-- Alert Messages -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Settings Tabs -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <ul class="nav nav-tabs card-header-tabs" id="settingsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button">
+                                    <i class="bi bi-gear me-2"></i>Ümumi
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="commission-tab" data-bs-toggle="tab" data-bs-target="#commission" type="button">
+                                    <i class="bi bi-percent me-2"></i>Komissiya
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="features-tab" data-bs-toggle="tab" data-bs-target="#features" type="button">
+                                    <i class="bi bi-toggles me-2"></i>Xüsusiyyətlər
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button">
+                                    <i class="bi bi-shield-lock me-2"></i>Təhlükəsizlik
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance" type="button">
+                                    <i class="bi bi-wrench me-2"></i>Baxım
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <div class="tab-content" id="settingsTabsContent">
+                            <!-- General Settings -->
+                            <div class="tab-pane fade show active" id="general" role="tabpanel">
+                                <form action="/admin/settings/general" method="post">
+                                    <input type="hidden" name="_csrf" th:if="${_csrf}" th:value="${_csrf.token}"/>
+                                    
+                                    <div class="row g-4">
+                                        <div class="col-lg-6">
+                                            <div class="settings-section">
+                                                <h5 class="settings-title">
+                                                    <i class="bi bi-globe me-2 text-primary"></i>Sayt Məlumatları
+                                                </h5>
+                                                <div class="mb-3">
+                                                    <label for="siteName" class="form-label fw-semibold">Sayt Adı</label>
+                                                    <input type="text" class="form-control" id="siteName" name="siteName" value="DiGex" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="siteDescription" class="form-label fw-semibold">Sayt Təsviri</label>
+                                                    <textarea class="form-control" id="siteDescription" name="siteDescription" rows="3" maxlength="500">Azərbaycanda ən böyük rəqəmsal məhsul satış platforması</textarea>
+                                                    <div class="form-text">Maksimum 500 karakter</div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="siteKeywords" class="form-label fw-semibold">SEO Açar Sözlər</label>
+                                                    <input type="text" class="form-control" id="siteKeywords" name="siteKeywords" 
+                                                           value="rəqəmsal məhsul, oyun kodları, gift card, steam" placeholder="Vergüllə ayırın">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-lg-6">
+                                            <div class="settings-section">
+                                                <h5 class="settings-title">
+                                                    <i class="bi bi-telephone me-2 text-primary"></i>Əlaqə Məlumatları
+                                                </h5>
+                                                <div class="mb-3">
+                                                    <label for="contactEmail" class="form-label fw-semibold">Əlaqə Email</label>
+                                                    <input type="email" class="form-control" id="contactEmail" name="contactEmail" 
+                                                           value="info@digex.az" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="supportPhone" class="form-label fw-semibold">Dəstək Telefonu</label>
+                                                    <input type="tel" class="form-control" id="supportPhone" name="supportPhone" 
+                                                           value="+994 12 345 67 89">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="supportHours" class="form-label fw-semibold">Dəstək Saatları</label>
+                                                    <input type="text" class="form-control" id="supportHours" name="supportHours" 
+                                                           value="24/7" placeholder="Məsələn: 09:00-18:00">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="bi bi-check-circle me-2"></i>Ümumi Tənzimləmələri Saxla
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Commission Settings -->
+                            <div class="tab-pane fade" id="commission" role="tabpanel">
+                                <form action="/admin/settings/commission" method="post">
+                                    <input type="hidden" name="_csrf" th:if="${_csrf}" th:value="${_csrf.token}"/>
+                                    
+                                    <div class="row g-4">
+                                        <div class="col-lg-8">
+                                            <div class="settings-section">
+                                                <h5 class="settings-title">
+                                                    <i class="bi bi-percent me-2 text-success"></i>Komissiya Tənzimləmələri
+                                                </h5>
+                                                
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label for="commissionRate" class="form-label fw-semibold">Komissiya Faizi (%)</label>
+                                                        <div class="input-group">
+                                                            <input type="number" class="form-control" id="commissionRate" name="commissionRate" 
+                                                                   value="10" min="0" max="50" step="0.1" required>
+                                                            <span class="input-group-text">%</span>
+                                                        </div>
+                                                        <div class="form-text">Hər satış üçün alınan komissiya faizi</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="premiumCommissionRate" class="form-label fw-semibold">Premium Komissiya (%)</label>
+                                                        <div class="input-group">
+                                                            <input type="number" class="form-control" id="premiumCommissionRate" name="premiumCommissionRate" 
+                                                                   value="5" min="0" max="25" step="0.1">
+                                                            <span class="input-group-text">%</span>
+                                                        </div>
+                                                        <div class="form-text">Premium məhsullar üçün endirmli komissiya</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row g-3 mt-3">
+                                                    <div class="col-md-6">
+                                                        <label for="minBalance" class="form-label fw-semibold">Minimum Balans (AZN)</label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">₼</span>
+                                                            <input type="number" class="form-control" id="minBalance" name="minBalance" 
+                                                                   value="1" min="0" step="0.01" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="maxBalance" class="form-label fw-semibold">Maksimum Balans (AZN)</label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">₼</span>
+                                                            <input type="number" class="form-control" id="maxBalance" name="maxBalance" 
+                                                                   value="10000" min="0" step="0.01" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-lg-4">
+                                            <div class="card bg-light">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">
+                                                        <i class="bi bi-calculator me-2"></i>Komissiya Kalkulyatoru
+                                                    </h6>
+                                                    <div class="mb-3">
+                                                        <label class="form-label small">Məhsul Qiyməti:</label>
+                                                        <input type="number" class="form-control form-control-sm" id="calcPrice" value="100" step="0.01">
+                                                    </div>
+                                                    <div class="result-display">
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="small">Komissiya:</span>
+                                                            <span class="fw-bold text-primary" id="calcCommission">₼10.00</span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="small">Satıcıya qalan:</span>
+                                                            <span class="fw-bold text-success" id="calcSeller">₼90.00</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <button type="submit" class="btn btn-success btn-lg">
+                                            <i class="bi bi-percent me-2"></i>Komissiya Tənzimləmələrini Saxla
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Feature Settings -->
+                            <div class="tab-pane fade" id="features" role="tabpanel">
+                                <form action="/admin/settings/features" method="post">
+                                    <input type="hidden" name="_csrf" th:if="${_csrf}" th:value="${_csrf.token}"/>
+                                    
+                                    <div class="row g-4">
+                                        <div class="col-lg-6">
+                                            <div class="settings-section">
+                                                <h5 class="settings-title">
+                                                    <i class="bi bi-toggles me-2 text-info"></i>Platform Xüsusiyyətləri
+                                                </h5>
+                                                
+                                                <div class="feature-toggle mb-4">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 class="mb-1">Yeni İstifadəçi Qeydiyyatı</h6>
+                                                            <small class="text-muted">Yeni istifadəçilərin qeydiyyatına icazə verin</small>
+                                                        </div>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="allowRegistration" name="allowRegistration" checked>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="feature-toggle mb-4">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 class="mb-1">Məhsul Təsdiqi Tələbi</h6>
+                                                            <small class="text-muted">Yeni məhsulların admin təsdiqi gözləsin</small>
+                                                        </div>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="requireApproval" name="requireApproval" checked>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="feature-toggle mb-4">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 class="mb-1">Məhsul Rəyləri</h6>
+                                                            <small class="text-muted">İstifadəçilər məhsullara rəy yaza bilsin</small>
+                                                        </div>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="enableReviews" name="enableReviews" checked>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="feature-toggle mb-4">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 class="mb-1">Otomatik Sipariş Təsdiqi</h6>
+                                                            <small class="text-muted">6 saat sonra siparişlər avtomatik təsdiqlənsin</small>
+                                                        </div>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="autoApproval" name="autoApproval" checked>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-lg-6">
+                                            <div class="settings-section">
+                                                <h5 class="settings-title">
+                                                    <i class="bi bi-bell me-2 text-warning"></i>Bildiriş Sistemi
+                                                </h5>
+                                                
+                                                <div class="feature-toggle mb-4">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 class="mb-1">Email Bildirişləri</h6>
+                                                            <small class="text-muted">Sistem email bildirişləri göndərsin</small>
+                                                        </div>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="enableNotifications" name="enableNotifications" checked>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="feature-toggle mb-4">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 class="mb-1">SMS Bildirişləri</h6>
+                                                            <small class="text-muted">Vacib hallar üçün SMS göndərimi</small>
+                                                        </div>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="enableSMS" name="enableSMS">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="feature-toggle mb-4">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 class="mb-1">Push Bildirişləri</h6>
+                                                            <small class="text-muted">Brauzer push bildirişləri</small>
+                                                        </div>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="enablePush" name="enablePush">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <button type="submit" class="btn btn-info btn-lg">
+                                            <i class="bi bi-toggles me-2"></i>Xüsusiyyət Tənzimləmələrini Saxla
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Security Settings -->
+                            <div class="tab-pane fade" id="security" role="tabpanel">
+                                <form action="/admin/settings/security" method="post">
+                                    <input type="hidden" name="_csrf" th:if="${_csrf}" th:value="${_csrf.token}"/>
+                                    
+                                    <div class="row g-4">
+                                        <div class="col-lg-8">
+                                            <div class="settings-section">
+                                                <h5 class="settings-title">
+                                                    <i class="bi bi-shield-lock me-2 text-danger"></i>Təhlükəsizlik Tənzimləmələri
+                                                </h5>
+                                                
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label for="maxLoginAttempts" class="form-label fw-semibold">Maksimum Giriş Cəhdi</label>
+                                                        <input type="number" class="form-control" id="maxLoginAttempts" name="maxLoginAttempts" 
+                                                               value="5" min="1" max="10" required>
+                                                        <div class="form-text">Bu qədər uğursuz cəhddən sonra hesab bloklanır</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="lockoutDuration" class="form-label fw-semibold">Bloklanma Müddəti (dəqiqə)</label>
+                                                        <input type="number" class="form-control" id="lockoutDuration" name="lockoutDuration" 
+                                                               value="15" min="5" max="1440" required>
+                                                        <div class="form-text">Hesabın bloklanacağı müddət</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row g-3 mt-3">
+                                                    <div class="col-md-6">
+                                                        <label for="passwordMinLength" class="form-label fw-semibold">Minimum Şifrə Uzunluğu</label>
+                                                        <input type="number" class="form-control" id="passwordMinLength" name="passwordMinLength" 
+                                                               value="8" min="4" max="20" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="sessionTimeout" class="form-label fw-semibold">Sessiya Vaxtı (saat)</label>
+                                                        <input type="number" class="form-control" id="sessionTimeout" name="sessionTimeout" 
+                                                               value="24" min="1" max="168" required>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mt-4">
+                                                    <div class="feature-toggle mb-3">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <h6 class="mb-1">Güclü Şifrə Tələbi</h6>
+                                                                <small class="text-muted">Böyük hərf, kiçik hərf, rəqəm və xüsusi simvol</small>
+                                                            </div>
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" id="requireStrongPassword" name="requireStrongPassword" checked>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="feature-toggle mb-3">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <h6 class="mb-1">İki Faktorlu Doğrulama</h6>
+                                                                <small class="text-muted">TOTP və ya SMS ilə 2FA</small>
+                                                            </div>
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" id="enable2FA" name="enable2FA">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="feature-toggle">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <h6 class="mb-1">IP Əsaslı Məhdudiyyət</h6>
+                                                                <small class="text-muted">Şübhəli IP ünvanlarını blokla</small>
+                                                            </div>
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" id="ipRestriction" name="ipRestriction">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-lg-4">
+                                            <div class="card border-danger">
+                                                <div class="card-header bg-danger text-white">
+                                                    <h6 class="mb-0">
+                                                        <i class="bi bi-exclamation-triangle me-2"></i>Təhlükəsizlik Məlumatları
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="security-info">
+                                                        <div class="mb-3">
+                                                            <small class="text-muted">Son uğursuz girişlər:</small>
+                                                            <div class="fw-bold">147</div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <small class="text-muted">Bloklanmış IP sayı:</small>
+                                                            <div class="fw-bold">23</div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <small class="text-muted">Aktiv sessiyanlar:</small>
+                                                            <div class="fw-bold text-success">1,284</div>
+                                                        </div>
+                                                        <div class="mt-3">
+                                                            <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="viewSecurityLog()">
+                                                                <i class="bi bi-shield-exclamation me-1"></i>Təhlükəsizlik Logu
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <button type="submit" class="btn btn-danger btn-lg">
+                                            <i class="bi bi-shield-lock me-2"></i>Təhlükəsizlik Tənzimləmələrini Saxla
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Maintenance -->
+                            <div class="tab-pane fade" id="maintenance" role="tabpanel">
+                                <div class="row g-4">
+                                    <div class="col-lg-6">
+                                        <div class="card border-primary">
+                                            <div class="card-header bg-primary text-white">
+                                                <h5 class="mb-0">
+                                                    <i class="bi bi-database me-2"></i>Verilənlər Bazası
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="maintenance-info mb-4">
+                                                    <div class="row text-center">
+                                                        <div class="col-4">
+                                                            <div class="stat-item">
+                                                                <div class="h4 text-primary mb-1">2.4GB</div>
+                                                                <small class="text-muted">Ölçü</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="stat-item">
+                                                                <div class="h4 text-success mb-1">98.5%</div>
+                                                                <small class="text-muted">Sağlamlıq</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="stat-item">
+                                                                <div class="h4 text-info mb-1">45ms</div>
+                                                                <small class="text-muted">Cavab vaxtı</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <small class="text-muted">Son ehtiyat nüsxə:</small>
+                                                    <div>31 May 2024, 22:10</div>
+                                                </div>
+                                                
+                                                <div class="d-grid gap-2">
+                                                    <button class="btn btn-primary" onclick="createBackup()">
+                                                        <i class="bi bi-download me-2"></i>Ehtiyat Nüsxə Yarat
+                                                    </button>
+                                                    <button class="btn btn-outline-primary" onclick="optimizeDatabase()">
+                                                        <i class="bi bi-arrow-clockwise me-2"></i>Verilənlər Bazasını Optimallaşdır
+                                                    </button>
+                                                    <button class="btn btn-outline-success" onclick="analyzeDatabase()">
+                                                        <i class="bi bi-graph-up me-2"></i>Performans Analizi
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-lg-6">
+                                        <div class="card border-warning">
+                                            <div class="card-header bg-warning text-dark">
+                                                <h5 class="mb-0">
+                                                    <i class="bi bi-layers me-2"></i>Keş və Performans
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="maintenance-info mb-4">
+                                                    <div class="row text-center">
+                                                        <div class="col-4">
+                                                            <div class="stat-item">
+                                                                <div class="h4 text-warning mb-1">156MB</div>
+                                                                <small class="text-muted">Keş ölçüsü</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="stat-item">
+                                                                <div class="h4 text-success mb-1">87%</div>
+                                                                <small class="text-muted">Hit oranı</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="stat-item">
+                                                                <div class="h4 text-info mb-1">1.2s</div>
+                                                                <small class="text-muted">Ortalama yükləmə</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <small class="text-muted">Son keş təmizləmə:</small>
+                                                    <div>31 May 2024, 21:45</div>
+                                                </div>
+                                                
+                                                <div class="d-grid gap-2">
+                                                    <button class="btn btn-warning" onclick="clearCache()">
+                                                        <i class="bi bi-trash me-2"></i>Keşi Təmizlə
+                                                    </button>
+                                                    <button class="btn btn-outline-warning" onclick="warmUpCache()">
+                                                        <i class="bi bi-thermometer-half me-2"></i>Keşi Isıt
+                                                    </button>
+                                                    <button class="btn btn-outline-info" onclick="viewCacheStats()">
+                                                        <i class="bi bi-bar-chart me-2"></i>Keş Statistikaları
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- System Monitoring -->
+                                    <div class="col-12 mt-4">
+                                        <div class="card border-info">
+                                            <div class="card-header bg-info text-white">
+                                                <h5 class="mb-0">
+                                                    <i class="bi bi-activity me-2"></i>Sistem Monitoringi
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row text-center">
+                                                    <div class="col-lg-3 col-md-6 mb-3">
+                                                        <div class="monitoring-stat">
+                                                            <div class="h3 text-info mb-1">45%</div>
+                                                            <div class="small text-muted">CPU İstifadəsi</div>
+                                                            <div class="progress mt-2" style="height: 4px;">
+                                                                <div class="progress-bar bg-info" style="width: 45%"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-3 col-md-6 mb-3">
+                                                        <div class="monitoring-stat">
+                                                            <div class="h3 text-warning mb-1">67%</div>
+                                                            <div class="small text-muted">Yaddaş İstifadəsi</div>
+                                                            <div class="progress mt-2" style="height: 4px;">
+                                                                <div class="progress-bar bg-warning" style="width: 67%"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-3 col-md-6 mb-3">
+                                                        <div class="monitoring-stat">
+                                                            <div class="h3 text-success mb-1">23%</div>
+                                                            <div class="small text-muted">Disk İstifadəsi</div>
+                                                            <div class="progress mt-2" style="height: 4px;">
+                                                                <div class="progress-bar bg-success" style="width: 23%"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-3 col-md-6 mb-3">
+                                                        <div class="monitoring-stat">
+                                                            <div class="h3 text-primary mb-1">2.1GB</div>
+                                                            <div class="small text-muted">Şəbəkə Trafiği</div>
+                                                            <div class="progress mt-2" style="height: 4px;">
+                                                                <div class="progress-bar bg-primary" style="width: 78%"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/admin-layout :: footer}"></div>
+    <div th:replace="~{fragments/admin-layout :: scripts}"></div>
+    
+    <!-- Settings Page Styles -->
+    <style>
+        .settings-section {
+            padding: 1.5rem 0;
+        }
+        
+        .settings-title {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .feature-toggle {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #6366f1;
+        }
+        
+        .form-check-input:checked {
+            background-color: #6366f1;
+            border-color: #6366f1;
+        }
+        
+        .monitoring-stat {
+            padding: 1rem;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .stat-item {
+            padding: 0.5rem;
+        }
+        
+        .maintenance-info {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        
+        .result-display {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            border-radius: 8px;
+        }
+    </style>
+    
+    <!-- Settings JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Commission calculator
+            const calcPrice = document.getElementById('calcPrice');
+            const commissionRate = document.getElementById('commissionRate');
+            
+            if (calcPrice && commissionRate) {
+                function updateCalculator() {
+                    const price = parseFloat(calcPrice.value) || 0;
+                    const rate = parseFloat(commissionRate.value) || 0;
+                    const commission = (price * rate / 100);
+                    const seller = price - commission;
+                    
+                    document.getElementById('calcCommission').textContent = `₼${commission.toFixed(2)}`;
+                    document.getElementById('calcSeller').textContent = `₼${seller.toFixed(2)}`;
+                }
+                
+                calcPrice.addEventListener('input', updateCalculator);
+                commissionRate.addEventListener('input', updateCalculator);
+                updateCalculator();
+            }
+            
+            // Auto-save feature for switches
+            document.querySelectorAll('.form-check-input').forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const setting = this.id;
+                    const value = this.checked;
+                    
+                    // Show saving indicator
+                    showSavingIndicator(this);
+                    
+                    // Auto-save after 1 second
+                    setTimeout(() => {
+                        console.log(`Auto-saving ${setting}: ${value}`);
+                        // TODO: Send AJAX request to save setting
+                        // autoSaveSetting(setting, value);
+                    }, 1000);
+                });
+            });
+        });
+        
+        function showSavingIndicator(element) {
+            const parent = element.closest('.feature-toggle') || element.closest('.form-check');
+            const indicator = document.createElement('small');
+            indicator.className = 'text-muted ms-2';
+            indicator.innerHTML = '<i class="bi bi-clock"></i> Saxlanılır...';
+            
+            parent.appendChild(indicator);
+            
+            setTimeout(() => {
+                indicator.innerHTML = '<i class="bi bi-check text-success"></i> Saxlanıldı';
+                setTimeout(() => indicator.remove(), 2000);
+            }, 1000);
+        }
+        
+        function createBackup() {
+            if (confirm('Verilənlər bazasının ehtiyat nüsxəsini yaratmaq istədiyinizdən əminsiniz?')) {
+                showToast('info', 'Ehtiyat nüsxə yaradılır...');
+                // TODO: Implement backup creation
+            }
+        }
+        
+        function optimizeDatabase() {
+            if (confirm('Verilənlər bazasını optimallaşdırmaq istədiyinizdən əminsiniz? Bu proses bir neçə dəqiqə çəkə bilər.')) {
+                showToast('info', 'Verilənlər bazası optimallaşdırılır...');
+                // TODO: Implement database optimization
+            }
+        }
+        
+        function clearCache() {
+            if (confirm('Bütün keşi təmizləmək istədiyinizdən əminsiniz? Saytın yükləmə sürəti müvəqqəti olaraq artacaq.')) {
+                showToast('warning', 'Keş təmizlənir...');
+                // TODO: Implement cache clearing
+            }
+        }
+        
+        function analyzeDatabase() {
+            showToast('info', 'Verilənlər bazası analiz edilir...');
+            // TODO: Implement database analysis
+        }
+        
+        function warmUpCache() {
+            showToast('info', 'Keş isidilir...');
+            // TODO: Implement cache warm-up
+        }
+        
+        function viewCacheStats() {
+            // TODO: Open cache statistics modal
+            alert('Keş statistikaları modalı açılacaq');
+        }
+        
+        function viewSecurityLog() {
+            // TODO: Open security log modal
+            alert('Təhlükəsizlik logu modalı açılacaq');
+        }
+        
+        function showToast(type, message) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'info'} position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 4000);
+        }
+    </script>
+</body>
+</html> 

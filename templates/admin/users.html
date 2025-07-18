@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/admin-layout :: head('İstifadəçi İdarəetməsi')}"></head>
+
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/admin-layout :: sidebar('users')}"></div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="admin-header">
+                <div>
+                    <h1 class="h4 mb-0 fw-bold text-dark">İstifadəçi İdarəetməsi</h1>
+                    <small class="text-muted">Sistem istifadəçilərini idarə edin və nəzarət edin</small>
+                </div>
+                <div class="user-info">
+                    <span class="balance-badge">
+                        <i class="bi bi-wallet2 me-1"></i>
+                        <span th:if="${#authentication.principal instanceof T(com.beta.digiex.security.CustomUserDetails)}" 
+                              sec:authentication="principal.user.balance">50.00</span>
+                        <span th:if="${#authentication.principal instanceof T(com.beta.digiex.security.CustomOAuth2User)}" 
+                              th:text="${#authentication.principal.user.balance}">50.00</span>
+                        <span th:if="${!(#authentication.principal instanceof T(com.beta.digiex.security.CustomUserDetails)) and !(#authentication.principal instanceof T(com.beta.digiex.security.CustomOAuth2User))}">50.00</span>
+                        AZN
+                    </span>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span th:if="${#authentication.principal instanceof T(com.beta.digiex.security.CustomUserDetails)}" 
+                                  sec:authentication="principal.user.username">admin</span>
+                            <span th:if="${#authentication.principal instanceof T(com.beta.digiex.security.CustomOAuth2User)}" 
+                                  th:text="${#authentication.principal.user.username}">admin</span>
+                            <span th:if="${!(#authentication.principal instanceof T(com.beta.digiex.security.CustomUserDetails)) and !(#authentication.principal instanceof T(com.beta.digiex.security.CustomOAuth2User))}">admin</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/"><i class="bi bi-house me-2"></i>Ana Səhifə</a></li>
+                            <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>Profil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post" class="d-inline">
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Çıxış
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content Area -->
+            <div class="admin-main">
+                <!-- Alert Messages -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stats-card bg-primary h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 class="card-title text-white-50 mb-2">Ümumi İstifadəçi</h6>
+                                        <h2 class="mb-0 fw-bold text-white" th:text="${totalUsers ?: 0}">0</h2>
+                                    </div>
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3">
+                                        <i class="bi bi-people text-white fs-2"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stats-card bg-success h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 class="card-title text-white-50 mb-2">Aktiv İstifadəçi</h6>
+                                        <h2 class="mb-0 fw-bold text-white" th:text="${activeUsers ?: 0}">0</h2>
+                                    </div>
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3">
+                                        <i class="bi bi-check-circle text-white fs-2"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stats-card bg-warning h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 class="card-title text-white-50 mb-2">Satıcılar</h6>
+                                        <h2 class="mb-0 fw-bold text-white" th:text="${sellerUsers ?: 0}">0</h2>
+                                    </div>
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3">
+                                        <i class="bi bi-shop text-white fs-2"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stats-card bg-info h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 class="card-title text-white-50 mb-2">Bu Ay Qatılan</h6>
+                                        <h2 class="mb-0 fw-bold text-white" th:text="${monthlyUsers ?: 0}">0</h2>
+                                    </div>
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3">
+                                        <i class="bi bi-person-plus text-white fs-2"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search and Filter -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Axtarış və Filtrlər</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" action="/admin/users" class="row g-3">
+                            <div class="col-md-4">
+                                <label for="search" class="form-label fw-semibold">Axtarış</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="search" name="search" 
+                                           th:value="${param.search}" placeholder="İstifadəçi adı, email...">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="role" class="form-label fw-semibold">Rol</label>
+                                <select class="form-select" id="role" name="role">
+                                    <option value="">Hamısı</option>
+                                    <option value="USER" th:selected="${param.role == 'USER'}">İstifadəçi</option>
+                                    <option value="SELLER" th:selected="${param.role == 'SELLER'}">Satıcı</option>
+                                    <option value="ADMIN" th:selected="${param.role == 'ADMIN'}">Admin</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="status" class="form-label fw-semibold">Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">Hamısı</option>
+                                    <option value="active" th:selected="${param.status == 'active'}">Aktiv</option>
+                                    <option value="inactive" th:selected="${param.status == 'inactive'}">Qeyri-aktiv</option>
+                                    <option value="banned" th:selected="${param.status == 'banned'}">Qadağan edilmiş</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="sort" class="form-label fw-semibold">Sıralama</label>
+                                <select class="form-select" id="sort" name="sort">
+                                    <option value="newest" th:selected="${param.sort == 'newest' or param.sort == null}">Ən Yeni</option>
+                                    <option value="oldest" th:selected="${param.sort == 'oldest'}">Ən Köhnə</option>
+                                    <option value="username" th:selected="${param.sort == 'username'}">İstifadəçi Adı</option>
+                                    <option value="email" th:selected="${param.sort == 'email'}">Email</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-search me-1"></i>Axtar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-people me-2"></i>İstifadəçi Siyahısı</h5>
+                            <div class="d-flex gap-2 align-items-center">
+                                <!-- Debug info -->
+                                <small class="text-muted me-3">
+                                    Debug: <span th:text="${users != null ? #lists.size(users) : 'NULL'}">0</span> user loaded
+                                </small>
+                                <button class="btn btn-outline-success btn-sm" onclick="exportUsers()">
+                                    <i class="bi bi-download me-1"></i>Excel Export
+                                </button>
+                                <div class="btn-group" role="group">
+                                    <input type="checkbox" class="btn-check" id="selectAll" autocomplete="off">
+                                    <label class="btn btn-outline-secondary btn-sm" for="selectAll">Hamısını seç</label>
+                                    <button type="button" class="btn btn-outline-warning btn-sm" id="bulkBan" disabled>
+                                        <i class="bi bi-ban me-1"></i>Qadağan et
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th width="50">
+                                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
+                                        </th>
+                                        <th>İstifadəçi</th>
+                                        <th>Email</th>
+                                        <th>Rol</th>
+                                        <th>Balans</th>
+                                        <th>Status</th>
+                                        <th>Qoşulma Tarixi</th>
+                                        <th width="180">Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="user : ${users}" th:if="${users != null and !users.isEmpty()}">
+                                        <td>
+                                            <input type="checkbox" class="form-check-input user-checkbox" th:value="${user.id}">
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"
+                                                     style="width: 45px; height: 45px;">
+                                                    <i class="bi bi-person text-white fs-5"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0 fw-bold" th:text="${user.username}">istifadəçi</h6>
+                                                    <small class="text-muted" th:text="${user.email}">email@example.com</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span th:text="${user.email}">email@example.com</span>
+                                            <br>
+                                            <small class="text-success">
+                                                <i class="bi bi-check-circle me-1"></i>Email
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary fs-6" th:if="${user.role.name() == 'ADMIN'}">
+                                                <i class="bi bi-shield me-1"></i>Admin
+                                            </span>
+                                            <span class="badge bg-success fs-6" th:if="${user.role.name() == 'SELLER'}">
+                                                <i class="bi bi-shop me-1"></i>Satıcı
+                                            </span>
+                                            <span class="badge bg-secondary fs-6" th:if="${user.role.name() == 'USER'}">
+                                                <i class="bi bi-person me-1"></i>İstifadəçi
+                                            </span>
+                                            <!-- Pending seller request badge -->
+                                            <br th:if="${user.sellerRequestPending}">
+                                            <small class="badge bg-warning text-dark mt-1" th:if="${user.sellerRequestPending}">
+                                                <i class="bi bi-clock me-1"></i>Satıcı təsdiq gözləyir
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-success fs-6" th:text="${(user.balance ?: 0) + ' AZN'}">0.00 AZN</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success fs-6">
+                                                <i class="bi bi-check-circle me-1"></i>Aktiv
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-semibold" th:text="${#temporals.format(user.createdAt, 'dd.MM.yyyy')}">01.01.2024</span>
+                                            <br>
+                                            <small class="text-muted" th:text="${#temporals.format(user.createdAt, 'HH:mm')}">12:00</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                        th:onclick="|viewUser(${user.id})|" title="Görüntülə">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-warning btn-sm" 
+                                                        th:onclick="|editUser(${user.id})|" title="Redaktə et">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <!-- Approve seller request button -->
+                                                <button type="button" class="btn btn-outline-success btn-sm" 
+                                                        th:onclick="|approveSellerRequest(${user.id})|" title="Satıcılığı təsdiqlə"
+                                                        th:if="${user.sellerRequestPending}">
+                                                    <i class="bi bi-check"></i>
+                                                </button>
+                                                <!-- Reject seller request button -->
+                                                <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                        th:onclick="|rejectSellerRequest(${user.id})|" title="Satıcılığı rədd et"
+                                                        th:if="${user.sellerRequestPending}">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                                <!-- Ban/Unban buttons - simplified without banned field check -->
+                                                <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                        th:onclick="|banUser(${user.id})|" title="Qadağan et"
+                                                        th:if="${!user.sellerRequestPending}">
+                                                    <i class="bi bi-ban"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Empty State -->
+                                    <tr th:if="${users == null or users.isEmpty()}">
+                                        <td colspan="8" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="bi bi-people display-1 text-muted opacity-25 d-block mb-3"></i>
+                                                <h4 class="mb-2">İstifadəçi tapılmadı</h4>
+                                                <p class="mb-0">Axtarış kriteriyalarınızı dəyişdirərək yenidən cəhd edin</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="card-footer" th:if="${users != null and !users.isEmpty()}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <span th:text="${#lists.size(users)}">0</span> nəticədən 
+                                <span th:text="${(currentPage ?: 0) * 20 + 1}">1</span>-<span th:text="${(currentPage ?: 0) * 20 + #lists.size(users)}">20</span> göstərilir
+                            </small>
+                            <nav aria-label="Səhifələmə">
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item" th:classappend="${(currentPage ?: 0) <= 0} ? 'disabled'">
+                                        <a class="page-link" th:href="@{/admin/users(page=${(currentPage ?: 0) - 1})}">Əvvəlki</a>
+                                    </li>
+                                    <li class="page-item active">
+                                        <span class="page-link" th:text="${(currentPage ?: 0) + 1}">1</span>
+                                    </li>
+                                    <li class="page-item" th:classappend="${#lists.size(users) < 20} ? 'disabled'">
+                                        <a class="page-link" th:href="@{/admin/users(page=${(currentPage ?: 0) + 1})}">Sonrakı</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Seller Requests Section -->
+                <div class="card mt-4" th:if="${pendingSellerRequests != null and !pendingSellerRequests.isEmpty()}">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Gözləyən Satıcı Müraciətləri</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>İstifadəçi</th>
+                                        <th>Mağaza Adı</th>
+                                        <th>Mağaza Təsviri</th>
+                                        <th>Telefon</th>
+                                        <th>Müraciət Tarixi</th>
+                                        <th width="150">Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="request : ${pendingSellerRequests}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center me-3"
+                                                     style="width: 40px; height: 40px;">
+                                                    <i class="bi bi-person text-white"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0 fw-bold" th:text="${request.username}">İstifadəçi</h6>
+                                                    <small class="text-muted" th:text="${request.email}">email</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="fw-semibold" th:text="${request.storeName ?: 'Yoxdur'}">Mağaza adı</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted" th:text="${#strings.abbreviate(request.storeDescription ?: 'Yoxdur', 100)}">Mağaza təsviri...</span>
+                                        </td>
+                                        <td>
+                                            <span th:text="${request.phoneNumber ?: 'Yoxdur'}">Telefon</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-semibold" th:text="${#temporals.format(request.createdAt, 'dd.MM.yyyy')}">01.01.2024</span>
+                                            <br>
+                                            <small class="text-muted" th:text="${#temporals.format(request.createdAt, 'HH:mm')}">12:00</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-success btn-sm" 
+                                                        th:onclick="|approveSellerRequest(${request.id})|" title="Təsdiqlə">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-danger btn-sm" 
+                                                        th:onclick="|rejectSellerRequest(${request.id})|" title="Rədd et">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel"><i class="bi bi-person-gear me-2"></i>İstifadəçi Redaktəsi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                    <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId">
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="editUsername" class="form-label fw-semibold">İstifadəçi Adı</label>
+                                <input type="text" class="form-control" id="editUsername" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editEmail" class="form-label fw-semibold">Email</label>
+                                <input type="email" class="form-control" id="editEmail" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editPhoneNumber" class="form-label fw-semibold">Telefon</label>
+                                <input type="text" class="form-control" id="editPhoneNumber">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editRole" class="form-label fw-semibold">Rol</label>
+                                <select class="form-select" id="editRole">
+                                    <option value="USER">İstifadəçi</option>
+                                    <option value="SELLER">Satıcı</option>
+                                    <option value="ADMIN">Admin</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editBalance" class="form-label fw-semibold">Balans (AZN)</label>
+                                <input type="number" step="0.01" class="form-control" id="editBalance" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editStoreName" class="form-label fw-semibold">Mağaza Adı</label>
+                                <input type="text" class="form-control" id="editStoreName">
+                                <small class="text-muted">Yalnız satıcılar üçün</small>
+                            </div>
+                            <div class="col-12">
+                                <label for="editStoreDescription" class="form-label fw-semibold">Mağaza Təsviri</label>
+                                <textarea class="form-control" id="editStoreDescription" rows="3"></textarea>
+                                <small class="text-muted">Yalnız satıcılar üçün</small>
+                        </div>
+                        </div>
+                    </form>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Ləğv et
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="saveUserChanges()">
+                        <i class="bi bi-check-lg me-1"></i>Yadda saxla
+                    </button>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View User Modal -->
+    <div class="modal fade" id="viewUserModal" tabindex="-1" aria-labelledby="viewUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewUserModalLabel"><i class="bi bi-person-lines-fill me-2"></i>İstifadəçi Məlumatları</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                    <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong>İstifadəçi Adı:</strong>
+                            <p id="viewUsername" class="mb-0"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Email:</strong>
+                            <p id="viewEmail" class="mb-0"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Telefon:</strong>
+                            <p id="viewPhoneNumber" class="mb-0"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Rol:</strong>
+                            <p id="viewRole" class="mb-0"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Balans:</strong>
+                            <p id="viewBalance" class="mb-0 text-success fw-bold"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Qoşulma Tarixi:</strong>
+                            <p id="viewCreatedAt" class="mb-0"></p>
+                        </div>
+                        <div class="col-md-6" id="viewStoreNameDiv" style="display: none;">
+                            <strong>Mağaza Adı:</strong>
+                            <p id="viewStoreName" class="mb-0"></p>
+                        </div>
+                        <div class="col-12" id="viewStoreDescriptionDiv" style="display: none;">
+                            <strong>Mağaza Təsviri:</strong>
+                            <p id="viewStoreDescription" class="mb-0"></p>
+                        </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Bağla
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="editUserFromView()">
+                        <i class="bi bi-pencil me-1"></i>Redaktə et
+                    </button>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Admin Users Page JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Select all functionality
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const userCheckboxes = document.querySelectorAll('.user-checkbox');
+            const bulkBanBtn = document.getElementById('bulkBan');
+            
+            selectAllCheckbox?.addEventListener('change', function() {
+                userCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateBulkBanButton();
+            });
+            
+            userCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateBulkBanButton);
+            });
+            
+            function updateBulkBanButton() {
+                const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
+                bulkBanBtn.disabled = checkedBoxes.length === 0;
+            }
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.admin-sidebar');
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+            }
+        });
+        
+        function viewUser(userId) {
+            // Load user data and show view modal
+            console.log('Viewing user:', userId);
+            fetch('/admin/api/users/' + userId)
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401 || response.status === 403) {
+                            alert('Giriş müddəti bitib. Yenidən giriş edin.');
+                            window.location.href = '/login';
+                            return;
+                        }
+                        throw new Error('Xəta baş verdi');
+                    }
+                    return response.json();
+                })
+                .then(user => {
+                    if (!user) return;
+                    
+                    document.getElementById('viewUsername').textContent = user.username;
+                    document.getElementById('viewEmail').textContent = user.email;
+                    document.getElementById('viewPhoneNumber').textContent = user.phoneNumber || 'Yoxdur';
+                    document.getElementById('viewRole').textContent = getRoleDisplayName(user.role);
+                    document.getElementById('viewBalance').textContent = user.balance + ' AZN';
+                    document.getElementById('viewCreatedAt').textContent = formatDate(user.createdAt);
+                    
+                    // Show store info if user is seller
+                    if (user.role === 'SELLER') {
+                        document.getElementById('viewStoreNameDiv').style.display = 'block';
+                        document.getElementById('viewStoreDescriptionDiv').style.display = 'block';
+                        document.getElementById('viewStoreName').textContent = user.storeName || 'Yoxdur';
+                        document.getElementById('viewStoreDescription').textContent = user.storeDescription || 'Yoxdur';
+                    } else {
+                        document.getElementById('viewStoreNameDiv').style.display = 'none';
+                        document.getElementById('viewStoreDescriptionDiv').style.display = 'none';
+                    }
+                    
+                    // Store user data for edit
+                    window.currentUser = user;
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('viewUserModal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('İstifadəçi məlumatları yüklənərkən xəta baş verdi');
+                });
+        }
+        
+        function editUser(userId) {
+            // Load user data and show edit modal
+            console.log('Editing user:', userId);
+            fetch('/admin/api/users/' + userId)
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401 || response.status === 403) {
+                            alert('Giriş müddəti bitib. Yenidən giriş edin.');
+                            window.location.href = '/login';
+                            return;
+                        }
+                        throw new Error('Xəta baş verdi');
+                    }
+                    return response.json();
+                })
+                .then(user => {
+                    if (!user) return;
+                    
+                    document.getElementById('editUserId').value = user.id;
+                    document.getElementById('editUsername').value = user.username;
+                    document.getElementById('editEmail').value = user.email;
+                    document.getElementById('editPhoneNumber').value = user.phoneNumber || '';
+                    document.getElementById('editRole').value = user.role;
+                    document.getElementById('editBalance').value = user.balance;
+                    document.getElementById('editStoreName').value = user.storeName || '';
+                    document.getElementById('editStoreDescription').value = user.storeDescription || '';
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('İstifadəçi məlumatları yüklənərkən xəta baş verdi');
+                });
+        }
+        
+        function editUserFromView() {
+            // Close view modal and open edit modal with current user data
+            const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewUserModal'));
+            viewModal.hide();
+            
+            if (window.currentUser) {
+                const user = window.currentUser;
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editUsername').value = user.username;
+                document.getElementById('editEmail').value = user.email;
+                document.getElementById('editPhoneNumber').value = user.phoneNumber || '';
+                document.getElementById('editRole').value = user.role;
+                document.getElementById('editBalance').value = user.balance;
+                document.getElementById('editStoreName').value = user.storeName || '';
+                document.getElementById('editStoreDescription').value = user.storeDescription || '';
+                
+                const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                editModal.show();
+            }
+        }
+        
+        function saveUserChanges() {
+            const form = document.getElementById('editUserForm');
+            const formData = new FormData();
+            
+            const userId = document.getElementById('editUserId').value;
+            const username = document.getElementById('editUsername').value;
+            const email = document.getElementById('editEmail').value;
+            const role = document.getElementById('editRole').value;
+            const balance = parseFloat(document.getElementById('editBalance').value);
+            
+            // Create form data for the admin/api/users/{id}/update endpoint
+            formData.append('username', username);
+            formData.append('email', email);
+            formData.append('role', role);
+            formData.append('balance', balance);
+            
+            // Add CSRF token
+            const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+            
+            fetch('/admin/api/users/' + userId + '/update', {
+                method: 'POST',
+                headers: {
+                    [csrfHeader]: csrfToken
+                },
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+                    modal.hide();
+                    location.reload();
+                } else if (response.status === 401 || response.status === 403) {
+                    alert('Giriş müddəti bitib. Yenidən giriş edin.');
+                    window.location.href = '/login';
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(text);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error updating user:', error);
+                alert('İstifadəçi yenilənərkən xəta baş verdi: ' + error.message);
+            });
+        }
+        
+        function getRoleDisplayName(role) {
+            switch(role) {
+                case 'ADMIN': return 'Admin';
+                case 'SELLER': return 'Satıcı';
+                case 'USER': return 'İstifadəçi';
+                default: return role;
+            }
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'Yoxdur';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('az-AZ') + ' ' + date.toLocaleTimeString('az-AZ', {hour: '2-digit', minute: '2-digit'});
+        }
+        
+        function banUser(userId) {
+            if (confirm('Bu istifadəçini qadağan etmək istədiyinizə əminsiniz?')) {
+                console.log('Banning user:', userId);
+                
+                // Get CSRF token
+                const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+                
+                fetch('/admin/api/users/' + userId + '/ban', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [csrfHeader]: csrfToken
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else if (response.status === 401 || response.status === 403) {
+                        alert('Giriş müddəti bitib. Yenidən giriş edin.');
+                        window.location.href = '/login';
+                    } else {
+                        alert('Xəta baş verdi');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Xəta baş verdi');
+                });
+            }
+        }
+        
+        function unbanUser(userId) {
+            if (confirm('Bu istifadəçinin qadağanını qaldırmaq istədiyinizə əminsiniz?')) {
+                console.log('Unbanning user:', userId);
+                
+                // Get CSRF token
+                const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+                
+                fetch('/admin/api/users/' + userId + '/unban', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [csrfHeader]: csrfToken
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else if (response.status === 401 || response.status === 403) {
+                        alert('Giriş müddəti bitib. Yenidən giriş edin.');
+                        window.location.href = '/login';
+                    } else {
+                        alert('Xəta baş verdi');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Xəta baş verdi');
+                });
+            }
+        }
+        
+        function approveSellerRequest(userId) {
+            if (confirm('Bu istifadəçinin satıcı müraciətini təsdiqləmək istədiyinizə əminsiniz?')) {
+                console.log('Approving seller request for user:', userId);
+                
+                // Get CSRF token
+                const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+                
+                fetch('/admin/api/users/' + userId + '/approve-seller', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [csrfHeader]: csrfToken
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else if (response.status === 401 || response.status === 403) {
+                        alert('Giriş müddəti bitib. Yenidən giriş edin.');
+                        window.location.href = '/login';
+                    } else {
+                        alert('Xəta baş verdi');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Xəta baş verdi');
+                });
+            }
+        }
+        
+        function rejectSellerRequest(userId) {
+            if (confirm('Bu istifadəçinin satıcı müraciətini rədd etmək istədiyinizə əminsiniz?')) {
+                console.log('Rejecting seller request for user:', userId);
+                
+                // Get CSRF token
+                const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+                
+                fetch('/admin/api/users/' + userId + '/reject-seller', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [csrfHeader]: csrfToken
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else if (response.status === 401 || response.status === 403) {
+                        alert('Giriş müddəti bitib. Yenidən giriş edin.');
+                        window.location.href = '/login';
+                    } else {
+                        alert('Xəta baş verdi');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Xəta baş verdi');
+                });
+            }
+        }
+        
+        function exportUsers() {
+            // Implement export functionality
+            console.log('Exporting users...');
+            // Excel export kodu eklenebilir
+        }
+    </script>
+</body>
+</html> 

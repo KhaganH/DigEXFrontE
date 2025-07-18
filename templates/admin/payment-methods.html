@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="az" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/admin-layout :: head('Ödəniş Sistemləri')}">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+
+<body>
+    <div class="admin-container">
+        <!-- Admin Sidebar -->
+        <div th:replace="~{fragments/admin-layout :: sidebar('payment-methods')}"></div>
+
+        <!-- Ana İçerik -->
+        <div class="admin-content">
+            <div th:replace="~{fragments/admin-layout :: header}"></div>
+            <div th:replace="~{fragments/admin-layout :: alerts}"></div>
+            
+            <div class="admin-main">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h2 mb-0">
+                        <i class="bi bi-credit-card me-2 text-primary"></i>C2C Ödəniş Sistemləri
+                    </h1>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPaymentMethodModal">
+                        <i class="bi bi-plus-circle me-2"></i>Yeni Ödəniş Üsulu
+                    </button>
+                </div>
+
+                <!-- Statistiklər -->
+                <div class="row mb-4">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="card-title text-white-50">Aktiv Ödəniş Üsulları</h6>
+                                        <h3 class="mb-0" th:text="${activeMethodsCount ?: 0}">0</h3>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-credit-card-fill display-6 opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="card-title text-white-50">Gözləyən Tələblər</h6>
+                                        <h3 class="mb-0" th:text="${pendingRequestsCount ?: 0}">0</h3>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-clock-fill display-6 opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ödəniş Üsulları Cədvəli -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-table me-2"></i>Ödəniş Üsulları
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${paymentMethods != null and !paymentMethods.isEmpty()}" class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Bank Adı</th>
+                                        <th>Kart Nömrəsi</th>
+                                        <th>Kart Sahibi</th>
+                                        <th>Status</th>
+                                        <th>Yaradılma Tarixi</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="method : ${paymentMethods}">
+                                        <td th:text="${method.id}">#1</td>
+                                        <td>
+                                            <strong th:text="${method.bankName}">Kapital Bank</strong>
+                                        </td>
+                                        <td>
+                                            <span class="font-monospace" 
+                                                  th:text="${method.cardNumber.substring(0, 4) + ' **** **** ' + method.cardNumber.substring(method.cardNumber.length() - 4)}">
+                                                4169 **** **** 1234
+                                            </span>
+                                        </td>
+                                        <td th:text="${method.cardHolderName}">Əli Vəliyev</td>
+                                        <td>
+                                            <span th:if="${method.isActive}" class="badge bg-success">Aktiv</span>
+                                            <span th:unless="${method.isActive}" class="badge bg-danger">Deaktiv</span>
+                                        </td>
+                                        <td th:text="${#temporals.format(method.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2024 10:30</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-warning" 
+                                                        th:onclick="|toggleStatus(${method.id})|"
+                                                        th:title="${method.isActive ? 'Deaktivləşdir' : 'Aktivləşdir'}">
+                                                    <i th:class="${method.isActive ? 'bi bi-toggle-on' : 'bi bi-toggle-off'}"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-danger" 
+                                                        th:onclick="|confirmDelete(${method.id}, '${method.bankName}')|"
+                                                        title="Sil">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div th:if="${paymentMethods == null or paymentMethods.isEmpty()}" class="text-center py-5">
+                            <i class="bi bi-credit-card display-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">Hələ heç bir ödəniş üsulu əlavə edilməyib</h5>
+                            <p class="text-muted">İlk ödəniş üsulunu əlavə etmək üçün yuxarıdakı düyməni sıxın</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yeni Ödəniş Üsulu Modal -->
+    <div class="modal fade" id="addPaymentMethodModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle me-2"></i>Yeni Ödəniş Üsulu Əlavə Et
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="addPaymentMethodForm" onsubmit="addPaymentMethod(event)">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="bankName" class="form-label">Bank Adı</label>
+                            <select class="form-select" id="bankName" name="bankName" required>
+                                <option value="">Bank seçin...</option>
+                                <option value="Kapital Bank">Kapital Bank</option>
+                                <option value="İş Bank">İş Bank</option>
+                                <option value="Rabitə Bank">Rabitə Bank</option>
+                                <option value="Access Bank">Access Bank</option>
+                                <option value="AB Bank">AB Bank</option>
+                                <option value="Bank of Baku">Bank of Baku</option>
+                                <option value="Əmlak Bank">Əmlak Bank</option>
+                                <option value="Azer-Türk Bank">Azer-Türk Bank</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="cardNumber" class="form-label">Kart Nömrəsi</label>
+                            <input type="text" class="form-control font-monospace" id="cardNumber" 
+                                   name="cardNumber" placeholder="4169 1234 5678 9012" 
+                                   maxlength="19" required>
+                            <div class="form-text">16 rəqəmli kart nömrəsini daxil edin</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="cardHolderName" class="form-label">Kart Sahibinin Adı</label>
+                            <input type="text" class="form-control" id="cardHolderName" 
+                                   name="cardHolderName" placeholder="AD SOYAD" required>
+                            <div class="form-text">Kartda yazıldığı kimi böyük hərflərlə</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Açıqlama (opsional)</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="2" placeholder="C2C kartı haqqında əlavə məlumat..."></textarea>
+                            <div class="form-text">İstifadəçilərə göstəriləcək əlavə məlumat</div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Qeyd:</strong> Bu məlumatlar istifadəçilərə bakiyə yükləmə üçün göstəriləcək. 
+                            Zəhmət olmasa doğru məlumatları daxil edin.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i>Ləğv Et
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i>Əlavə Et
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/admin-layout :: scripts}"></div>
+    
+    <script>
+        // Səhifə yüklənəndə Bootstrap yoxla
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Səhifə yükləndi');
+            console.log('Bootstrap var mı?', typeof bootstrap !== 'undefined');
+            console.log('Modal element var mı?', document.getElementById('addPaymentMethodModal'));
+            
+            // Modal düyməsinə click event əlavə et
+            const modalBtn = document.querySelector('[data-bs-target="#addPaymentMethodModal"]');
+            if (modalBtn) {
+                console.log('Modal düyməsi tapıldı');
+                modalBtn.addEventListener('click', function(e) {
+                    console.log('Modal düyməsi sıxıldı');
+                    e.preventDefault();
+                    
+                    // Bootstrap modal yaradaq və açaq
+                    try {
+                        const modalElement = document.getElementById('addPaymentMethodModal');
+                        if (modalElement) {
+                            const modal = new bootstrap.Modal(modalElement);
+                            modal.show();
+                            console.log('Modal açıldı');
+                        } else {
+                            console.error('Modal element tapılmadı!');
+                        }
+                    } catch (error) {
+                        console.error('Modal açılışında xəta:', error);
+                    }
+                });
+            } else {
+                console.error('Modal düyməsi tapılmadı!');
+            }
+        });
+        
+        // Kart nömrəsi formatlaması
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            if (formattedValue.length > 19) {
+                formattedValue = formattedValue.substring(0, 19);
+            }
+            e.target.value = formattedValue;
+        });
+
+        // Yeni ödəniş üsulu əlavə et
+        function addPaymentMethod(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.querySelector('#addPaymentMethodForm button[type="submit"]');
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // Düyməni disable et
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Əlavə edilir...';
+            
+            // CSRF token əlavə et
+            const csrfToken = document.querySelector('meta[name="_csrf"]');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+            
+            const headers = {
+                'X-Requested-With': 'XMLHttpRequest'
+            };
+            
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader.getAttribute('content')] = csrfToken.getAttribute('content');
+            }
+            
+            fetch('/admin/api/payment-methods', {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (response.ok) {
+                    // Uğurlu
+                    form.reset();
+                    bootstrap.Modal.getInstance(document.getElementById('addPaymentMethodModal')).hide();
+                    location.reload();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Bilinməyən xəta');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Xəta:', error);
+                alert('Ödəniş üsulu əlavə edilərkən xəta baş verdi: ' + error.message);
+            })
+            .finally(() => {
+                // Düyməni əvvəlki halına qaytar
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Əlavə Et';
+            });
+        }
+
+        // Status dəyiş
+        function toggleStatus(methodId) {
+            if (confirm('Bu ödəniş üsulunun statusunu dəyişmək istədiyinizə əminsinizmi?')) {
+                fetch(`/admin/api/payment-methods/${methodId}/toggle`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [document.querySelector('meta[name="_csrf_header"]').content]: 
+                            document.querySelector('meta[name="_csrf"]').content
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        throw new Error('Status dəyişdirilə bilmədi');
+                    }
+                })
+                .catch(error => {
+                    console.error('Xəta:', error);
+                    alert('Status dəyişdirilə bilmədi');
+                });
+            }
+        }
+
+        // Silmə təsdiqi
+        function confirmDelete(methodId, bankName) {
+            if (confirm(`"${bankName}" ödəniş üsulunu silmək istədiyinizə əminsinizmi?\n\nDiqqət: Bu əməliyyat geri qaytarıla bilməz!`)) {
+                fetch(`/admin/api/payment-methods/${methodId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [document.querySelector('meta[name="_csrf_header"]').content]: 
+                            document.querySelector('meta[name="_csrf"]').content
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        throw new Error('Ödəniş üsulu silinə bilmədi');
+                    }
+                })
+                .catch(error => {
+                    console.error('Xəta:', error);
+                    alert('Ödəniş üsulu silinə bilmədi');
+                });
+            }
+        }
+    </script>
+</body>
+</html> 

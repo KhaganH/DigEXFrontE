@@ -18,11 +18,14 @@ export const useCart = () => {
 
     try {
       console.log('🛒 Fetching cart count for user:', user.username);
+      console.log('🛒 Auth token exists:', !!localStorage.getItem('authToken'));
       setIsLoading(true);
       // Safely get cart count
       const count = await cartService.getCartCount();
-      console.log('🛒 Cart count received:', count);
-      setCartCount(typeof count === 'number' ? count : 0);
+      console.log('🛒 Cart count received:', count, 'type:', typeof count);
+      const finalCount = typeof count === 'number' ? count : 0;
+      console.log('🛒 Final cart count set to:', finalCount);
+      setCartCount(finalCount);
     } catch (error) {
       console.error('❌ Error fetching cart:', error);
       setCartCount(0);
@@ -54,29 +57,58 @@ export const useCart = () => {
 
   const addToCart = async (productId: number, quantity: number = 1) => {
     try {
+      console.log('🛒 useCart: Adding to cart - productId:', productId, 'quantity:', quantity);
       const response = await cartService.addToCart(productId, quantity);
+      console.log('🛒 useCart: Add to cart response:', response);
+      
+      if (response.success && typeof response.cartCount === 'number') {
+        console.log('🛒 useCart: Updating cart count to:', response.cartCount);
       setCartCount(response.cartCount);
+      } else {
+        console.log('🛒 useCart: Response success is false or cartCount is invalid, refreshing cart');
+        await fetchCart(); // Refresh cart count
+      }
+      
       return response;
     } catch (error) {
+      console.error('❌ useCart: Add to cart error:', error);
       throw error;
     }
   };
 
   const updateCartItem = async (cartItemId: number, quantity: number) => {
     try {
-      await cartService.updateCartItem(cartItemId, quantity);
-      await fetchCart(); // Refresh cart count
+      console.log('🛒 useCart: Updating cart item:', cartItemId, 'quantity:', quantity);
+      const response = await cartService.updateCartItem(cartItemId, quantity);
+      console.log('🛒 useCart: Update cart item response:', response);
+      
+      // Update both full cart data and count
+      await fetchFullCart();
+      
+      return response;
     } catch (error) {
+      console.error('❌ useCart: Update cart item error:', error);
       throw error;
     }
   };
 
   const removeFromCart = async (cartItemId: number) => {
     try {
+      console.log('🛒 useCart: Removing from cart:', cartItemId);
       const response = await cartService.removeFromCart(cartItemId);
-      setCartCount(response.cartCount);
+      console.log('🛒 useCart: Remove from cart response:', response);
+      
+      if (response.success && typeof response.cartCount === 'number') {
+        setCartCount(response.cartCount);
+        // Also update full cart data
+        await fetchFullCart();
+      } else {
+        await fetchCart();
+      }
+      
       return response;
     } catch (error) {
+      console.error('❌ useCart: Remove from cart error:', error);
       throw error;
     }
   };

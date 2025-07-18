@@ -7,7 +7,7 @@ export interface UserProfile {
   email: string;
   firstName?: string;
   lastName?: string;
-  phone?: string;
+  phoneNumber?: string;
   address?: string;
   balance: number;
   role: string;
@@ -17,12 +17,26 @@ export interface UserProfile {
 }
 
 export interface UpdateProfileRequest {
+  username: string;
+  email: string;
   firstName?: string;
   lastName?: string;
-  phone?: string;
+  phoneNumber?: string;
   address?: string;
   storeName?: string;
   storeDescription?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface NotificationSettings {
+  orderConfirmation: boolean;
+  orderDelivery: boolean;
+  newProducts: boolean;
+  discounts: boolean;
 }
 
 export interface Notification {
@@ -39,8 +53,23 @@ class UserService {
     return apiClient.get<UserProfile>('/api/user/profile');
   }
 
-  async updateProfile(data: UpdateProfileRequest): Promise<UserProfile> {
-    return apiClient.put<UserProfile>('/api/user/profile', data);
+  async getUserProfile(userId: number): Promise<UserProfile> {
+    return apiClient.get<UserProfile>(`/api/users/${userId}`);
+  }
+
+  async updateProfile(userId: number, data: UpdateProfileRequest): Promise<UserProfile> {
+    return apiClient.put<UserProfile>(`/api/users/${userId}`, data);
+  }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    return apiClient.post('/api/user/change-password', {
+      currentPassword,
+      newPassword
+    });
+  }
+
+  async updateNotificationSettings(settings: NotificationSettings): Promise<{ success: boolean; message: string }> {
+    return apiClient.post('/api/user/notification-settings', settings);
   }
 
   async getNotifications(): Promise<Notification[]> {

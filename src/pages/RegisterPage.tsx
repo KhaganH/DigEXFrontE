@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, User, Mail, Lock, UserPlus, Chrome, Facebook } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Alert from '../components/Alert';
 import { useAuth } from '../hooks/useAuth';
 
@@ -22,6 +23,7 @@ interface RegisterPageProps {
 }
 
 const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     username: '',
     email: '',
@@ -138,19 +140,17 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
     setIsSubmitting(true);
     
     try {
-      await register(formData);
+      const response = await register(formData);
       
       setAlert({
         type: 'success',
-        message: 'Qeydiyyat uğurla tamamlandı! Ana səhifəyə yönləndirilirsiniz...'
+        message: 'Qeydiyyat uğurla tamamlandı! Avtomatik giriş edilir...'
       });
       
-      // Redirect to home after 2 seconds
+      // Redirect to home immediately after successful registration and auto-login
       setTimeout(() => {
-        if (onNavigate) {
-          onNavigate('home');
-        }
-      }, 2000);
+        navigate('/');
+      }, 800);
       
     } catch (error: any) {
       setAlert({
@@ -375,7 +375,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 <p className="text-gray-600">
                   Hesabınız var?{' '}
                   <button 
-                    onClick={() => onNavigate && onNavigate('login')}
+                    onClick={() => navigate('/login')}
                     className="text-green-600 hover:text-green-500 font-medium transition-colors"
                   >
                     Daxil olun
