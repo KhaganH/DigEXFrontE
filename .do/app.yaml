@@ -1,0 +1,58 @@
+name: digex-frontend
+region: fra1  # Frankfurt region, EU'ya daha yakın
+
+services:
+  - name: frontend
+    source_dir: /
+    github:
+      repo: KhaganH/DigEXFrontE
+      branch: main
+      deploy_on_push: true
+    
+    # Use Docker build
+    dockerfile_path: Dockerfile
+    
+    # Environment variables
+    envs:
+      - key: BACKEND_HOST
+        value: digex-backend-service.ondigitalocean.app  # Backend servis URL'i
+        type: SECRET
+      - key: BACKEND_PORT
+        value: "1111"  # Backend port
+        type: SECRET
+      - key: FRONTEND_URL
+        value: https://digex-frontend.ondigitalocean.app  # Frontend URL'i
+        type: SECRET
+      - key: NODE_ENV
+        value: production
+    
+    # Instance configuration
+    instance_count: 1
+    instance_size_slug: basic-xxs  # En küçük instance (512MB RAM)
+    
+    # Health check
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+    
+    # HTTP configuration
+    http_port: 80
+    
+    # Routes
+    routes:
+      - path: /
+        preserve_path_prefix: false
+
+# Domain configuration (opsiyonel)
+domains:
+  - domain: digex-frontend.ondigitalocean.app
+    type: PRIMARY
+    zone: digex-frontend.ondigitalocean.app
+
+# Features
+features:
+  - buildpack-stack=ubuntu-22 
