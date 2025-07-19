@@ -54,7 +54,10 @@ class BalanceLoadService {
     formData.append('receiptImage', receiptFile);
 
     const token = localStorage.getItem('authToken');
-    const response = await fetch('http://localhost:1111/api/balance-requests/create', {
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:1111' 
+      : 'https://digex-backend-h4ybp.ondigitalocean.app';
+    const response = await fetch(`${baseUrl}/api/balance-requests/create`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -84,7 +87,10 @@ class BalanceLoadService {
     };
 
     const token = localStorage.getItem('authToken');
-    const response = await fetch('http://localhost:1111/api/balance-requests/create-cloudinary', {
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:1111' 
+      : 'https://digex-backend-h4ybp.ondigitalocean.app';
+    const response = await fetch(`${baseUrl}/api/balance-requests/create-cloudinary`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

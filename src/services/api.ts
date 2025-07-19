@@ -1,5 +1,7 @@
-// API Base Configuration
-const API_BASE_URL = 'http://localhost:1111';
+// API Base Configuration  
+const API_BASE_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:1111' 
+  : 'https://digex-backend-h4ybp.ondigitalocean.app';
 
 // API Client with interceptors
 class ApiClient {
