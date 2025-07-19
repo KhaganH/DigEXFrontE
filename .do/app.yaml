@@ -15,10 +15,10 @@ services:
     # Environment variables
     envs:
       - key: BACKEND_HOST
-        value: digex-backend-service.ondigitalocean.app  # Backend servis URL'i
+        value: digex-backend-h4ybp.ondigitalocean.app  # Backend servis URL'i
         type: SECRET
       - key: BACKEND_PORT
-        value: "1111"  # Backend port
+        value: "443"  # HTTPS port
         type: SECRET
       - key: FRONTEND_URL
         value: https://digex-frontend.ondigitalocean.app  # Frontend URL'i
