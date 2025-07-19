@@ -21,7 +21,7 @@ services:
         value: "443"  # HTTPS port
         type: SECRET
       - key: FRONTEND_URL
-        value: https://digex-frontend.ondigitalocean.app  # Frontend URL'i
+        value: https://digex-frontend-n5li6.ondigitalocean.app  # Frontend URL'i
         type: SECRET
       - key: NODE_ENV
         value: production
