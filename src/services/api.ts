@@ -64,6 +64,11 @@ class ApiClient {
     };
     
     // DEBUG: Log request details AFTER config is built
+    console.log('🔄 API Request:', {
+      url,
+      method: config.method || 'GET',
+      headers: config.headers
+    });
 
 
     try {
