@@ -7,8 +7,8 @@ export FRONTEND_URL="${FRONTEND_URL:-*}"
 
 # Extract host from URL if BACKEND_HOST contains a URL
 if echo "$BACKEND_HOST" | grep -q "://"; then
-    # Extract hostname from URL (remove protocol and port)
-    BACKEND_HOST=$(echo "$BACKEND_HOST" | sed 's|^https\?://||' | sed 's|:.*$||')
+    # Extract hostname from URL (remove protocol, port, and trailing slash)
+    BACKEND_HOST=$(echo "$BACKEND_HOST" | sed 's|^https\?://||' | sed 's|:.*$||' | sed 's|/$||')
     echo "🔧 Extracted hostname from URL: $BACKEND_HOST"
 fi
 
